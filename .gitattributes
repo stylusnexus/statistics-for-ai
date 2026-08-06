@@ -1,0 +1,26 @@
+# Line-ending normalization -------------------------------------------------
+* text=auto eol=lf
+
+*.html   text
+*.md     text
+*.json   text
+*.canvas text
+
+# GitHub Linguist ------------------------------------------------------------
+# This repository is course material, not an application. Left alone, Linguist
+# reports it as ~100% HTML, which reads as a web project and tells a visitor
+# nothing true about what is here. The HTML is prose with inline styling; the
+# JSON and Canvas files are study artifacts, not source.
+#
+# Marking everything as documentation removes the language bar entirely, which
+# is the honest result for a repo that contains no code.
+
+*.html                                  linguist-documentation
+*.md                                    linguist-documentation
+ai-statistics-foundations/review/*.json linguist-documentation
+
+# The memory map is machine-generated JSON Canvas — collapse it in diffs.
+*.canvas linguist-generated
+
+# The license is boilerplate; keep it out of the stats.
+LICENSE linguist-vendored
