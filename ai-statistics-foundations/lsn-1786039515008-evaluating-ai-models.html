@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Evaluating AI Models Rigorously</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Confusion matrix */
+  .cm-wrap { overflow-x: auto; margin: 20px 0; }
+  .cm-grid {
+    display: grid;
+    grid-template-columns: 140px 1fr 1fr;
+    grid-template-rows: auto 1fr 1fr;
+    gap: 6px;
+    min-width: 480px;
+  }
+  .cm-cell {
+    border-radius: 8px; padding: 14px; display: flex; flex-direction: column;
+    justify-content: center; min-height: 84px;
+  }
+  .cm-head {
+    background: transparent; color: var(--muted); font-size: 0.78em; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.03em; text-align: center;
+    display: flex; align-items: flex-end; justify-content: center; padding-bottom: 6px;
+  }
+  .cm-rowlabel {
+    background: transparent; color: var(--muted); font-size: 0.78em; font-weight: 700;
+    text-transform: uppercase; letter-spacing: 0.03em; display: flex; align-items: center;
+    justify-content: flex-end; text-align: right; padding-right: 10px;
+  }
+  .cm-corner { background: transparent; }
+  .cm-tp { background: rgba(52,211,153,0.14); border: 1px solid var(--green); }
+  .cm-tn { background: rgba(52,211,153,0.14); border: 1px solid var(--green); }
+  .cm-fp { background: rgba(248,113,113,0.14); border: 1px solid var(--red); }
+  .cm-fn { background: rgba(248,113,113,0.14); border: 1px solid var(--red); }
+  .cm-tag { font-size: 0.72em; font-weight: 700; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .cm-tp .cm-tag, .cm-tn .cm-tag { color: var(--green); }
+  .cm-fp .cm-tag, .cm-fn .cm-tag { color: var(--red); }
+  .cm-desc { font-size: 0.88em; color: var(--text); }
+  .cm-count { font-size: 1.3em; font-weight: 700; margin: 2px 0; }
+
+  @media (max-width: 600px) {
+    .cm-grid { grid-template-columns: 90px 1fr 1fr; }
+    .cm-cell { padding: 8px; min-height: 96px; }
+    .cm-desc { font-size: 0.78em; }
+  }
+
+  /* threshold diagram */
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .formula-box {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 18px; margin: 14px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.95em;
+  }
+
+  .checklist { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 20px; margin: 20px 0; }
+  .checklist h4 { margin: 0 0 10px; color: var(--text); }
+  .checklist ul { list-style: none; padding-left: 0; margin: 0; }
+  .checklist li { display: flex; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
+  .checklist li:last-child { margin-bottom: 0; }
+  .check-box { flex-shrink: 0; width: 20px; height: 20px; border: 2px solid var(--accent); border-radius: 5px; margin-top: 2px; }
+  .checklist strong { color: var(--text); }
+  .checklist span.detail { color: var(--muted); }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 9 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Evaluating AI Models Rigorously</h1>
+<p class="subtitle">You built a model. Now: is it actually good, or does it just look good on the one number you checked?</p>
+
+<p>Lesson 8 was about training a model — minimizing loss, watching for overfitting. This lesson is about the step that comes after training, and the one that decides whether your model ships: <strong>evaluation</strong>. Specifically, evaluation for classifiers — the yes/no, spam/not-spam, hallucination/not-hallucination decisions that a huge share of practical AI systems boil down to. This is the most directly useful lesson in the course for anyone building and shipping AI products, because a wrong evaluation doesn't just mislead you in a notebook — it ships a broken model to real users with a green checkmark on it.</p>
+
+<h2>1. The confusion matrix: your model's report card</h2>
+
+<p>Say you build a <strong>hallucination detector</strong>: given an LLM's answer, it predicts "hallucinated" or "grounded." You test it against 100 answers a human has already labeled correctly. Every prediction lands in exactly one of four buckets, depending on what the model predicted and what was actually true:</p>
+
+<div class="cm-wrap">
+<div class="cm-grid">
+  <div class="cm-cell cm-corner"></div>
+  <div class="cm-cell cm-head">Actual: Hallucinated</div>
+  <div class="cm-cell cm-head">Actual: Grounded</div>
+
+  <div class="cm-cell cm-rowlabel">Predicted:<br>Hallucinated</div>
+  <div class="cm-cell cm-tp">
+    <div class="cm-tag">TRUE POSITIVE (TP)</div>
+    <div class="cm-desc">Model flagged it, and it really was a hallucination. Caught it.</div>
+  </div>
+  <div class="cm-cell cm-fp">
+    <div class="cm-tag">FALSE POSITIVE (FP)</div>
+    <div class="cm-desc">Model flagged it, but it was actually fine. A false alarm.</div>
+  </div>
+
+  <div class="cm-cell cm-rowlabel">Predicted:<br>Grounded</div>
+  <div class="cm-cell cm-fn">
+    <div class="cm-tag">FALSE NEGATIVE (FN)</div>
+    <div class="cm-desc">Model said it was fine, but it was actually a hallucination. Missed it.</div>
+  </div>
+  <div class="cm-cell cm-tn">
+    <div class="cm-tag">TRUE NEGATIVE (TN)</div>
+    <div class="cm-desc">Model said it was fine, and it really was fine. Correctly passed.</div>
+  </div>
+</div>
+</div>
+<p class="viz-caption">The 2&times;2 confusion matrix. Rows = what the model predicted. Columns = what was actually true. Green cells are correct; red cells are the two different ways a classifier can be wrong.</p>
+
+<p>Two rows, two columns, four outcomes — that's the whole confusion matrix. Every binary classifier you evaluate, from a content moderation filter to a spam detector to this hallucination checker, produces exactly this table when you run it against labeled test data. The two error types are not the same mistake with two names — they have very different costs:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>False Positive cost</h4>
+    <p>A grounded, correct LLM answer gets flagged as a hallucination. You annoy users with unnecessary warnings, or block content that was actually fine.</p>
+  </div>
+  <div class="card">
+    <h4>False Negative cost</h4>
+    <p>A real hallucination slips through unflagged. A user trusts a fabricated fact. This is usually the more dangerous failure.</p>
+  </div>
+</div>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  "The model was wrong" isn't specific enough to act on. "The model has a false-negative problem — it's letting real hallucinations through" tells you exactly what to fix, and whether that's even the failure mode you should be worried about for your product.
+</div>
+
+<h2>2. Why accuracy lies — the callback to Lesson 2</h2>
+
+<p>The most obvious metric is <strong>accuracy</strong>: what fraction of predictions were correct?</p>
+<div class="formula-box">accuracy = (TP + TN) / (TP + TN + FP + FN)</div>
+
+<p>Remember the 95/5 spam class-imbalance example from Lesson 2? Here it is again, in its native habitat: evaluation. Suppose your content moderation filter runs against 1,000 posts, of which 950 are clean and only 50 are actually policy-violating. A lazy model that predicts "clean" for <em>every single post</em>, never once looking at the content, produces this confusion matrix:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th></th><th>Actual: Violating</th><th>Actual: Clean</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Predicted: Violating</strong></td><td class="num">TP = 0</td><td class="num">FP = 0</td></tr>
+    <tr><td><strong>Predicted: Clean</strong></td><td class="num">FN = 50</td><td class="num">TN = 950</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="step-box">
+<div class="line">accuracy = (0 + 950) / (0 + 950 + 0 + 50)</div>
+<div class="line">         = 950 / 1000</div>
+<div class="line result">         = 95% accuracy</div>
+</div>
+
+<p>A model that does zero moderation — that never once catches a single violation — reports 95% accuracy. That's the exact same trap as Lesson 2's spam classifier that predicts "not spam" every time. Accuracy rewards agreeing with whichever class is bigger, and on imbalanced data one class is almost always much bigger. This is the single most common way an AI eval misleads a team into shipping a useless model with an impressive-looking number attached.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Never trust a bare accuracy number without first checking the class balance of the eval set. If one class is rare — hallucinations, fraud, policy violations, defects — accuracy can stay high while the model completely fails at the thing you actually built it to catch.
+</div>
+
+<h2>3. Precision and recall: metrics that can't hide behind class imbalance</h2>
+
+<p>Precision and recall are both built from the confusion matrix, but each asks a different, specific question — and unlike accuracy, each is defined relative to only one row or one column, so a lazy "always predict the majority class" model cannot hide inside it.</p>
+
+<h3>Precision: of everything I flagged, how much was actually real?</h3>
+<div class="formula-box">precision = TP / (TP + FP)</div>
+<p>Precision asks: when your hallucination detector raises a flag, how often is it right? Low precision means the model cries wolf — users learn to ignore its warnings.</p>
+
+<h3>Recall: of everything that was actually real, how much did I catch?</h3>
+<div class="formula-box">recall = TP / (TP + FN)</div>
+<p>Recall asks: of all the real hallucinations that existed in the data, what fraction did the model actually catch? Low recall means real problems are slipping through undetected.</p>
+
+<p>Go back to the "predict clean every time" moderation model. Its precision and recall for the violating class:</p>
+<div class="step-box">
+<div class="line">precision = TP / (TP + FP) = 0 / (0 + 0)  &rarr; undefined / 0%, no violations ever flagged</div>
+<div class="line">recall    = TP / (TP + FN) = 0 / (0 + 50) = 0%</div>
+</div>
+<p>Recall of 0% instantly exposes what accuracy hid: this model catches nothing. That's the whole reason precision and recall exist — they refuse to be flattered by an imbalanced dataset the way accuracy does.</p>
+
+<h3>F1: one number when you need to balance both</h3>
+<p>Precision and recall trade off against each other (more on that next), so comparing two models on both numbers separately gets awkward. <strong>F1 score</strong> combines them into a single number — the harmonic mean, which punishes a big gap between the two more than a plain average would:</p>
+<div class="formula-box">F1 = 2 &times; (precision &times; recall) / (precision + recall)</div>
+<p>A model with precision 0.9 and recall 0.1 gets an F1 around 0.18 — nowhere near the 0.5 a plain average would suggest, because F1 refuses to reward a model that's great at one and terrible at the other. Use F1 as a quick single-number comparison; use precision and recall separately when you need to know <em>which kind</em> of error a model makes.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Accuracy asks "how often was I right overall?" — a question a lazy model can game on imbalanced data. Precision and recall each ask a narrower, harder-to-fake question about one specific type of mistake. That's why they're the default metrics for hallucination detectors, spam filters, fraud detection, and content moderation — anywhere the class you care about is the rare one.
+</div>
+
+<h2>4. The precision/recall tradeoff: how cautious should the filter be?</h2>
+
+<p>Most classifiers don't output a hard "yes/no" — they output a <strong>probability score</strong> (e.g., "73% likely this is a hallucination"), and you pick a <strong>threshold</strong> above which you call it a positive. Move that threshold, and you trade precision for recall or vice versa.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 620 260" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="A number line of hallucination-probability scores from 0 to 1, with a movable threshold marker. Moving the threshold left catches more hallucinations but flags more false positives; moving it right flags fewer but misses more real hallucinations.">
+  <text x="310" y="24" text-anchor="middle" fill="#e2e8f0" font-size="15" font-weight="700">Same 10 predictions, three threshold choices</text>
+
+  <!-- axis -->
+  <line x1="60" y1="70" x2="560" y2="70" stroke="#2e3248" stroke-width="1.5"/>
+  <text x="60" y="58" text-anchor="middle" fill="#94a3b8" font-size="10">0.0 (confident: fine)</text>
+  <text x="560" y="58" text-anchor="middle" fill="#94a3b8" font-size="10">1.0 (confident: hallucination)</text>
+
+  <!-- dots: mix of true hallucinations (red ring) and true-grounded (green ring) at various scores -->
+  <!-- scores roughly: 0.1(G),0.15(G),0.3(G),0.35(H),0.45(G),0.55(H),0.6(G),0.7(H),0.85(H),0.95(H) -->
+  <circle cx="110" cy="70" r="7" fill="#34d399" stroke="#0f1117" stroke-width="1"/>
+  <circle cx="135" cy="70" r="7" fill="#34d399" stroke="#0f1117" stroke-width="1"/>
+  <circle cx="200" cy="70" r="7" fill="#34d399" stroke="#0f1117" stroke-width="1"/>
+  <circle cx="220" cy="70" r="7" fill="#f87171" stroke="#0f1117" stroke-width="1"/>
+  <circle cx="270" cy="70" r="7" fill="#34d399" stroke="#0f1117" stroke-width="1"/>
+  <circle cx="320" cy="70" r="7" fill="#f87171" stroke="#0f1117" stroke-width="1"/>
+  <circle cx="345" cy="70" r="7" fill="#34d399" stroke="#0f1117" stroke-width="1"/>
+  <circle cx="405" cy="70" r="7" fill="#f87171" stroke="#0f1117" stroke-width="1"/>
+  <circle cx="480" cy="70" r="7" fill="#f87171" stroke="#0f1117" stroke-width="1"/>
+  <circle cx="530" cy="70" r="7" fill="#f87171" stroke="#0f1117" stroke-width="1"/>
+
+  <text x="60" y="95" fill="#94a3b8" font-size="10">&#9679; green = actually grounded &nbsp; &#9679; red = actually hallucinated</text>
+
+  <!-- three threshold lines -->
+  <line x1="240" y1="115" x2="240" y2="240" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="240" y="108" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="700">low threshold (0.3)</text>
+  <text x="240" y="256" text-anchor="middle" fill="#94a3b8" font-size="10">flags 8 of 10 &rarr; high recall, lower precision</text>
+
+  <line x1="360" y1="115" x2="360" y2="240" stroke="#6c8fff" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="360" y="108" text-anchor="middle" fill="#6c8fff" font-size="11" font-weight="700">medium (0.5)</text>
+
+  <line x1="490" y1="115" x2="490" y2="240" stroke="#a78bfa" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="490" y="108" text-anchor="middle" fill="#a78bfa" font-size="11" font-weight="700">high threshold (0.8)</text>
+  <text x="490" y="256" text-anchor="middle" fill="#94a3b8" font-size="10">flags only 2 &rarr; high precision, lower recall</text>
+
+  <text x="140" y="140" fill="#94a3b8" font-size="10">&#8592; below threshold: predicted "fine"</text>
+  <text x="470" y="140" text-anchor="end" fill="#94a3b8" font-size="10">above threshold: predicted "hallucination" &#8594;</text>
+</svg>
+</div>
+<p class="viz-caption">Same 10 scored predictions, three threshold cutoffs. Sliding the threshold left (lower) flags more items — catches more real hallucinations (higher recall) but also flags more grounded answers by mistake (lower precision). Sliding right does the opposite.</p>
+
+<p>Translate the two ends into a product decision:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Low threshold (cautious filter)</h4>
+    <p>Flags anything even slightly suspicious. Catches nearly every real hallucination (high recall) but also flags a lot of fine answers (low precision) — users see frequent, sometimes unnecessary warnings.</p>
+  </div>
+  <div class="card">
+    <h4>High threshold (permissive filter)</h4>
+    <p>Only flags what it's very confident about. Rarely wrong when it does flag something (high precision), but lets more real hallucinations slip through unflagged (low recall).</p>
+  </div>
+</div>
+
+<p>There's no universally "correct" threshold — it's a product decision, not a math problem. A hallucination detector for a medical-advice chatbot should probably sit at a low, cautious threshold: missing a real hallucination is much worse than an occasional false alarm. A detector that just adds a soft "this might be wrong" badge in a casual chat app can afford a higher threshold and fewer interruptions.</p>
+
+<h3>ROC/AUC, briefly</h3>
+<p>You'll frequently see "ROC curve" or "AUC" in papers and eval dashboards. All it is: instead of picking one threshold and reporting one precision/recall pair, you sweep the threshold across its whole range and plot the tradeoff as a curve. <strong>AUC</strong> ("area under the curve") compresses that whole curve into one number between 0 and 1 — closer to 1 means the model separates the two classes well <em>across every possible threshold</em>, not just the one you happened to pick. You don't need to derive it by hand; just recognize it as "a way to judge a model's overall discriminating power, independent of any single threshold choice."</p>
+
+<h2>5. Is Model B actually better, or is that just noise?</h2>
+
+<p>You've swapped in a new prompt and re-run your eval set. The new prompt scores higher. Before you ship it, there's a question the score alone can't answer: <strong>is that difference real, or could it have happened by chance even if the two prompts were equally good?</strong> This is exactly the sampling problem from Lesson 5, showing up again in a new costume.</p>
+
+<h3>The core intuition: p-values, in plain language</h3>
+<p>A <strong>p-value</strong> answers one specific question: <em>if there were actually no real difference between Prompt A and Prompt B, how surprising would a result this large be, just from random luck in which examples happened to be in your eval set?</em></p>
+<ul>
+  <li>A <strong>small</strong> p-value (conventionally under 0.05) means: "a gap this big would be a pretty rare coincidence if the two prompts were truly equal — so I'm fairly confident the difference is real."</li>
+  <li>A <strong>large</strong> p-value means: "a gap this big happens easily by chance alone — I have no good reason to believe one prompt is actually better."</li>
+</ul>
+<p>A p-value is not "the probability my result is wrong," and it's not "how much better Model B is." It's purely a measure of how surprising your observed gap would be under the assumption that there's no real difference. That's a subtle distinction, but it's the one that keeps you from over-trusting a lucky-looking eval run.</p>
+
+<h3>Why sample size is the whole game — callback to Lesson 5</h3>
+<p>Lesson 5 showed that small samples give you noisy, untrustworthy estimates of a population, and the Central Limit Theorem is exactly why: your eval score is itself just an estimate, built from a sample of test examples, and estimates from small samples swing wildly by chance alone. A model's "true" score against every possible input it might ever see is unknowable — you're always estimating it from a limited eval set, and a small eval set is a small, noisy sample.</p>
+
+<h2>6. Worked example: 75% vs. 80% — real win or noise?</h2>
+
+<p>Two prompts, same eval set size, tested on your hallucination detector's downstream task (call it "answer quality: pass/fail" per example, graded by a human or an LLM judge):</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Scenario</th><th class="num">N (eval examples)</th><th>Prompt A score</th><th>Prompt B score</th><th>Raw gap</th></tr></thead>
+  <tbody>
+    <tr><td>Small eval set</td><td class="num">20</td><td>75% (15/20 passed)</td><td>80% (16/20 passed)</td><td>+5 points</td></tr>
+    <tr><td>Large eval set</td><td class="num">500</td><td>75% (375/500 passed)</td><td>80% (400/500 passed)</td><td>+5 points</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Same 5-point gap, same percentages — but they tell you very different things.</p>
+
+<h3>N = 20: the gap is one flipped example away from vanishing</h3>
+<p>With only 20 examples, the difference between 75% and 80% is exactly <strong>one example</strong> — 15 correct vs. 16 correct. Flip a single borderline case (maybe the LLM judge was inconsistent, maybe one test example was ambiguously worded) and the "win" disappears or reverses entirely. A formal significance test on this gap (a two-proportion test) typically returns a p-value well above 0.05 here — nowhere near enough evidence to call Prompt B better. This is indistinguishable from noise.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  "Prompt B beat Prompt A on my 20-example eval set" is one of the most common false claims in prompt engineering. With N=20, a single flipped example moves the score by 5 full percentage points. You have not learned that B is better — you've learned that B happened to get lucky on this particular small sample.
+</div>
+
+<h3>N = 500: the same gap is now solid evidence</h3>
+<p>With 500 examples, that same 5-point gap represents 25 more passing examples (400 vs. 375) — a much larger, harder-to-explain-by-luck difference, and the estimate itself is far less noisy because it's built from a much bigger sample (exactly the CLT logic from Lesson 5: more data narrows the spread of your estimate around the true value). A significance test on this version of the gap typically returns a small p-value — this is a real, reproducible difference, not sampling luck.</p>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Same headline number, opposite conclusion, purely because of sample size. This is the single most actionable fact in this lesson: before you trust any "Model/Prompt B beat A" claim — including your own — check how many eval examples it's based on.
+</div>
+
+<h3>Rule of thumb</h3>
+<p>There's no universal magic number, because it depends on how big a difference you're trying to detect and how much the individual examples vary. But as a working habit: treat comparisons on eval sets under ~30-50 examples as directional hints, not conclusions. For a difference you actually plan to act on — swapping a production prompt, choosing between two fine-tuned models — aim for enough examples that a couple of flipped grades wouldn't change the headline result, and ideally run a real significance test (a two-proportion z-test or a bootstrap resample) rather than eyeballing the percentages.</p>
+
+<h2>Checklist: before you believe an eval result</h2>
+
+<div class="checklist">
+  <h4>Run through this before trusting any eval score you or your AI teacher hands you:</h4>
+  <ul>
+    <li><span class="check-box"></span><span><strong>Imbalanced classes?</strong> <span class="detail">Check the class distribution before trusting accuracy. If one class dominates, demand precision/recall/F1 instead.</span></span></li>
+    <li><span class="check-box"></span><span><strong>Enough samples?</strong> <span class="detail">A handful of eval examples can't distinguish a real improvement from noise. Bigger gaps need less data to trust; small gaps need a lot more.</span></span></li>
+    <li><span class="check-box"></span><span><strong>Held-out test set?</strong> <span class="detail">Was the eval set ever used to tune the prompt or model (directly or by repeatedly peeking at results and adjusting)? If so, the score is optimistic — this is the same overfitting risk from Lesson 8, applied to evaluation instead of training.</span></span></li>
+    <li><span class="check-box"></span><span><strong>Multiple runs?</strong> <span class="detail">LLM outputs are often stochastic (more on why in Lesson 10). One run can get lucky or unlucky. Where possible, average over a few runs, or at least note that a single run is a single sample.</span></span></li>
+    <li><span class="check-box"></span><span><strong>Which error type matters more?</strong> <span class="detail">A single F1 or accuracy number can hide whether a model's failures are false positives or false negatives — and for your product, those often have very different costs.</span></span></li>
+  </ul>
+</div>
+
+<h2>Recap</h2>
+<ul>
+  <li>The <strong>confusion matrix</strong> (TP/FP/TN/FN) is the source table every classification metric is built from.</li>
+  <li><strong>Accuracy</strong> can be gamed by imbalanced classes — a useless model can score 95%+ by always predicting the majority class. <strong>Precision</strong> and <strong>recall</strong> each measure one specific type of error and can't hide behind imbalance the way accuracy can. <strong>F1</strong> combines both into one number.</li>
+  <li>Moving the decision <strong>threshold</strong> trades recall for precision or vice versa — there's no universally correct threshold, only a product tradeoff. <strong>ROC/AUC</strong> summarizes that whole tradeoff curve in one number.</li>
+  <li>A higher score on an eval set doesn't automatically mean a real improvement — <strong>p-values</strong> ask how surprising the observed gap would be if there were truly no difference, and <strong>sample size</strong> (echoing Lesson 5's CLT) determines how much you can trust any gap at all.</li>
+  <li>The same 5-point score gap can be meaningless noise at N=20 and solid evidence at N=500.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. Your hallucination detector predicts "grounded" for every single answer and scores 92% accuracy on a test set that's 92% grounded, 8% hallucinated. What does this tell you?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">The model is excellent and ready to ship</div>
+    <div class="quiz-opt">Nothing useful — this is the class-imbalance trap; the model has 0% recall on hallucinations and catches none of them</div>
+    <div class="quiz-opt">92% accuracy always means the model is well-calibrated</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. A content moderation filter has high precision but low recall. What does that mean in practice?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">When it flags something, it's usually right — but it's missing a lot of real violations that slip through unflagged</div>
+    <div class="quiz-opt">It flags almost everything, including plenty of false alarms</div>
+    <div class="quiz-opt">Precision and recall always move together, so this combination is impossible</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. You lower the decision threshold on a hallucination filter (flag more things as suspicious). What's the expected effect?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Both precision and recall go up</div>
+    <div class="quiz-opt">Nothing changes — threshold only affects speed, not accuracy metrics</div>
+    <div class="quiz-opt">Recall goes up (catches more real hallucinations) but precision goes down (more false alarms)</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. Prompt B scores 5 percentage points higher than Prompt A. Why does it matter whether that gap was measured on 20 examples or 500?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">It doesn't matter — a percentage gap means the same thing regardless of sample size</div>
+    <div class="quiz-opt">With only 20 examples, a single flipped example can produce the same 5-point gap by pure chance; with 500 examples the same gap requires 25 more correct answers, which is much harder to explain as noise</div>
+    <div class="quiz-opt">Larger eval sets always produce bigger score gaps</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. What does a small p-value (e.g., 0.02) tell you when comparing two prompts' eval scores?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">There's a 2% chance the model is wrong</div>
+    <div class="quiz-opt">If the two prompts were truly equally good, seeing a gap this large by chance alone would be rare — so the observed difference is more likely to be real</div>
+    <div class="quiz-opt">Prompt B is exactly 2% better than Prompt A</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Precision_and_recall" target="_blank">Precision and recall — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Confusion_matrix" target="_blank">Confusion matrix — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Receiver_operating_characteristic" target="_blank">Receiver operating characteristic (ROC/AUC) — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/P-value" target="_blank">P-value — Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want to work through your own eval numbers? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — think about which confusion-matrix cells each metric actually looks at, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Describing Data: Mean, Variance, Standard Deviation & Distribution Shape</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .imbalance-bar {
+    display: flex; width: 100%; height: 34px; border-radius: 6px; overflow: hidden;
+    border: 1px solid var(--border); margin: 14px 0 6px;
+  }
+  .imbalance-bar .not-spam { background: var(--accent); width: 95%; display: flex; align-items: center; justify-content: center; font-size: 0.8em; font-weight: 600; color: #0f1117; }
+  .imbalance-bar .spam { background: var(--red); width: 5%; display: flex; align-items: center; justify-content: center; font-size: 0.7em; color: #0f1117; }
+  .imbalance-caption { color: var(--muted); font-size: 0.85em; margin-bottom: 20px; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 2 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Describing Data: Mean, Variance, Standard Deviation &amp; Distribution Shape</h1>
+<p class="subtitle">The four numbers you compute first on any dataset — and why AI datasets lie to you if you only look at one of them.</p>
+
+<p>In Lesson 1 you saw the map: data description is where every AI pipeline starts, before probability, before loss functions, before evaluation. This lesson is where you actually do it. No formal probability theory yet — that's Lesson 3. Right now you're just looking at a pile of numbers (token counts, latencies, dataset labels) and learning to describe it honestly.</p>
+
+<h2>1. Mean vs. median — and why one of them lies</h2>
+
+<p>The <strong>mean</strong> (average) is what most people reach for first: add everything up, divide by how many there are. The <strong>median</strong> is the middle value when you sort the data. In a lot of real-world AI data, these two numbers disagree — sharply — and the disagreement itself is a signal worth reading.</p>
+
+<p>Here's a dataset of token counts from 10 responses your LLM generated:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Response</th><th class="num">Tokens</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="num">115</td></tr>
+    <tr><td>2</td><td class="num">118</td></tr>
+    <tr><td>3</td><td class="num">119</td></tr>
+    <tr><td>4</td><td class="num">120</td></tr>
+    <tr><td>5</td><td class="num">121</td></tr>
+    <tr><td>6</td><td class="num">122</td></tr>
+    <tr><td>7</td><td class="num">125</td></tr>
+    <tr><td>8</td><td class="num">128</td></tr>
+    <tr><td>9</td><td class="num">130</td></tr>
+    <tr><td>10</td><td class="num">980</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Nine ordinary responses, and one that ran away — a generation loop that didn't stop cleanly and produced 980 tokens. Watch what that single row does to the two summaries:</p>
+
+<div class="step-box">
+<div class="line">mean   = (115+118+119+120+121+122+125+128+130+980) / 10</div>
+<div class="line">       = 2078 / 10</div>
+<div class="line result">       = 207.8 tokens</div>
+<div class="line"> </div>
+<div class="line">sorted values: 115,118,119,120,121,122,125,128,130,980</div>
+<div class="line">median = average of the 5th and 6th values = (121+122)/2</div>
+<div class="line result">       = 121.5 tokens</div>
+</div>
+
+<p>The mean says "typical response length is about 208 tokens." That's not true of a single response in the dataset — nine of the ten cluster tightly around 120. The median, 121.5, is what a typical response actually looks like. One outlier dragged the mean up by nearly 90 tokens.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  The mean is sensitive to every value, including extreme ones. The median only cares about what's in the middle — it doesn't move much even if the largest value in your dataset were 980 or 9,800. Statisticians call the median <strong>robust</strong> to outliers.
+</div>
+
+<p>This is not a toy problem. It's exactly what your data looks like in production:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Token counts</h4>
+    <p>Most completions are short; a rare few loop, repeat, or hit the max-token cutoff and balloon in length.</p>
+  </div>
+  <div class="card">
+    <h4>API latency</h4>
+    <p>Most requests return in milliseconds; a rare few hit a cold start, a retry, or a GPU queue and take seconds.</p>
+  </div>
+  <div class="card">
+    <h4>User session length</h4>
+    <p>Most users send a few messages; a rare power user sends hundreds in one sitting.</p>
+  </div>
+</div>
+
+<p>In every one of these, "average latency" or "average tokens per response" is a number nobody's actual request matches. That's why production dashboards report <strong>median</strong> and percentiles (like p95 — more on that below) instead of, or alongside, the mean.</p>
+
+<h2>2. Variance and standard deviation, built from scratch</h2>
+
+<p>Mean and median tell you where the <em>center</em> of your data is. They tell you nothing about how <em>spread out</em> it is. Two datasets can have the same mean and look completely different:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Dataset</th><th>Values (latency, ms)</th><th class="num">Mean</th></tr></thead>
+  <tbody>
+    <tr><td>Model A</td><td>198, 199, 200, 201, 202</td><td class="num">200</td></tr>
+    <tr><td>Model B</td><td>50, 120, 200, 280, 350</td><td class="num">200</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Same mean, wildly different reliability. Model A is consistent; Model B is all over the place — sometimes fast, sometimes almost 2x slower than average. You need a number that captures <em>spread</em>. That's what variance and standard deviation measure.</p>
+
+<h3>Step 1: measure each point's distance from the mean</h3>
+<p>Take a small, clean dataset — latency in milliseconds for 5 API calls: <strong>200, 210, 195, 205, 190</strong>.</p>
+<div class="step-box">
+<div class="line">mean = (200+210+195+205+190) / 5 = 1000 / 5 = 200 ms</div>
+<div class="line"> </div>
+<div class="line">deviation from mean for each point:</div>
+<div class="line">  200 - 200 =   0</div>
+<div class="line">  210 - 200 = +10</div>
+<div class="line">  195 - 200 =  -5</div>
+<div class="line">  205 - 200 =  +5</div>
+<div class="line">  190 - 200 = -10</div>
+</div>
+
+<h3>Step 2: why you can't just average the deviations</h3>
+<p>The obvious next move is to average those deviations to get a single "typical distance from the mean" number. Try it:</p>
+<div class="step-box">
+<div class="line">sum of deviations = 0 + 10 + (-5) + 5 + (-10)</div>
+<div class="line result">                  = 0</div>
+</div>
+<p>Zero. Always zero, for any dataset — it's a mathematical guarantee, because the mean is defined as the balancing point of the data. Positive and negative deviations cancel perfectly, no matter how spread out the values are. The "average deviation" is useless as a spread measure because it always reports the same answer: nothing.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  You need to get rid of the signs before averaging, or the spread cancels itself out. There are two honest ways to do it: take the <strong>absolute value</strong> of each deviation, or <strong>square</strong> each deviation. Statistics almost always chooses squaring — here's why.
+</div>
+
+<h3>Step 3: square the deviations</h3>
+<p>Squaring a negative number makes it positive, same as taking the absolute value — but squaring has two extra properties that matter enormously for AI:</p>
+<ul>
+  <li><strong>It's smooth and differentiable.</strong> Absolute value has a sharp corner at zero; squaring doesn't. Every gradient-based training algorithm (the thing that actually adjusts a model's weights) needs smooth, differentiable functions to compute gradients from. This is why "squared error" — not "absolute error" — is the default loss function shape across machine learning. You'll meet this again by name in Lesson 8.</li>
+  <li><strong>It punishes big deviations disproportionately.</strong> A deviation of 20 contributes 400 when squared, but a deviation of 10 only contributes 100 — four times more, not two times more. A model (or a dataset) with a few huge errors gets flagged harder than one with many small, consistent errors. That's usually what you want: one catastrophic hallucination matters more than being slightly off ten times.</li>
+</ul>
+
+<div class="step-box">
+<div class="line">squared deviations:</div>
+<div class="line">  0² =   0</div>
+<div class="line">  10² = 100</div>
+<div class="line">  (-5)² =  25</div>
+<div class="line">  5² =  25</div>
+<div class="line">  (-10)² = 100</div>
+<div class="line"> </div>
+<div class="line">sum of squared deviations = 0+100+25+25+100 = 250</div>
+<div class="line">variance = 250 / 5</div>
+<div class="line result">         = 50 ms²</div>
+</div>
+
+<h3>Step 4: undo the squaring to get standard deviation</h3>
+<p>Variance is now in <em>squared</em> units — "50 milliseconds-squared" isn't something you can picture. Take the square root to bring it back to the original unit:</p>
+<div class="step-box">
+<div class="line">standard deviation = √variance = √50</div>
+<div class="line result">                   ≈ 7.07 ms</div>
+</div>
+
+<p>That's the number people actually mean when they say "the spread of the data": on average, a request's latency sits about 7 ms away from the 200 ms mean. Compact definition:</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  <strong>Variance</strong> = the average of the squared distances from the mean. <strong>Standard deviation</strong> = the square root of variance, which puts the spread back into the same units as your original data. Small standard deviation → tightly clustered, predictable data. Large standard deviation → spread out, unpredictable data.
+</div>
+
+<h2>3. Distribution shape: symmetric vs. skewed</h2>
+
+<p>Mean, median, and standard deviation are three numbers. But two datasets can share all three and still look nothing alike, because they differ in <strong>shape</strong> — how the values are arranged around the center. The shape that matters most for AI work is whether a distribution is <strong>symmetric</strong> or has a <strong>long tail</strong> (skewed).</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two histograms compared: a symmetric bell-shaped distribution where mean equals median, and a right-skewed distribution with a long tail where the mean is pulled to the right of the median.">
+  <!-- Panel A: Symmetric -->
+  <text x="150" y="24" text-anchor="middle" fill="#e2e8f0" font-size="15" font-weight="700">Symmetric</text>
+  <text x="150" y="42" text-anchor="middle" fill="#94a3b8" font-size="11">e.g. model confidence scores around 0.5</text>
+
+  <g>
+    <rect x="20"  y="206" width="24" height="14"  fill="#6c8fff"/>
+    <rect x="48"  y="185" width="24" height="35"  fill="#6c8fff"/>
+    <rect x="76"  y="150" width="24" height="70"  fill="#6c8fff"/>
+    <rect x="104" y="108" width="24" height="112" fill="#6c8fff"/>
+    <rect x="132" y="80"  width="24" height="140" fill="#6c8fff"/>
+    <rect x="160" y="108" width="24" height="112" fill="#6c8fff"/>
+    <rect x="188" y="150" width="24" height="70"  fill="#6c8fff"/>
+    <rect x="216" y="185" width="24" height="35"  fill="#6c8fff"/>
+    <rect x="244" y="206" width="24" height="14"  fill="#6c8fff"/>
+  </g>
+  <line x1="20" y1="220" x2="268" y2="220" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="144" y1="72" x2="144" y2="222" stroke="#34d399" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="144" y="64" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700">mean = median</text>
+  <text x="144" y="238" text-anchor="middle" fill="#94a3b8" font-size="10">value &#8594;</text>
+
+  <!-- Panel B: Skewed -->
+  <text x="450" y="24" text-anchor="middle" fill="#e2e8f0" font-size="15" font-weight="700">Right-skewed (long tail)</text>
+  <text x="450" y="42" text-anchor="middle" fill="#94a3b8" font-size="11">e.g. API latency — most fast, few very slow</text>
+
+  <g>
+    <rect x="320" y="66"  width="24" height="154" fill="#a78bfa"/>
+    <rect x="348" y="94"  width="24" height="126" fill="#a78bfa"/>
+    <rect x="376" y="129" width="24" height="91"  fill="#a78bfa"/>
+    <rect x="404" y="157" width="24" height="63"  fill="#a78bfa"/>
+    <rect x="432" y="178" width="24" height="42"  fill="#a78bfa"/>
+    <rect x="460" y="192" width="24" height="28"  fill="#a78bfa"/>
+    <rect x="488" y="199" width="24" height="21"  fill="#a78bfa"/>
+    <rect x="516" y="206" width="24" height="14"  fill="#a78bfa"/>
+    <rect x="544" y="213" width="24" height="7"   fill="#a78bfa"/>
+  </g>
+  <line x1="320" y1="220" x2="568" y2="220" stroke="#2e3248" stroke-width="1.5"/>
+
+  <line x1="404" y1="80" x2="404" y2="222" stroke="#fbbf24" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="404" y="72" text-anchor="middle" fill="#fbbf24" font-size="11" font-weight="700">median</text>
+
+  <line x1="460" y1="60" x2="460" y2="222" stroke="#f87171" stroke-width="2" stroke-dasharray="4,3"/>
+  <text x="460" y="52" text-anchor="middle" fill="#f87171" font-size="11" font-weight="700">mean</text>
+
+  <text x="450" y="238" text-anchor="middle" fill="#94a3b8" font-size="10">value &#8594;</text>
+  <text x="470" y="258" text-anchor="middle" fill="#94a3b8" font-size="10" font-style="italic">rare, extreme values stretch the tail right</text>
+</svg>
+</div>
+<p class="viz-caption">Same idea, two shapes. In the symmetric case the mean and median land on the same point. In the long-tail case, the rare extreme values on the right pull the mean away from the median — exactly what happened with the 980-token outlier above.</p>
+
+<p>"Skew" just describes which direction the tail stretches. A <strong>right-skewed</strong> (positively skewed) distribution has a long tail of rare, large values — this is the shape of almost every duration or count you'll measure in AI systems: token counts, latencies, session lengths, file sizes. A <strong>left-skewed</strong> distribution has a long tail of rare, small values — less common in AI data, but shows up in things like "accuracy scores on an easy benchmark," where most models do well and a few do very badly.</p>
+
+<h3>A different kind of shape problem: class imbalance</h3>
+<p>Skew isn't only about continuous numbers like latency — it shows up in categorical data too, as <strong>class imbalance</strong>. Say you're training a spam classifier and your labeled dataset looks like this:</p>
+
+<div class="imbalance-bar">
+  <div class="not-spam">95% not spam</div>
+  <div class="spam">5%</div>
+</div>
+<p class="imbalance-caption">5,000 "not spam" examples for every 250-ish "spam" examples — the same "long tail" idea applied to a category instead of a number.</p>
+
+<p>This is a distribution shape problem in disguise. A model can score 95% accuracy by predicting "not spam" every single time and never learning what spam looks like. Just like a skewed latency distribution makes "average latency" misleading, a skewed class distribution makes "accuracy" misleading — you'll need better metrics for this in Lesson 9 (precision, recall, confusion matrices).</p>
+
+<h2>4. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Every one of these four numbers — mean, median, variance, standard deviation — is something you will compute on real project data, not just on a quiz. Here's where each one shows up.
+</div>
+
+<h3>Normalizing features before training</h3>
+<p>Before feeding numeric features into most models, you typically <strong>standardize</strong> them: subtract the mean, divide by the standard deviation, for every value. This is the "z-score" transform:</p>
+<div class="step-box">
+<div class="line">standardized value = (x - mean) / standard_deviation</div>
+</div>
+<p>This rescales every feature so it has mean 0 and standard deviation 1 — putting features that were originally on wildly different scales (say, "user age" 18–90 and "account balance" $0–$5,000,000) onto comparable footing so no single feature dominates just because its raw numbers happen to be bigger. You now know exactly what those two ingredients (mean, standard deviation) mean and where they come from.</p>
+
+<h3>Spotting outliers in training data</h3>
+<p>A value several standard deviations away from the mean is, by definition, unusual. This is one of the simplest ways to flag bad or contaminated rows before training — a scraped web-text sample that's 40,000 tokens long when the rest of your corpus averages 400, or a labeled "response quality" score of 1 out of 5 when a human rater's other scores cluster at 4–5. Outliers aren't always errors, but they're always worth a look.</p>
+
+<h3>"Average latency" can flat-out mislead you</h3>
+<p>Go back to the skewed latency histogram above. If your team reports "average response time: 220ms" and ships, that number is dominated by the fast majority and hides the slow tail — the actual experience of your unluckiest users. Production teams instead report the <strong>median</strong> (typical experience) alongside a high <strong>percentile</strong> like <strong>p95</strong> ("95% of requests finished faster than this") or <strong>p99</strong>. The gap between the median and p95 <em>is</em> the long tail, made visible as a single number.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  If someone hands you a single "average" number for latency, cost, or token usage with no mention of spread or shape, treat it as incomplete. Ask for the median and p95 too — the mean alone can't tell you whether the data is tightly clustered or has a nasty tail hiding worst-case behavior.
+</div>
+
+<h2>Recap</h2>
+<ul>
+  <li><strong>Mean</strong> is sensitive to every value, including outliers. <strong>Median</strong> is robust — it only looks at the middle.</li>
+  <li><strong>Variance</strong> is the average squared distance from the mean; <strong>standard deviation</strong> is its square root, back in the original units. Squaring (not averaging raw deviations, which always sum to zero) gives you a smooth, outlier-sensitive spread measure — the same reason squared error shows up as a loss function later in this course.</li>
+  <li><strong>Distribution shape</strong> — symmetric vs. skewed/long-tailed — determines whether mean and median agree. Right-skewed data (latency, token counts, session length) is the default shape in AI systems.</li>
+  <li>Class imbalance is the categorical cousin of a skewed distribution, and it breaks naive metrics like accuracy the same way skew breaks "average."</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. Your training dataset's "average session length" is 40 messages, but most users only send 3–5 messages. What's the most likely explanation?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">The dataset is symmetric and the average is trustworthy</div>
+    <div class="quiz-opt">There's a calculation error — mean and median should always match</div>
+    <div class="quiz-opt">The distribution is right-skewed — a few power users with very long sessions are pulling the mean up</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. Why do we square deviations from the mean instead of just averaging the raw deviations directly?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Squaring makes the numbers smaller and easier to work with</div>
+    <div class="quiz-opt">Raw deviations from the mean always sum to zero, so averaging them directly always gives zero — squaring removes the sign so spread doesn't cancel out</div>
+    <div class="quiz-opt">Squaring is only used for negative numbers</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. A distribution has a long tail stretching to the right (a few very large values). What's true of its mean vs. median?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">The mean is pulled higher than the median, toward the tail</div>
+    <div class="quiz-opt">The mean and median are always equal, regardless of shape</div>
+    <div class="quiz-opt">The median is pulled higher than the mean</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. Why do standard deviation instead of stopping at variance?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Variance is always negative and needs correcting</div>
+    <div class="quiz-opt">Standard deviation is easier to compute than variance</div>
+    <div class="quiz-opt">Variance is in squared units (like ms²); taking the square root brings the spread measure back into the original, interpretable units</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. A spam classifier's training set is 95% "not spam" and 5% "spam." Why is this a distribution-shape problem, similar to a skewed latency dataset?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">It isn't related — class imbalance is a completely different topic from numeric skew</div>
+    <div class="quiz-opt">Just like a skewed mean hides the true "typical" value, an imbalanced class distribution lets a model score high "accuracy" while never actually learning the minority class</div>
+    <div class="quiz-opt">Class imbalance only matters for image models, not text classifiers</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Variance" target="_blank">Variance — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Skewness" target="_blank">Skewness — Wikipedia</a></li>
+    <li><a href="https://sre.google/sre-book/monitoring-distributed-systems/" target="_blank">Monitoring Distributed Systems (percentile latency guidance) — Google SRE Book</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — look again at how the mean and median behave with outliers or long tails, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

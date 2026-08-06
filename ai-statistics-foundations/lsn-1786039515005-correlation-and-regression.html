@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Correlation, Regression & Why Models "Fit" Data</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 580px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+  .card .rval { color: var(--accent2); font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .r-spectrum-wrap { margin: 34px 0 28px; padding: 0 4px; }
+  .r-track {
+    height: 14px; border-radius: 7px; position: relative; margin: 34px 0 6px;
+    background: linear-gradient(to right, var(--red), var(--surface2) 50%, var(--green));
+    border: 1px solid var(--border);
+  }
+  .r-marker { position: absolute; top: -34px; transform: translateX(-50%); text-align: center; font-size: 0.74em; color: var(--text); white-space: nowrap; }
+  .r-marker .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text); margin: 0 auto 4px; border: 2px solid var(--bg); position: relative; top: 40px; }
+  .r-scale-labels { display: flex; justify-content: space-between; color: var(--muted); font-size: 0.78em; margin-top: 2px; }
+
+  .confound-diagram { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 22px 18px; margin: 20px 0; }
+  .confound-top { display: flex; justify-content: center; margin-bottom: 4px; }
+  .confound-arrows { text-align: center; color: var(--muted); font-size: 1.4em; margin: 2px 0; line-height: 1; }
+  .confound-bottom { display: flex; align-items: center; justify-content: center; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+  .confound-box { background: var(--surface2); border: 1px solid var(--border); border-radius: 8px; padding: 12px 16px; text-align: center; font-size: 0.9em; min-width: 160px; }
+  .confound-box.cause { border-color: var(--accent2); color: var(--accent2); font-weight: 600; }
+  .confound-corr { text-align: center; color: var(--red); font-size: 0.82em; line-height: 1.3; min-width: 90px; }
+  .confound-corr .sym { font-size: 1.3em; display: block; }
+  @media (max-width: 600px) {
+    .confound-bottom { flex-direction: column; }
+    .confound-corr .sym { transform: rotate(90deg); display: inline-block; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 6 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Correlation, Regression &amp; Why Models "Fit" Data</h1>
+<p class="subtitle">Two variables that move together, a line that summarizes the pattern, and the realization that fitting that line is a miniature version of everything Lesson 8 will call "training."</p>
+
+<p>Lesson 5 gave you the core idea behind training: a model has parameters, and training means choosing the parameters that make the observed data most likely (or, put simply, that fit the data best). That idea was abstract there. This lesson makes it concrete and visual. You're going to fit an actual line to actual points, watch the fit improve as you choose better numbers, and see — directly, not by analogy — that this <em>is</em> what "training a model" means at the smallest possible scale.</p>
+
+<h2>1. Correlation: does one thing move with another?</h2>
+
+<p>Before you can fit a line, you need a way to ask whether two variables are related at all. That's what the <strong>Pearson correlation coefficient</strong>, almost always written <strong>r</strong>, measures: the strength and direction of a <em>linear</em> relationship between two numeric variables.</p>
+
+<ul>
+  <li><strong>r close to +1</strong> — strong positive relationship: as one variable goes up, the other tends to go up too.</li>
+  <li><strong>r close to -1</strong> — strong negative relationship: as one goes up, the other tends to go down.</li>
+  <li><strong>r close to 0</strong> — little to no <em>linear</em> relationship.</li>
+</ul>
+
+<p>r is always between -1 and +1, no matter what units your data is in. Here are two AI examples that sit at opposite ends of that scale:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Prompt length vs. response quality</h4>
+    <p>Across a batch of logged conversations, word count of the prompt vs. a 1&ndash;10 human quality rating of the response comes out around <span class="rval">r &approx; 0.15</span>. Barely any linear relationship — long prompts aren't reliably better or worse than short ones.</p>
+  </div>
+  <div class="card">
+    <h4>Model size vs. benchmark score</h4>
+    <p>Across a family of model checkpoints at different parameter counts, size vs. benchmark accuracy comes out around <span class="rval">r &approx; 0.99</span>. Strong positive relationship — bigger checkpoints in this family score higher, almost every time.</p>
+  </div>
+</div>
+
+<div class="r-spectrum-wrap">
+  <div class="r-track">
+    <div class="r-marker" style="left:57.5%"><span>prompt length vs. quality</span><br><span class="mono" style="color:var(--muted)">r &approx; 0.15</span><div class="dot"></div></div>
+    <div class="r-marker" style="left:99.5%"><span>model size vs. benchmark</span><br><span class="mono" style="color:var(--muted)">r &approx; 0.99</span><div class="dot"></div></div>
+  </div>
+  <div class="r-scale-labels"><span>&minus;1 (strong negative)</span><span>0 (no linear relationship)</span><span>+1 (strong positive)</span></div>
+</div>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  r only measures <strong>linear</strong> relationships. Two variables can have a strong, obvious, real relationship — a U-shape, a threshold effect, a curve — and still produce r &approx; 0 because that shape isn't a straight line. r &approx; 0 means "no linear pattern," not "no pattern at all." Always look at the scatter plot, not just the number.
+</div>
+
+<h2>2. The trap: correlation is not causation</h2>
+
+<p>Here's the sticky one. Say your moderation team notices something in the data: conversations that use more emoji get flagged as toxic more often. The correlation is real and measurable. It is tempting — and wrong — to conclude that emoji use <em>causes</em> toxicity, or to build a moderation rule that penalizes emoji-heavy messages.</p>
+
+<p>What's actually happening is almost certainly this: a third factor, <strong>casual, informal conversational register</strong>, drives both. People writing casually use more emoji <em>and</em> are more likely to use blunt, aggressive, or crude language that trips a toxicity classifier. Neither emoji nor toxicity causes the other — they're both downstream of the same underlying cause.</p>
+
+<div class="confound-diagram">
+  <div class="confound-top">
+    <div class="confound-box cause">Casual, informal register<br><span style="color:var(--muted); font-weight:400; font-size:0.85em;">(the actual common cause)</span></div>
+  </div>
+  <div class="confound-arrows">&#8601;&nbsp;&nbsp;&nbsp;&nbsp;&#8600;</div>
+  <div class="confound-bottom">
+    <div class="confound-box">More emoji use</div>
+    <div class="confound-corr"><span class="sym">&harr;</span>correlated,<br>not causal</div>
+    <div class="confound-box">Higher toxicity-flag rate</div>
+  </div>
+</div>
+<p class="viz-caption">The correlation people notice sits along the bottom — but the real arrows point down from the shared cause above it. This is called a <strong>confounding variable</strong>.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  If you'd shipped a rule that suppressed emoji-heavy messages, you'd have degraded the product for every casual-but-friendly user while barely touching actual toxic content — because emoji was never the cause. This exact trap shows up constantly in AI systems: "users who ask more follow-up questions churn less" (maybe engagement itself drives both), "longer conversations correlate with lower satisfaction" (maybe frustrated users just send more messages trying to get unstuck). Before you act on a correlation, ask: <em>is there a third factor that could explain both sides?</em>
+</div>
+
+<h2>3. Simple linear regression: fitting a line to data</h2>
+
+<p>Correlation tells you a relationship exists and roughly how strong it is. <strong>Regression</strong> goes further: it finds the actual line that best summarizes that relationship, so you can make predictions from it. A line is defined by two numbers you already know from algebra:</p>
+
+<div class="step-box">
+<div class="line">y = mx + b</div>
+<div class="line"> </div>
+<div class="line">m = slope      (how much y changes per unit of x)</div>
+<div class="line">b = intercept  (the value of y when x = 0)</div>
+</div>
+
+<p>"Fitting" a regression line means <strong>choosing m and b</strong> so the line sits as close as possible to every point in your dataset. Suppose you evaluate a family of model checkpoints at 8 different sizes on a benchmark, and log these illustrative results:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Model size (B params)</th><th class="num">Benchmark score (%)</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="num">52</td></tr>
+    <tr><td>2</td><td class="num">58</td></tr>
+    <tr><td>3</td><td class="num">61</td></tr>
+    <tr><td>4</td><td class="num">68</td></tr>
+    <tr><td>5</td><td class="num">70</td></tr>
+    <tr><td>6</td><td class="num">75</td></tr>
+    <tr><td>7</td><td class="num">79</td></tr>
+    <tr><td>8</td><td class="num">83</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The trend is obviously upward, but no line passes through all 8 points exactly. Every candidate line will miss some points by some amount. The question is: which line minimizes the total miss?</p>
+
+<h3>Minimizing squared error — the same idea as Lesson 2's variance</h3>
+<p>For any candidate line, the gap between an actual point and the line's prediction at that x-value is called a <strong>residual</strong>. This is exactly the "deviation from a central value" idea from Lesson 2, just applied to a line instead of a single mean. And the fix for negative-and-positive deviations canceling out is the same fix as before: <strong>square them</strong>, then find the m and b that make the sum of squared residuals as small as possible. This method is called <strong>ordinary least squares</strong>.</p>
+
+<div class="step-box">
+<div class="line">mean size (x&#772;) = 4.5,   mean score (y&#772;) = 68.25</div>
+<div class="line"> </div>
+<div class="line">slope     m = &Sigma;(x-x&#772;)(y-y&#772;) / &Sigma;(x-x&#772;)&sup2;  =  183 / 42</div>
+<div class="line result">            &approx; 4.36</div>
+<div class="line"> </div>
+<div class="line">intercept b = y&#772; - m&middot;x&#772;  =  68.25 - (4.357 &times; 4.5)</div>
+<div class="line result">            &approx; 48.64</div>
+<div class="line"> </div>
+<div class="line">fitted line:  score &approx; 4.36 &times; size_B + 48.64</div>
+</div>
+
+<p>You don't need to memorize that formula — the point is that it's doing exactly what "minimize squared error" says: it's the algebraic shortcut for the m and b that make the sum of squared residuals smallest. Here's what that line looks like against the actual data, with each residual drawn in as a dashed segment:</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 640 400" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Scatter plot of model size in billions of parameters versus benchmark accuracy percentage, with a fitted least-squares regression line rising from lower left to upper right, and dashed vertical residual lines connecting each actual data point to the line.">
+  <!-- gridlines -->
+  <line x1="70" y1="340" x2="600" y2="340" stroke="#2e3248" stroke-width="1"/>
+  <line x1="70" y1="273" x2="600" y2="273" stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/>
+  <line x1="70" y1="207" x2="600" y2="207" stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/>
+  <line x1="70" y1="140" x2="600" y2="140" stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/>
+  <line x1="70" y1="73"  x2="600" y2="73"  stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/>
+
+  <!-- y axis labels -->
+  <text x="60" y="344" text-anchor="end" fill="#94a3b8" font-size="11">45</text>
+  <text x="60" y="277" text-anchor="end" fill="#94a3b8" font-size="11">55</text>
+  <text x="60" y="211" text-anchor="end" fill="#94a3b8" font-size="11">65</text>
+  <text x="60" y="144" text-anchor="end" fill="#94a3b8" font-size="11">75</text>
+  <text x="60" y="77"  text-anchor="end" fill="#94a3b8" font-size="11">85</text>
+  <text x="22" y="190" fill="#94a3b8" font-size="11" transform="rotate(-90 22 190)" text-anchor="middle">Benchmark accuracy (%)</text>
+
+  <!-- axes -->
+  <line x1="70" y1="30" x2="70" y2="340" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="70" y1="340" x2="600" y2="340" stroke="#2e3248" stroke-width="1.5"/>
+
+  <!-- x axis labels -->
+  <text x="70"  y="358" text-anchor="middle" fill="#94a3b8" font-size="11">0</text>
+  <text x="188" y="358" text-anchor="middle" fill="#94a3b8" font-size="11">2</text>
+  <text x="306" y="358" text-anchor="middle" fill="#94a3b8" font-size="11">4</text>
+  <text x="423" y="358" text-anchor="middle" fill="#94a3b8" font-size="11">6</text>
+  <text x="541" y="358" text-anchor="middle" fill="#94a3b8" font-size="11">8</text>
+  <text x="335" y="380" text-anchor="middle" fill="#94a3b8" font-size="12">Model size (billions of parameters)</text>
+
+  <!-- residuals (dashed, drawn under points/line) -->
+  <line x1="129" y1="293" x2="129" y2="287" stroke="#f87171" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="188" y1="253" x2="188" y2="258" stroke="#f87171" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="247" y1="233" x2="247" y2="229" stroke="#f87171" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="306" y1="187" x2="306" y2="200" stroke="#f87171" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="364" y1="173" x2="364" y2="170" stroke="#f87171" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="423" y1="140" x2="423" y2="141" stroke="#f87171" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="482" y1="113" x2="482" y2="112" stroke="#f87171" stroke-width="2" stroke-dasharray="3,3"/>
+  <line x1="541" y1="87"  x2="541" y2="83"  stroke="#f87171" stroke-width="2" stroke-dasharray="3,3"/>
+
+  <!-- fitted regression line -->
+  <line x1="70" y1="316" x2="600" y2="54" stroke="#34d399" stroke-width="2.5"/>
+
+  <!-- actual data points -->
+  <circle cx="129" cy="293" r="6" fill="#6c8fff"/>
+  <circle cx="188" cy="253" r="6" fill="#6c8fff"/>
+  <circle cx="247" cy="233" r="6" fill="#6c8fff"/>
+  <circle cx="306" cy="187" r="6" fill="#6c8fff"/>
+  <circle cx="364" cy="173" r="6" fill="#6c8fff"/>
+  <circle cx="423" cy="140" r="6" fill="#6c8fff"/>
+  <circle cx="482" cy="113" r="6" fill="#6c8fff"/>
+  <circle cx="541" cy="87"  r="6" fill="#6c8fff"/>
+
+  <!-- legend -->
+  <g>
+    <circle cx="450" cy="300" r="5" fill="#6c8fff"/>
+    <text x="462" y="304" fill="#e2e8f0" font-size="11">actual score</text>
+    <line x1="440" y1="320" x2="460" y2="320" stroke="#34d399" stroke-width="2.5"/>
+    <text x="466" y="324" fill="#e2e8f0" font-size="11">fitted line</text>
+    <line x1="440" y1="337" x2="460" y2="337" stroke="#f87171" stroke-width="2" stroke-dasharray="3,3"/>
+    <text x="466" y="341" fill="#e2e8f0" font-size="11">residual</text>
+  </g>
+</svg>
+</div>
+<p class="viz-caption">Blue dots are the actual benchmark scores. The green line is the least-squares fit. Each dashed red segment is a residual — the gap between what the line predicts and what actually happened. The fit here is unusually clean; real evaluation data is noisier than this idealized example, because architecture, training data quality, and post-training choices all move the score too — not size alone.</p>
+
+<h2>4. R&sup2;: how much of the variation does the line explain?</h2>
+
+<p>Squared error also gives you a second, very readable number: <strong>R&sup2;</strong> (the coefficient of determination). It compares two quantities: how much the actual scores vary around their own mean (total variation), and how much is left over after your line's predictions (unexplained variation).</p>
+
+<div class="step-box">
+<div class="line">R&sup2;  =  1  -  (sum of squared residuals) / (total variation around the mean)</div>
+<div class="line">        =  1  -  6.14 / 803.5</div>
+<div class="line result">        &approx; 0.99</div>
+</div>
+
+<p>Read that as: <strong>about 99% of the variation in benchmark score, across this set of checkpoints, is explained by model size alone.</strong> Only about 1% is left unexplained — noise, or factors the line doesn't capture. R&sup2; always falls between 0 (the line explains nothing) and 1 (the line explains everything), and for a simple line like this one it's just r&sup2; — the correlation coefficient you met in Section 1, squared.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  High R&sup2; means "this line is a good summary of this data." It does not mean "this line will always be the best possible model," and it does not mean the relationship is causal, or that the line will still fit well on data very different from what it was fit on. A straight line might not always be the right shape for the pattern — that formal question of good fit vs. <em>too</em> good a fit on the training data comes in Lesson 8.
+</div>
+
+<h2>5. The payoff: fitting a line IS training a (tiny) model</h2>
+
+<p>Here's the moment this lesson has been building toward. Go back to what you just did: you had a dataset, you defined two parameters (m and b), and you searched for the values of those parameters that made a <strong>loss</strong> — the sum of squared residuals — as small as possible.</p>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  That is not <em>similar to</em> training a machine learning model. It <em>is</em> training a machine learning model — the smallest, simplest one that exists. Linear regression has exactly two learnable parameters. A modern LLM has billions. But the core loop is identical: define parameters, define a loss that measures how wrong the current parameters are, search for the parameter values that make that loss smallest. Every model, no matter how complex, is doing some version of this same thing.
+</div>
+
+<p>This also closes the loop back to Lesson 5's MLE intuition: "training = choosing parameters that make the observed data most likely." Minimizing squared error and maximizing likelihood turn out to be the same search, under very common assumptions about how noise behaves. You didn't need that fact to fit the line above — you just needed to minimize squared error directly — but it's why the two ideas rhyme so closely.</p>
+
+<p>One more thread to pull, and it's exactly where this course goes next: squared error is a perfectly good loss when your model outputs a <em>number</em> (a benchmark score, a price, a latency). But a huge share of AI systems — classifiers, language models choosing the next token — output <em>probabilities</em> instead of numbers. Squared error isn't the natural loss for that case. Lesson 7 introduces the loss built for exactly this situation: <strong>cross-entropy</strong>, grounded in information theory. Lesson 8 then formalizes "loss function" in general, and covers what happens when a line — or any model — fits its training data <em>too</em> well.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li><strong>Pearson's r</strong> measures the strength and direction of a <em>linear</em> relationship, from -1 to +1. r &approx; 0 rules out a linear pattern, not any pattern.</li>
+  <li><strong>Correlation is not causation.</strong> A third, confounding variable (like "casual register" behind emoji-and-toxicity) can drive both sides of a correlation with neither one causing the other.</li>
+  <li><strong>Linear regression</strong> fits y = mx + b by choosing m and b that minimize the sum of squared <strong>residuals</strong> — the same squared-deviation idea from Lesson 2, applied to a line instead of a single mean.</li>
+  <li><strong>R&sup2;</strong> tells you what fraction of the variation in y your line explains; it's r&sup2; for a simple linear fit.</li>
+  <li><strong>The big idea:</strong> fitting a regression line is a tiny, visual instance of what "training a model" always means — choose parameters that minimize a loss between predictions and reality. Lesson 7 introduces a loss for probability outputs (cross-entropy); Lesson 8 formalizes loss functions and fit quality fully.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. Pearson's r for prompt length vs. response quality across 500 conversations comes out to r = 0.03. What's the most accurate conclusion?</p>
+  <div class="quiz-options" data-answer="1" data-hint="r only captures linear relationships. A near-zero r rules out a straight-line pattern, but a real, even strong, nonlinear pattern (like a U-shape) could still be hiding in the data.">
+    <div class="quiz-opt">There's no relationship at all between prompt length and quality</div>
+    <div class="quiz-opt">There's no meaningful <em>linear</em> relationship — but r = 0.03 can't rule out a nonlinear pattern</div>
+    <div class="quiz-opt">The data must contain an error, since r should never be that close to zero</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. Conversations using more emoji get flagged as toxic more often. What's the most likely explanation, per this lesson?</p>
+  <div class="quiz-options" data-answer="2" data-hint="Watch out for reversed-causation guesses too — the lesson's point is that neither variable causes the other; a shared upstream factor causes both.">
+    <div class="quiz-opt">Emoji use directly causes toxic language</div>
+    <div class="quiz-opt">Toxic language causes people to use more emoji</div>
+    <div class="quiz-opt">Both are driven by a third factor — casual, informal conversational register — so the correlation doesn't mean either one causes the other</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. When you fit a regression line y = mx + b to data, what are you choosing m and b to minimize?</p>
+  <div class="quiz-options" data-answer="1" data-hint="Think back to how residuals are defined — the gaps between the line's predictions and the actual data points — and why they get squared before summing.">
+    <div class="quiz-opt">The number of data points that fall above the line</div>
+    <div class="quiz-opt">The sum of the squared residuals — the squared vertical distances between actual points and the line</div>
+    <div class="quiz-opt">The correlation coefficient r</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A regression line fitting model size to benchmark score has R&sup2; = 0.99. What does that mean?</p>
+  <div class="quiz-options" data-answer="2" data-hint="R² is about explained variation across the whole dataset, not about whether any single prediction is exactly right.">
+    <div class="quiz-opt">99% of the individual predictions are exactly correct</div>
+    <div class="quiz-opt">The correlation coefficient r must be negative</div>
+    <div class="quiz-opt">About 99% of the variation in benchmark score is explained by model size — the line fits the data very well</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. How does fitting a regression line connect to what Lesson 5 called "training" (choosing parameters that make observed data most likely)?</p>
+  <div class="quiz-options" data-answer="1" data-hint="Both are the same core loop: define parameters, define a loss, search for the parameter values that minimize it. Scale is the only real difference.">
+    <div class="quiz-opt">It doesn't — regression is a completely different kind of math from ML training</div>
+    <div class="quiz-opt">Choosing the slope and intercept that minimize squared error IS a tiny version of training — picking parameters that best match observed data, exactly like a neural network's much larger set of weights</div>
+    <div class="quiz-opt">Regression only applies to categorical data, not to anything a model learns</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Pearson_correlation_coefficient" target="_blank">Pearson correlation coefficient — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Correlation_does_not_imply_causation" target="_blank">Correlation does not imply causation — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Ordinary_least_squares" target="_blank">Ordinary least squares — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Coefficient_of_determination" target="_blank">Coefficient of determination (R&sup2;) — Wikipedia</a></li>
+    <li><a href="https://arxiv.org/abs/2001.08361" target="_blank">Kaplan et al., "Scaling Laws for Neural Language Models" (arXiv:2001.08361) — real-world context for the model-size-vs-performance example</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want to try fitting a line to your own data? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const opts = group.querySelectorAll(".quiz-opt");
+  const hint = group.dataset.hint || "look again and try another option.";
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — " + hint;
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

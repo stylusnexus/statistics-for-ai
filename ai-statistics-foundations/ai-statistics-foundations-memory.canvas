@@ -1,0 +1,793 @@
+{
+  "nodes": [
+    {
+      "id": "course",
+      "type": "text",
+      "x": 245.0,
+      "y": 0,
+      "width": 340,
+      "height": 300,
+      "text": "## Statistics for AI, GenAI & LLMs\nEvery stage of the AI pipeline — data, probability, training, evaluation, generation — is statistics wearing a product-UI costume. Ten lessons, each building on the last, ending at the exact mechanics running inside the LLM you talk to every day."
+    },
+    {
+      "id": "g-l1",
+      "type": "group",
+      "x": 0,
+      "y": 520,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 1 — Why Statistics Powers AI"
+    },
+    {
+      "id": "l1-core",
+      "type": "text",
+      "x": 80,
+      "y": 600,
+      "width": 300,
+      "height": 380,
+      "text": "## L1 — Statistics Is the AI Field's Language\nEvery AI system you build already leans on statistics quietly: similarity scores, confidence numbers, loss curves, sampling randomness. This lesson tours the stack top to bottom — data → probability → loss → evaluation → LLM sampling."
+    },
+    {
+      "id": "l1-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 600,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Output Is a Sample, Not a Verdict\nA model right 9 times out of 10 will still be confidently, fluently wrong the 10th time. Treating AI output as fact instead of a draw from a distribution is this course's core pitfall."
+    },
+    {
+      "id": "l1-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 1040,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 2\nStop 1 of this tour, 'describing data,' IS Lesson 2 — mean, variance, and shape would have caught a RAG pipeline's fixed 500-token chunk size mangling its longest documents before it shipped."
+    },
+    {
+      "id": "l1-file",
+      "type": "file",
+      "x": 450,
+      "y": 1040,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515000-why-statistics-powers-ai.html"
+    },
+    {
+      "id": "g-l2",
+      "type": "group",
+      "x": 0,
+      "y": 1720,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 2 — Describing Data"
+    },
+    {
+      "id": "l2-core",
+      "type": "text",
+      "x": 80,
+      "y": 1800,
+      "width": 300,
+      "height": 380,
+      "text": "## L2 — Mean Lies, Median Doesn't\nMean is sensitive to every value including outliers; median only looks at the middle and stays robust. Variance/std dev square deviations instead of averaging them raw — smooth and differentiable, the same reason squared error becomes a loss shape later."
+    },
+    {
+      "id": "l2-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 1800,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — One Outlier, 90 Tokens of Lies\nNine responses cluster near 120 tokens; one runaway generation hits 980, dragging the mean to 208 while the median stays 121.5. Production dashboards report median and p95 instead of 'average' for exactly this reason."
+    },
+    {
+      "id": "l2-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 2240,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 3\nThe 'numbers between 0 and 1, summing to 1' pattern here previews Lesson 3's probability distributions — the same shape-of-data idea, now describing uncertain future outcomes instead of a pile of numbers already collected."
+    },
+    {
+      "id": "l2-file",
+      "type": "file",
+      "x": 450,
+      "y": 2240,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515001-describing-data.html"
+    },
+    {
+      "id": "g-l3",
+      "type": "group",
+      "x": 0,
+      "y": 2920,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 3 — Probability Foundations & Bayes' Theorem"
+    },
+    {
+      "id": "l3-core",
+      "type": "text",
+      "x": 80,
+      "y": 3000,
+      "width": 300,
+      "height": 380,
+      "text": "## L3 — Bayes Flips the Question You Can Answer\nYou can easily measure P(evidence | hypothesis) from labeled data, but you actually want P(hypothesis | evidence). Bayes' Theorem flips one into the other: posterior = (likelihood × prior) / evidence."
+    },
+    {
+      "id": "l3-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 3000,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — The Base-Rate Fallacy\nA hallucination detector with a 90% catch rate and only a 5% false-flag rate is still wrong about 73% of the time when it flags something, because real hallucinations are just 2% of traffic. Accuracy and 'what a flag means' are different questions."
+    },
+    {
+      "id": "l3-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 3440,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 4\nThe probability distribution here — numbers between 0 and 1 summing to 1 across outcomes — is exactly what Lesson 4 gives formal, reusable names to: Normal, Bernoulli, Categorical, Poisson."
+    },
+    {
+      "id": "l3-file",
+      "type": "file",
+      "x": 450,
+      "y": 3440,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515002-probability-foundations.html"
+    },
+    {
+      "id": "g-l4",
+      "type": "group",
+      "x": 0,
+      "y": 4120,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 4 — The Distributions That Run Machine Learning"
+    },
+    {
+      "id": "l4-core",
+      "type": "text",
+      "x": 80,
+      "y": 4200,
+      "width": 300,
+      "height": 380,
+      "text": "## L4 — Four Named Shapes of Uncertainty\nA distribution is a reusable rule, not a dataset — Normal (bell curve), Bernoulli (yes/no), Categorical (K outcomes), Poisson (rare-event counts). Name the family, state the parameters, and you already know how it behaves."
+    },
+    {
+      "id": "l4-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 4200,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Your LLM's Softmax IS a Categorical Distribution\nAt every token position, an LLM's final layer produces K probabilities (vocabulary size) summing to exactly 1 — that vector isn't 'like' a categorical distribution, it literally is one. Generating text means sampling from it, over and over."
+    },
+    {
+      "id": "l4-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 4640,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 5\nNaming the right distribution is step one; fitting its actual parameters — the real λ, the real μ and σ — to real data is estimation, Lesson 5's entire subject."
+    },
+    {
+      "id": "l4-file",
+      "type": "file",
+      "x": 450,
+      "y": 4640,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515003-ml-distributions.html"
+    },
+    {
+      "id": "g-l5",
+      "type": "group",
+      "x": 0,
+      "y": 5320,
+      "width": 830,
+      "height": 1420,
+      "label": "Lesson 5 — From Sample to Population"
+    },
+    {
+      "id": "l5-core",
+      "type": "text",
+      "x": 80,
+      "y": 5400,
+      "width": 300,
+      "height": 380,
+      "text": "## L5 — You Never Have the Full Population\nTraining corpora, eval sets, and A/B-test users are all samples standing in for a population you can't directly observe. Every reported metric — accuracy, average score, win rate — is a sample statistic, not a fact about the population."
+    },
+    {
+      "id": "l5-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 5400,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — MLE IS What 'Training' Means\nMaximum Likelihood Estimation: choose the parameters that make the data you actually observed as probable as possible — for Bernoulli/Categorical, that's just the observed proportion. Cross-entropy loss (Lessons 7–8) is literally negative log-likelihood: MLE at billion-parameter scale."
+    },
+    {
+      "id": "l5-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 5840,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 6\nLesson 6 makes this fitting concrete and visual: fitting a line to points by minimizing squared error is training's smallest possible instance — two parameters instead of billions, the same core loop."
+    },
+    {
+      "id": "l5-file",
+      "type": "file",
+      "x": 450,
+      "y": 5840,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515004-sampling-and-estimation.html"
+    },
+    {
+      "id": "l5-analogy",
+      "type": "text",
+      "x": 265.0,
+      "y": 6280,
+      "width": 300,
+      "height": 380,
+      "text": "## Analogy — Averages Calm Down\nThe Central Limit Theorem: repeatedly sample and average, and the averages cluster into a bell curve centered on the truth, narrowing as N grows, even if the raw data isn't bell-shaped at all. That's why a 20-example eval swings wildly but a 2,000-example eval doesn't."
+    },
+    {
+      "id": "g-l6",
+      "type": "group",
+      "x": 0,
+      "y": 6960,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 6 — Correlation, Regression & Why Models Fit Data"
+    },
+    {
+      "id": "l6-core",
+      "type": "text",
+      "x": 80,
+      "y": 7040,
+      "width": 300,
+      "height": 380,
+      "text": "## L6 — Fitting a Line IS Training a Model\nChoosing slope and intercept that minimize the sum of squared residuals isn't similar to training a model — it IS training one, the smallest one that exists. Define parameters, define a loss, search for values that shrink it."
+    },
+    {
+      "id": "l6-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 7040,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Correlation Isn't Causation\nConversations using more emoji get flagged as toxic more often — but emoji doesn't cause toxicity; both are driven by a third factor, casual conversational register. A rule penalizing emoji would degrade friendly users without touching real toxicity."
+    },
+    {
+      "id": "l6-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 7480,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 7\nSquared error is the natural loss when a model outputs a number — but classifiers and LLMs output probabilities instead. Lesson 7 introduces the loss built for that: cross-entropy, grounded in information theory."
+    },
+    {
+      "id": "l6-file",
+      "type": "file",
+      "x": 450,
+      "y": 7480,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515005-correlation-and-regression.html"
+    },
+    {
+      "id": "g-l7",
+      "type": "group",
+      "x": 0,
+      "y": 8160,
+      "width": 830,
+      "height": 1420,
+      "label": "Lesson 7 — Information Theory for AI"
+    },
+    {
+      "id": "l7-core",
+      "type": "text",
+      "x": 80,
+      "y": 8240,
+      "width": 300,
+      "height": 380,
+      "text": "## L7 — Cross-Entropy Is the Real Training Signal\nCross-entropy = entropy of the truth + KL divergence; since true next-token labels are one-hot, it collapses to −log(probability assigned to the correct answer). This is the actual loss function training every classifier and every LLM."
+    },
+    {
+      "id": "l7-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 8240,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Confidently Wrong Costs ~8x More\nPutting 70% on the right answer costs about 0.51 bits of loss; putting only 5% on it (confidently wrong) costs about 4.32 bits — roughly 8x more. That asymmetry, applied across billions of tokens, IS the entire training signal."
+    },
+    {
+      "id": "l7-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 8680,
+      "width": 300,
+      "height": 380,
+      "text": "## Connects Lesson 4, Leads Into Lesson 8\nEntropy and cross-entropy are computed directly over Lesson 4's categorical/softmax distribution — the two ideas are the same object, described two ways. Lesson 8 shows this exact loss driving training via gradient descent."
+    },
+    {
+      "id": "l7-file",
+      "type": "file",
+      "x": 450,
+      "y": 8680,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515006-information-theory.html"
+    },
+    {
+      "id": "l7-analogy",
+      "type": "text",
+      "x": 265.0,
+      "y": 9120,
+      "width": 300,
+      "height": 380,
+      "text": "## Analogy — KL Divergence Is the Leash\nIn RLHF, a KL-divergence penalty keeps a fine-tuned model's output distribution from straying too far from its frozen reference model. Without the leash, the model can 'reward hack' into degenerate text that scores well but no longer reads like coherent language."
+    },
+    {
+      "id": "g-l8",
+      "type": "group",
+      "x": 0,
+      "y": 9800,
+      "width": 830,
+      "height": 1420,
+      "label": "Lesson 8 — The Statistics Behind Training a Model"
+    },
+    {
+      "id": "l8-core",
+      "type": "text",
+      "x": 80,
+      "y": 9880,
+      "width": 300,
+      "height": 380,
+      "text": "## L8 — Loss Is 'How Wrong, Right Now'\nA loss function takes the model's current weights, compares predictions to truth, and returns one number — training is repeatedly nudging weights to shrink it. Cross-entropy (Lesson 7) is the loss training every LLM."
+    },
+    {
+      "id": "l8-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 9880,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Bias and Variance Are One Dial\nUnderfitting (high bias, systematically wrong) and overfitting (high variance, memorizing noise) sit at opposite ends of the same complexity dial. There's no such thing as zero bias and zero variance together — total error is U-shaped, minimized at a middle sweet spot."
+    },
+    {
+      "id": "l8-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 10320,
+      "width": 300,
+      "height": 380,
+      "text": "## Connects Lesson 7, Leads Into Lesson 9\nThe number being minimized here is exactly Lesson 7's cross-entropy loss, watched drop step by step in a training log. Lesson 9 hands you the tools to score the finished model rigorously, instead of trusting training loss alone."
+    },
+    {
+      "id": "l8-file",
+      "type": "file",
+      "x": 450,
+      "y": 10320,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515007-training-statistics.html"
+    },
+    {
+      "id": "l8-analogy",
+      "type": "text",
+      "x": 265.0,
+      "y": 10760,
+      "width": 300,
+      "height": 380,
+      "text": "## Analogy — Downhill in Fog\nGradient descent: you can't see the whole loss landscape, only feel the slope under your feet right now, so you take one small step downhill and repeat, millions of times. Too big a step and you overshoot the valley; too small and training that should take hours takes weeks."
+    },
+    {
+      "id": "g-l9",
+      "type": "group",
+      "x": 0,
+      "y": 11440,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 9 — Evaluating AI Models Rigorously"
+    },
+    {
+      "id": "l9-core",
+      "type": "text",
+      "x": 80,
+      "y": 11520,
+      "width": 300,
+      "height": 380,
+      "text": "## L9 — Accuracy Lies on Imbalanced Data\nA model that predicts 'clean' for every post scores 95% accuracy on a 95%-clean dataset while catching zero real violations. Precision and recall each measure one specific error type and can't hide behind class imbalance the way accuracy can."
+    },
+    {
+      "id": "l9-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 11520,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Same 5-Point Gap, Opposite Conclusions\nAt N=20, 75% vs. 80% is one flipped example — meaningless noise. At N=500, the same 5-point gap represents 25 more correct answers — solid evidence. Sample size, not the headline percentage, decides whether a 'win' is real."
+    },
+    {
+      "id": "l9-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 11960,
+      "width": 300,
+      "height": 380,
+      "text": "## Connects Lesson 5, Leads Into Lesson 10\nThis is Lesson 5's sampling/CLT problem in a new costume: a p-value asks how surprising an observed gap would be if there were truly no difference. Lesson 10 uses this exact discipline — bucket predictions, compare to held-out accuracy — to check an LLM's calibration."
+    },
+    {
+      "id": "l9-file",
+      "type": "file",
+      "x": 450,
+      "y": 11960,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515008-evaluating-ai-models.html"
+    },
+    {
+      "id": "g-l10",
+      "type": "group",
+      "x": 0,
+      "y": 12640,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 10 — The Statistics Unique to LLMs (Capstone)"
+    },
+    {
+      "id": "l10-core",
+      "type": "text",
+      "x": 80,
+      "y": 12720,
+      "width": 300,
+      "height": 380,
+      "text": "## L10 — Perplexity Puts Cross-Entropy on a Human Scale\nPerplexity = exp(cross-entropy loss) — roughly 'how many tokens the model was effectively choosing between' at each step. Temperature, top-k, and top-p all work by reshaping Lesson 4's categorical distribution before sampling one token from it."
+    },
+    {
+      "id": "l10-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 12720,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Hallucination Isn't a Glitch\nIt's either (1) legitimately sampling a low-probability-but-real token at temperature > 0, or (2) the model being confidently wrong in a sparse, poorly-generalized region of training data. Both are measurable and controllable — through temperature, truncation, and calibration."
+    },
+    {
+      "id": "l10-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 13160,
+      "width": 300,
+      "height": 380,
+      "text": "## Connects Lessons 7 & 9 — Course Capstone\nPerplexity is literally exp(Lesson 7's cross-entropy); calibration is checked with Lesson 9's exact discipline — bucket by stated confidence, compare to actual accuracy on held-out data. Ten lessons of statistics converge here."
+    },
+    {
+      "id": "l10-file",
+      "type": "file",
+      "x": 450,
+      "y": 13160,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515009-llm-statistics.html"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-int-l1-core-l1-novelty",
+      "fromNode": "l1-core",
+      "toNode": "l1-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l1-core-l1-assoc",
+      "fromNode": "l1-core",
+      "toNode": "l1-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l1-core-l1-file",
+      "fromNode": "l1-core",
+      "toNode": "l1-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-course-g-l1",
+      "fromNode": "course",
+      "toNode": "g-l1",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l2-core-l2-novelty",
+      "fromNode": "l2-core",
+      "toNode": "l2-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l2-core-l2-assoc",
+      "fromNode": "l2-core",
+      "toNode": "l2-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l2-core-l2-file",
+      "fromNode": "l2-core",
+      "toNode": "l2-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l1-g-l2",
+      "fromNode": "g-l1",
+      "toNode": "g-l2",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l3-core-l3-novelty",
+      "fromNode": "l3-core",
+      "toNode": "l3-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l3-core-l3-assoc",
+      "fromNode": "l3-core",
+      "toNode": "l3-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l3-core-l3-file",
+      "fromNode": "l3-core",
+      "toNode": "l3-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l2-g-l3",
+      "fromNode": "g-l2",
+      "toNode": "g-l3",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l4-core-l4-novelty",
+      "fromNode": "l4-core",
+      "toNode": "l4-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l4-core-l4-assoc",
+      "fromNode": "l4-core",
+      "toNode": "l4-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l4-core-l4-file",
+      "fromNode": "l4-core",
+      "toNode": "l4-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l3-g-l4",
+      "fromNode": "g-l3",
+      "toNode": "g-l4",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l5-core-l5-novelty",
+      "fromNode": "l5-core",
+      "toNode": "l5-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l5-core-l5-assoc",
+      "fromNode": "l5-core",
+      "toNode": "l5-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l5-core-l5-file",
+      "fromNode": "l5-core",
+      "toNode": "l5-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l5-core-l5-analogy",
+      "fromNode": "l5-core",
+      "toNode": "l5-analogy",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l4-g-l5",
+      "fromNode": "g-l4",
+      "toNode": "g-l5",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l6-core-l6-novelty",
+      "fromNode": "l6-core",
+      "toNode": "l6-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l6-core-l6-assoc",
+      "fromNode": "l6-core",
+      "toNode": "l6-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l6-core-l6-file",
+      "fromNode": "l6-core",
+      "toNode": "l6-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l5-g-l6",
+      "fromNode": "g-l5",
+      "toNode": "g-l6",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l7-core-l7-novelty",
+      "fromNode": "l7-core",
+      "toNode": "l7-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l7-core-l7-assoc",
+      "fromNode": "l7-core",
+      "toNode": "l7-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l7-core-l7-file",
+      "fromNode": "l7-core",
+      "toNode": "l7-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l7-core-l7-analogy",
+      "fromNode": "l7-core",
+      "toNode": "l7-analogy",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l6-g-l7",
+      "fromNode": "g-l6",
+      "toNode": "g-l7",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l8-core-l8-novelty",
+      "fromNode": "l8-core",
+      "toNode": "l8-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l8-core-l8-assoc",
+      "fromNode": "l8-core",
+      "toNode": "l8-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l8-core-l8-file",
+      "fromNode": "l8-core",
+      "toNode": "l8-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l8-core-l8-analogy",
+      "fromNode": "l8-core",
+      "toNode": "l8-analogy",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l7-g-l8",
+      "fromNode": "g-l7",
+      "toNode": "g-l8",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l9-core-l9-novelty",
+      "fromNode": "l9-core",
+      "toNode": "l9-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l9-core-l9-assoc",
+      "fromNode": "l9-core",
+      "toNode": "l9-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l9-core-l9-file",
+      "fromNode": "l9-core",
+      "toNode": "l9-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l8-g-l9",
+      "fromNode": "g-l8",
+      "toNode": "g-l9",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l10-core-l10-novelty",
+      "fromNode": "l10-core",
+      "toNode": "l10-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l10-core-l10-assoc",
+      "fromNode": "l10-core",
+      "toNode": "l10-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l10-core-l10-file",
+      "fromNode": "l10-core",
+      "toNode": "l10-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l9-g-l10",
+      "fromNode": "g-l9",
+      "toNode": "g-l10",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ]
+}

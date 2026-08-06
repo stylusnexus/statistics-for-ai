@@ -1,0 +1,246 @@
+{
+  "note": "engram-quest/lessons/ai-statistics-foundations/meta.json",
+  "generated": "2026-08-06",
+  "cards": {
+    "In a RAG pipeline, why can locking in a 500-token chunk size before looking at your document set backfire — and which statistical step would catch it first?": {
+      "l1": "Think about what a fixed chunk size assumes about your document lengths, and what step in this course is the 'look before you leap' check.",
+      "l2": "",
+      "l3": "data description, RAG chunking",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515000-why-statistics-powers-ai.html"
+    },
+    "Why does a spam filter or content-moderation API output a probability like 0.92 instead of a flat spam/not-spam label?": {
+      "l1": "Consider who benefits from a number instead of a yes/no, and what that number lets them do.",
+      "l2": "",
+      "l3": "decision threshold, confidence score",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515000-why-statistics-powers-ai.html"
+    },
+    "Your new agent prompt scores higher on 5 test cases than the old one. Per this course, what do you actually need before calling it \"better\"?": {
+      "l1": "Recall the course's recurring warning about small eval sets and what separates a real result from a lucky one.",
+      "l2": "",
+      "l3": "statistical significance, sample size",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515000-why-statistics-powers-ai.html"
+    },
+    "If an LLM answers the same question correctly 9 times out of 10, what's the risk in treating that as \"it works\"?": {
+      "l1": "Think about what an LLM output actually is — a settled fact, or a draw from something.",
+      "l2": "",
+      "l3": "sampling variability, production reliability",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515000-why-statistics-powers-ai.html"
+    },
+    "A dataset of 10 LLM response lengths is mostly ~120 tokens, but one runaway generation hits 980 tokens. Why does the mean report ~208 tokens while the median stays near 121 — and which one describes a \"typical\" response?": {
+      "l1": "Think about how each summary statistic treats a single extreme value differently.",
+      "l2": "",
+      "l3": "outlier sensitivity, robust statistic",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515001-describing-data.html"
+    },
+    "When computing spread in a dataset, why can't you just average the raw deviations from the mean instead of squaring them first?": {
+      "l1": "Try it on paper with a small dataset — what does the sum of deviations from the mean always equal?",
+      "l2": "",
+      "l3": "variance, squared deviations",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515001-describing-data.html"
+    },
+    "A team reports \"average API latency: 220ms\" and ships. Why should that number alone worry you?": {
+      "l1": "Think about the shape of a typical latency distribution — is it symmetric, or does it have a long tail?",
+      "l2": "",
+      "l3": "right-skew, percentile reporting",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515001-describing-data.html"
+    },
+    "A spam classifier's training set is 95% \"not spam\" and 5% \"spam.\" Why is this the same underlying problem as a right-skewed latency distribution?": {
+      "l1": "Both problems involve a naive summary number that a lopsided shape can fool — think about what accuracy hides here.",
+      "l2": "",
+      "l3": "class imbalance, distribution shape",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515001-describing-data.html"
+    },
+    "A hallucination detector catches 90% of real hallucinations (true-positive rate) and false-flags only 5% of clean responses, on a 2% true hallucination base rate. Why is it still wrong about 73% of the time when it raises a flag?": {
+      "l1": "Work through how many flags come from the tiny true-positive population versus the huge clean population.",
+      "l2": "",
+      "l3": "base rate fallacy, Bayes' theorem",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515002-probability-foundations.html"
+    },
+    "What's the difference between \"this model is 90% accurate\" and \"when this model flags something, it's right 90% of the time\" — and why does confusing them matter?": {
+      "l1": "One statement conditions on the true label, the other conditions on the model's output — which is which?",
+      "l2": "",
+      "l3": "likelihood vs. posterior",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515002-probability-foundations.html"
+    },
+    "In Bayes' theorem terms, what makes a spam filter's classification \"literally computing an approximation of P(class | features)\" rather than just pattern-matching keywords?": {
+      "l1": "Name the three ingredients Bayes' theorem combines before it produces a posterior probability.",
+      "l2": "",
+      "l3": "prior, likelihood, Naive Bayes",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515002-probability-foundations.html"
+    },
+    "Two events are independent if P(A given B) equals P(A). Why does an LLM API call's day-of-week and whether that response contains a hallucination illustrate independence, while an email's wording and whether it's spam do not?": {
+      "l1": "Ask whether knowing one fact changes your estimate of the other at all.",
+      "l2": "",
+      "l3": "independence, conditional probability",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515002-probability-foundations.html"
+    },
+    "When an LLM generates its next token, its final softmax layer outputs one probability per vocabulary entry (often 30,000-100,000+), all positive and summing to exactly 1. Which named distribution is this, and why does that framing matter?": {
+      "l1": "Recall which distribution is defined as one outcome from K categories with probabilities summing to 1.",
+      "l2": "",
+      "l3": "categorical distribution, softmax",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515003-ml-distributions.html"
+    },
+    "A classifier outputs 0.83 as its predicted probability that an email is spam. Is that predicted score itself Bernoulli-distributed? Why or why not?": {
+      "l1": "Distinguish between a single output number and the true label the model is trying to predict.",
+      "l2": "",
+      "l3": "Bernoulli distribution, true label vs. score",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515003-ml-distributions.html"
+    },
+    "Your API traffic averages λ=2 requests per second. Using a Poisson model, why is \"exactly 2 requests next second\" not actually the most likely single outcome by a wide margin, and what does knowing λ let you do for capacity planning?": {
+      "l1": "Think about how a Poisson distribution spreads probability across nearby counts, not just the average.",
+      "l2": "",
+      "l3": "Poisson distribution, rate parameter",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515003-ml-distributions.html"
+    },
+    "Why are diffusion image models (Stable Diffusion, DALL-E, Midjourney) built around the Normal distribution specifically, rather than some other distribution?": {
+      "l1": "Think about what kind of noise gets added and removed, step by step, during diffusion training.",
+      "l2": "",
+      "l3": "Normal distribution, Gaussian noise",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515003-ml-distributions.html"
+    },
+    "Your team says \"we ran the new prompt on our 20-example eval set and it scored 5 points higher.\" Why does this course call that claim \"close to meaningless\"?": {
+      "l1": "Think about how wide the plausible accuracy range is when you only have 20 examples.",
+      "l2": "",
+      "l3": "small sample noise, eval set size",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515004-sampling-and-estimation.html"
+    },
+    "Standard error shrinks as standard deviation divided by the square root of N. Why does quadrupling your eval set from 100 to 400 examples only cut your uncertainty in half, not to a quarter?": {
+      "l1": "Look closely at the formula — what operation is applied to N before it divides the standard deviation?",
+      "l2": "",
+      "l3": "standard error, square-root scaling",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515004-sampling-and-estimation.html"
+    },
+    "In what sense is training a model — minimizing cross-entropy loss — mathematically the same procedure as Maximum Likelihood Estimation (MLE)?": {
+      "l1": "Think about what cross-entropy loss equals when you write it out as a probability statement.",
+      "l2": "",
+      "l3": "MLE, negative log-likelihood",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515004-sampling-and-estimation.html"
+    },
+    "Model A scores 0.84 and Model B scores 0.81 on 100-example eval sets. Why doesn't this prove Model A is better?": {
+      "l1": "Consider what each score's plausible range looks like once you account for its standard error.",
+      "l2": "",
+      "l3": "confidence interval, overlapping ranges",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515004-sampling-and-estimation.html"
+    },
+    "You observe that conversations with more emoji correlate with lower toxicity scores, so you consider suppressing emoji-heavy messages as an anti-toxicity rule. What question should you ask before shipping that rule?": {
+      "l1": "Think about what else might independently cause both sides of that correlation.",
+      "l2": "",
+      "l3": "correlation vs. causation, confounder",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515005-correlation-and-regression.html"
+    },
+    "Model size vs. benchmark score across 8 checkpoints gives r ≈ 0.99, while prompt length vs. response quality gives r ≈ 0.15. What does the correlation coefficient r actually measure, and what can an r near 0 miss?": {
+      "l1": "Consider what shape of relationship r is built to detect, and what shape it can't see.",
+      "l2": "",
+      "l3": "Pearson r, linear relationship",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515005-correlation-and-regression.html"
+    },
+    "Fitting a line to model-size-vs-benchmark-score data and training a modern LLM both follow the exact same three-step loop. What is that loop?": {
+      "l1": "Name the three things every model-fitting process needs: something to adjust, something to measure wrongness, and something to search.",
+      "l2": "",
+      "l3": "regression as training, loss minimization",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515005-correlation-and-regression.html"
+    },
+    "A regression line has R² ≈ 0.99 on your training checkpoints. What does that number tell you, and what does it NOT guarantee?": {
+      "l1": "Think about what R² measures about the data it was fit on, versus what it promises about new data or causality.",
+      "l2": "",
+      "l3": "R-squared, goodness of fit",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515005-correlation-and-regression.html"
+    },
+    "A next-token distribution assigns 92% probability to \"Paris\" for \"The capital of France is ___\", versus a near-uniform spread for \"My favorite color is ___\". Which one has higher entropy, and what does entropy actually measure here?": {
+      "l1": "Think about which prompt leaves the model more spread-out across possible answers.",
+      "l2": "",
+      "l3": "entropy, model confidence",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515006-information-theory.html"
+    },
+    "A model puts 70% probability on the correct next token (\"Paris\") vs. a different model that puts only 5% on \"Paris\" and 65% on the wrong answer (\"London\"). Both cases use cross-entropy loss — why does the second cost roughly 8x more?": {
+      "l1": "Recall what mathematical operation cross-entropy applies to the assigned probability, and how it treats very small probabilities.",
+      "l2": "",
+      "l3": "cross-entropy loss, logarithm",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515006-information-theory.html"
+    },
+    "Entropy, cross-entropy, and KL divergence are related by cross-entropy = entropy + KL divergence. For LLM next-token training, why do cross-entropy and KL divergence end up numerically identical?": {
+      "l1": "Think about what the true distribution looks like for next-token prediction, and what that does to its own entropy.",
+      "l2": "",
+      "l3": "one-hot label, KL divergence",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515006-information-theory.html"
+    },
+    "During RLHF fine-tuning (e.g. training a model toward human-preferred responses), what does the KL-divergence penalty against a frozen reference model prevent, and why is it needed?": {
+      "l1": "Think about what could go wrong if a model chases a reward signal with nothing holding it near its original behavior.",
+      "l2": "",
+      "l3": "RLHF, reward hacking",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515006-information-theory.html"
+    },
+    "During training, loss drops from 2.41 to 0.09 over 1000 steps on the training set — but validation loss stalls or rises partway through. What's happening, and why is \"training loss going down\" not by itself good news?": {
+      "l1": "Think about the difference between data the model has already seen and data it hasn't.",
+      "l2": "",
+      "l3": "overfitting, validation loss",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515007-training-statistics.html"
+    },
+    "You fine-tune a general-purpose LLM on a small, narrow support-ticket dataset. It answers the exact training questions perfectly, but accuracy falls off a cliff when the same question is reworded. What's this failure mode called, and what's the risk of over-training on a narrow fine-tune?": {
+      "l1": "Think about what a model does when it memorizes surface patterns instead of the underlying task.",
+      "l2": "",
+      "l3": "overfitting, catastrophic forgetting",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515007-training-statistics.html"
+    },
+    "As model complexity increases, bias falls but variance rises, producing a U-shaped total-error curve. What does \"training a model well\" actually mean under the bias-variance tradeoff, and why can't you eliminate both errors at once?": {
+      "l1": "Think about where on that U-shaped curve the two error sources balance out.",
+      "l2": "",
+      "l3": "bias-variance tradeoff",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515007-training-statistics.html"
+    },
+    "A tiny model asked to handle a genuinely complex task shows flat, stubbornly high loss on both its training data and validation data. Is this overfitting or underfitting, and how can you tell?": {
+      "l1": "Compare the training-vs-validation loss pattern here to the pattern for the opposite failure mode.",
+      "l2": "",
+      "l3": "underfitting, model capacity",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515007-training-statistics.html"
+    },
+    "A content-moderation model predicts \"clean\" for every one of 1,000 posts, of which 50 actually violate policy. It scores 95% accuracy. What do precision and recall reveal that accuracy hides?": {
+      "l1": "Work out the confusion matrix for a model that always predicts the majority class.",
+      "l2": "",
+      "l3": "accuracy paradox, class imbalance",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515008-evaluating-ai-models.html"
+    },
+    "A hallucination detector has precision 0.9 but recall 0.1. Why is its F1 score 0.18 rather than the simple average of 0.5?": {
+      "l1": "Recall which kind of average F1 uses, and how that average behaves when two numbers are very far apart.",
+      "l2": "",
+      "l3": "F1 score, harmonic mean",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515008-evaluating-ai-models.html"
+    },
+    "Lowering a hallucination detector's flagging threshold increases recall but decreases precision. Why can't you have both, and how would you decide which threshold to use for a medical-advice chatbot versus a casual chat app?": {
+      "l1": "Think about what happens to the number of false alarms versus missed cases as you flag more things.",
+      "l2": "",
+      "l3": "precision-recall tradeoff, threshold",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515008-evaluating-ai-models.html"
+    },
+    "Prompt A scores 75% and Prompt B scores 80% on a 20-example eval set (a 5-point gap). The exact same percentage gap appears when both are evaluated on 500 examples. Why does the sample size change whether you should trust the gap as real?": {
+      "l1": "Think about how many actual examples that percentage-point gap represents at each sample size.",
+      "l2": "",
+      "l3": "statistical significance, p-value",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515008-evaluating-ai-models.html"
+    },
+    "Model A has perplexity 12.3 and Model B has perplexity 18.7 on the same eval set. What does that comparison actually mean in terms of the models' next-token choices, and how is perplexity computed from cross-entropy?": {
+      "l1": "Recall the exponential relationship between perplexity and the loss function LLMs are trained on.",
+      "l2": "",
+      "l3": "perplexity, exp(cross-entropy)",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515009-llm-statistics.html"
+    },
+    "Lowering temperature sharpens a next-token distribution (lower entropy, more deterministic) and top-k/top-p truncation also lowers entropy by cutting off the tail. Why doesn't setting a very low temperature make top-k or top-p truncation redundant?": {
+      "l1": "Think about whether temperature ever fully removes an option from consideration, versus what truncation does.",
+      "l2": "",
+      "l3": "temperature vs. truncation sampling",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515009-llm-statistics.html"
+    },
+    "A model's predictions in the 90-100% confidence bucket are only actually correct 72% of the time — a 23-point overconfidence gap. Why is this a calibration problem distinct from \"the model is often wrong,\" and why does it matter for auto-approval systems?": {
+      "l1": "Think about what's being compared here: stated confidence against something else, not against a ground truth alone.",
+      "l2": "",
+      "l3": "calibration, confidence gap",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515009-llm-statistics.html"
+    },
+    "\"The cat flew across the room\" is fluent and grammatical, but \"flew\" had only a 4% base probability at that position. What does this reveal about what hallucination statistically is?": {
+      "l1": "Think about hallucination not as a bug, but as an outcome of a sampling process.",
+      "l2": "",
+      "l3": "hallucination, low-probability sampling",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515009-llm-statistics.html"
+    }
+  }
+}

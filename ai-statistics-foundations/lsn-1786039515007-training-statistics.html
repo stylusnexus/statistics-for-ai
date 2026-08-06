@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Statistics Behind Training a Model</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0 8px; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; margin: 4px 0 20px; }
+
+  .chart-legend { display: flex; gap: 18px; flex-wrap: wrap; margin: 4px 0 0; font-size: 0.85em; color: var(--muted); }
+  .chart-legend .swatch { display: inline-block; width: 12px; height: 12px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+  .card.bad h4 { color: var(--red); }
+  .card.good h4 { color: var(--green); }
+
+  .reg-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; margin: 20px 0; }
+  .reg-item { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 12px 14px; }
+  .reg-item .tag { font-size: 0.72em; font-weight: 700; letter-spacing: 0.05em; text-transform: uppercase; color: var(--accent2); display: block; margin-bottom: 4px; }
+  .reg-item p { margin: 0; font-size: 0.88em; color: var(--muted); }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 8 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>The Statistics Behind Training a Model</h1>
+<p class="subtitle">Lesson 6 gave you squared-error loss. Lesson 7 gave you cross-entropy loss. This lesson is about what actually happens when a model tries to shrink that number over millions of steps — and the two ways that process quietly goes wrong.</p>
+
+<h2>1. A loss function is just "how wrong am I, right now"</h2>
+
+<p>Strip away the formulas and every loss function you've met so far is doing the same job: it looks at what the model predicted, compares it to the truth, and returns a single number that says how bad that prediction was.</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Lesson 6 &middot; Squared-error loss</h4>
+    <p>Used for regression — predicting a continuous number, like an estimated latency or a predicted price. Loss = average squared difference between predicted and actual value. Bigger miss, disproportionately bigger penalty.</p>
+  </div>
+  <div class="card">
+    <h4>Lesson 7 &middot; Cross-entropy loss</h4>
+    <p>Used for classification and next-token prediction — anywhere the model outputs a probability distribution over categories (including "which token comes next"). Punishes confident wrong answers hardest. This is the loss every LLM is trained on.</p>
+  </div>
+</div>
+
+<p>Different formulas, same role: a <strong>loss function</strong> takes the model's current parameters (its weights), runs them against some data, and outputs one number — high means "very wrong," low means "pretty close." <strong>Training</strong> is nothing more than the repeated process of nudging those weights to make that number smaller. That's the entire chapter, at the highest level. Everything below is about <em>how</em> that nudging happens, and the two ways it can go off the rails.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Every "the model is training" progress bar you've ever watched — a fine-tuning job, a from-scratch pretraining run, a small classifier's `.fit()` call — is that same loop: compute the loss, nudge the weights a little, recompute the loss, nudge again. Millions of tiny corrections, guided entirely by whichever loss function was chosen for the job.
+</div>
+
+<h2>2. Gradient descent: finding your way downhill in fog</h2>
+
+<p>Here's the intuition, with zero calculus required. Imagine every possible setting of a model's weights as a point on a vast, hilly landscape, and the <em>height</em> of the land at that point is the loss — how wrong the model is with those particular weights. High hills are bad settings; low valleys are good ones. This landscape is called the <strong>loss landscape</strong>, and it has far more dimensions than three, but the picture still works.</p>
+
+<p>Now imagine you're standing somewhere on that landscape, in thick fog. You can't see the whole terrain — no map, no bird's-eye view. All you can do is feel the ground right under your feet and sense which direction slopes downward. So you take one small step in that downhill direction. Then you feel the ground again, from your new spot, and take another small step downhill. Repeat that thousands or millions of times, and you gradually work your way down into a valley — a region of low loss.</p>
+
+<p>That's <strong>gradient descent</strong>, the algorithm behind almost all model training:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Where you're standing</h4>
+    <p>The model's current weight values.</p>
+  </div>
+  <div class="card">
+    <h4>The height at that spot</h4>
+    <p>The loss for those weights, measured on a batch of training data.</p>
+  </div>
+  <div class="card">
+    <h4>"Feeling the slope"</h4>
+    <p>Computing which direction each weight should move to reduce loss (the technical name for this direction is the <em>gradient</em> — you don't need the calculus behind it, just the idea "which way is downhill from here").</p>
+  </div>
+  <div class="card">
+    <h4>"Taking a step"</h4>
+    <p>Nudging every weight slightly in that downhill direction. How big a step is called the <em>learning rate</em>.</p>
+  </div>
+</div>
+
+<p>A real training run is that loop repeated over and over, each time on a fresh slice of data. The loss number you'd see in a training log is watching the elevation drop as the model feels its way downhill:</p>
+
+<div class="step-box">
+<div class="line">Step 1:     loss = 2.41   (a bad, high-elevation start)</div>
+<div class="line">Step 50:    loss = 1.02</div>
+<div class="line">Step 200:   loss = 0.31</div>
+<div class="line">Step 1000:  loss = 0.09</div>
+<div class="line result">Each step: feel the local slope → nudge every weight a little downhill → repeat.</div>
+</div>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  The step size (learning rate) matters more than beginners expect. Too large, and you overshoot the valley entirely — bouncing wildly from one hillside to another, loss refusing to settle. Too small, and you creep downhill so slowly that training that should take hours takes weeks. Neither failure is about the data or the model architecture — it's purely about how big a step gradient descent is allowed to take.
+</div>
+
+<h2>3. Training loss vs. validation loss — two different measuring sticks</h2>
+
+<p>Gradient descent only ever looks at one thing: the loss on the data it's currently being nudged by. That data is called the <strong>training set</strong>, and the loss computed on it is <strong>training loss</strong>. But training loss alone can't tell you whether the model actually learned something useful — it only tells you how well the model fits the exact examples it's staring at right now.</p>
+
+<p>So every serious training run also holds back a slice of data the model <em>never</em> trains on — the <strong>validation set</strong> — and periodically checks the loss on that instead. That's <strong>validation loss</strong>. Because the model never adjusts its weights based on validation data, validation loss is your proxy for "how well does this generalize to examples it hasn't seen," which is the only thing you actually care about in production.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 660 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Line chart of training loss and validation loss over training steps. Both fall together early on, then validation loss turns upward around step 4 out of 8 while training loss keeps falling — the overfitting signature.">
+  <line x1="60" y1="20" x2="60" y2="260" stroke="var(--border)" stroke-width="1.5"/>
+  <line x1="60" y1="260" x2="620" y2="260" stroke="var(--border)" stroke-width="1.5"/>
+  <text x="15" y="140" fill="var(--muted)" font-size="12" text-anchor="middle" transform="rotate(-90 15 140)">Loss (lower = better)</text>
+  <text x="340" y="288" fill="var(--muted)" font-size="12" text-anchor="middle">Training Steps &#8594;</text>
+  <text x="52" y="24" fill="var(--muted)" font-size="10" text-anchor="end">high</text>
+  <text x="52" y="262" fill="var(--muted)" font-size="10" text-anchor="end">0</text>
+
+  <line x1="380" y1="20" x2="380" y2="260" stroke="var(--yellow)" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <text x="388" y="32" fill="var(--yellow)" font-size="11">best checkpoint</text>
+  <text x="388" y="46" fill="var(--yellow)" font-size="11">&#8595; overfitting begins</text>
+
+  <polyline points="60,50 140,90 220,125 300,155 380,178 460,196 540,210 620,220" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
+  <polyline points="60,48 140,86 220,118 300,142 380,152 460,140 540,115 620,85" fill="none" stroke="var(--red)" stroke-width="2.5"/>
+
+  <circle cx="380" cy="152" r="5" fill="var(--bg)" stroke="var(--red)" stroke-width="2"/>
+  <circle cx="380" cy="178" r="5" fill="var(--bg)" stroke="var(--accent)" stroke-width="2"/>
+</svg>
+</div>
+<div class="chart-legend">
+  <span><span class="swatch" style="background:var(--accent)"></span>Training loss</span>
+  <span><span class="swatch" style="background:var(--red)"></span>Validation loss</span>
+</div>
+<p class="viz-caption">Both losses fall together through the marked point — healthy learning. Past it, training loss keeps dropping (the model fits its training batches better and better) while validation loss turns back upward. That divergence is the overfitting signature, and the marked point is usually the best checkpoint to actually keep and ship — not the one with the lowest training loss.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Training loss going down is not, by itself, good news. It only tells you the model is getting better at the exact examples it's staring at. Validation loss is what tells you whether that improvement is transferring to anything new. Track both, every time — a training log with only one loss curve is only telling you half the story.
+</div>
+
+<h2>4. Overfitting — memorizing instead of learning</h2>
+
+<p><strong>Overfitting</strong> is what the divergence in the chart above is showing you: the model has started memorizing the training data — including its noise and idiosyncrasies — instead of learning the general pattern underneath it. Training loss keeps dropping because memorization always improves training-set performance. Validation loss stalls or climbs because memorized quirks don't transfer to examples the model hasn't seen.</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>What it looks like in practice</h4>
+    <p>A model fine-tuned on a support-ticket dataset answers the exact training questions perfectly — but ask the same question with different wording, and accuracy falls off a cliff. It memorized specific phrasings, not the underlying task.</p>
+  </div>
+  <div class="card">
+    <h4>Catastrophic forgetting</h4>
+    <p>A sharper version of the same failure. Fine-tune a capable general-purpose LLM on a small, narrow dataset for too long, and it can overfit so hard to that narrow style or domain that it visibly loses general abilities it had before — it "forgets" broad pretrained knowledge in exchange for excelling at the tiny thing it just memorized.</p>
+  </div>
+</div>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  A model that scores near-perfectly on its own training set is not automatically a good model — it may just be an expensive lookup table. Always judge a model by validation (or held-out test) performance, never by training performance alone. This is the exact trap the base-rate fallacy warned about back in Lesson 3: a great-looking number, measured the wrong way, tells you nothing about what you actually need to know.
+</div>
+
+<h2>5. Underfitting — too simple, or undertrained, to learn the pattern at all</h2>
+
+<p><strong>Underfitting</strong> is the opposite failure: the model is too simple, or hasn't trained long enough, to capture the pattern in the data in the first place. Unlike overfitting, there's no divergence to spot — <strong>both</strong> training loss and validation loss stay high, and they stay close together, because the model is failing uniformly. It isn't memorizing the training set; it can't even fit the training set well.</p>
+
+<div class="grid-2">
+  <div class="card bad">
+    <h4>Overfitting (recap)</h4>
+    <p>Training loss: low. Validation loss: high and rising. The gap between them is the tell. Fix: more data, regularization, or stop training earlier.</p>
+  </div>
+  <div class="card bad">
+    <h4>Underfitting</h4>
+    <p>Training loss: high. Validation loss: also high, close to training loss. No gap — the model just hasn't learned the pattern. Fix: more capacity (a bigger model), more training steps, or better features.</p>
+  </div>
+</div>
+
+<p>A tiny model asked to handle a genuinely complex task, or an LLM fine-tune cut off after only a handful of steps, will both show this signature: flat, stubbornly high loss on everything, training and validation alike.</p>
+
+<h2>6. Bias-variance tradeoff</h2>
+
+<p>Overfitting and underfitting are two ends of the same dial, and statisticians have names for the failure mode at each end: <strong>bias</strong> and <strong>variance</strong>.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th></th><th>High Bias &mdash; underfitting</th><th>High Variance &mdash; overfitting</th></tr></thead>
+  <tbody>
+    <tr><td>What it looks like</td><td>Consistently wrong in the same systematic way</td><td>Wildly different results depending on exactly which training examples it happened to see</td></tr>
+    <tr><td>Training loss</td><td>High</td><td>Low</td></tr>
+    <tr><td>Validation loss</td><td>High, close to training loss</td><td>High, far above training loss</td></tr>
+    <tr><td>Typical cause</td><td>Model too simple, or undertrained, for the pattern</td><td>Model too flexible for the amount of data, or trained too long</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Bias</strong> is error from a model that's too rigid to capture the real pattern — it makes the same kind of mistake over and over, regardless of which training data you gave it. <strong>Variance</strong> is error from a model that's too sensitive — retrain it on a slightly different sample of data and you'd get a noticeably different model, chasing noise instead of signal. As model complexity increases, bias tends to fall (a more flexible model can capture more of the real pattern) while variance tends to rise (a more flexible model has more room to latch onto noise). Total error is the sum of both, and it traces the classic U-shape:</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 660 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Line chart of error versus model complexity. Bias decreases as complexity rises, variance increases, and total error forms a U-shape with a minimum at moderate complexity.">
+  <line x1="60" y1="20" x2="60" y2="260" stroke="var(--border)" stroke-width="1.5"/>
+  <line x1="60" y1="260" x2="620" y2="260" stroke="var(--border)" stroke-width="1.5"/>
+  <text x="15" y="140" fill="var(--muted)" font-size="12" text-anchor="middle" transform="rotate(-90 15 140)">Error</text>
+  <text x="340" y="288" fill="var(--muted)" font-size="12" text-anchor="middle">Model Complexity &#8594;</text>
+  <text x="52" y="24" fill="var(--muted)" font-size="10" text-anchor="end">high</text>
+  <text x="52" y="262" fill="var(--muted)" font-size="10" text-anchor="end">low</text>
+
+  <line x1="300" y1="20" x2="300" y2="260" stroke="var(--green)" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <text x="308" y="32" fill="var(--green)" font-size="11">sweet spot &mdash;</text>
+  <text x="308" y="46" fill="var(--green)" font-size="11">best generalization</text>
+
+  <polyline points="60,53 140,99 220,140 300,173 380,198 460,216 540,228 620,235" fill="none" stroke="var(--accent2)" stroke-width="2"/>
+  <polyline points="60,249 140,239 220,226 300,205 380,177 460,145 540,108 620,71" fill="none" stroke="var(--yellow)" stroke-width="2"/>
+  <polyline points="60,42 140,78 220,106 300,117 380,115 460,101 540,76 620,46" fill="none" stroke="var(--green)" stroke-width="3"/>
+
+  <circle cx="300" cy="117" r="5" fill="var(--bg)" stroke="var(--green)" stroke-width="2.5"/>
+</svg>
+</div>
+<div class="chart-legend">
+  <span><span class="swatch" style="background:var(--accent2)"></span>Bias (underfit error)</span>
+  <span><span class="swatch" style="background:var(--yellow)"></span>Variance (overfit error)</span>
+  <span><span class="swatch" style="background:var(--green)"></span>Total error</span>
+</div>
+<p class="viz-caption">Bias falls as the model gets more flexible; variance rises. Total error — the one you actually care about — is their sum, and it's minimized at a middle complexity, not at either extreme. Too simple (left) and bias dominates: underfitting. Too flexible (right) and variance dominates: overfitting. The marked point is the sweet spot you're aiming for.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  There is no such thing as a model with zero bias and zero variance at the same time — pushing one down tends to push the other up. Training a model well isn't about eliminating error; it's about landing near the bottom of that U, where the two error sources balance out.
+</div>
+
+<h2>7. Regularization: deliberately holding the model back</h2>
+
+<p><strong>Regularization</strong> is the umbrella term for techniques that deliberately stop a model from fitting its training data too perfectly, in exchange for better generalization — trading a little training accuracy for a lot less overfitting. You don't need the formulas behind any of these to understand what they're for:</p>
+
+<div class="reg-list">
+  <div class="reg-item"><span class="tag">Early stopping</span><p>Stop training at the checkpoint where validation loss is lowest — exactly the marked point in the chart from section 3 — instead of training until training loss bottoms out.</p></div>
+  <div class="reg-item"><span class="tag">Weight penalties (L1/L2)</span><p>Discourage the model from relying on any single weight becoming huge, which tends to be a sign of memorizing noise.</p></div>
+  <div class="reg-item"><span class="tag">Dropout</span><p>Randomly disable a fraction of neurons during each training step, so the model can't over-rely on any one narrow path through the network.</p></div>
+  <div class="reg-item"><span class="tag">More / cleaner data</span><p>A bigger, more varied training set is simply harder to memorize — the most direct fix for high variance.</p></div>
+</div>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Whenever you fine-tune a model, ship an internal classifier, or read someone else's training report, the questions to ask are always the same ones this lesson built: is the loss function the right one for the task? Are training and validation loss tracked separately, and where do they diverge? Is the gap a bias problem or a variance problem — and does the fix look like "give it more capacity" or "hold it back more"? Lesson 9 hands you the tools to score a finished model rigorously; this lesson is about judging whether the process that produced it was sound in the first place.
+</div>
+
+<h2>Recap</h2>
+<ul>
+  <li>A <strong>loss function</strong> is a single number: how wrong the model's current parameters are. Training = repeatedly adjusting parameters to shrink that number.</li>
+  <li><strong>Gradient descent</strong>: feel the local slope of the loss landscape, take a small step downhill, repeat — no calculus needed to understand it, just "which way is down from here."</li>
+  <li><strong>Training loss</strong> measures fit to the data the model is adjusting against; <strong>validation loss</strong> measures fit to held-out data it never trains on. Track both — training loss alone can't reveal overfitting.</li>
+  <li><strong>Overfitting</strong>: training loss keeps falling while validation loss stalls or rises — the model is memorizing instead of generalizing. Catastrophic forgetting is an extreme version seen in narrow fine-tunes.</li>
+  <li><strong>Underfitting</strong>: both losses stay high and close together — the model is too simple or undertrained to capture the pattern at all.</li>
+  <li><strong>Bias-variance tradeoff</strong>: bias (systematic underfit error) falls and variance (overfit sensitivity) rises as complexity increases; total error is U-shaped, minimized at a middle "sweet spot."</li>
+  <li><strong>Regularization</strong> (early stopping, weight penalties, dropout, more data) deliberately trades some training accuracy for better generalization.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. During training, what does a loss function actually give you?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">The model's final accuracy score</div>
+    <div class="quiz-opt">A single number that says how wrong the model's current parameters are, right now</div>
+    <div class="quiz-opt">A list of exactly which training examples were misclassified</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. In the "standing on a hill in fog" analogy for gradient descent, what does "taking a small step downhill" correspond to?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">Nudging the model's weights slightly in whatever direction reduces the loss</div>
+    <div class="quiz-opt">Collecting a fresh batch of training data</div>
+    <div class="quiz-opt">Increasing the number of parameters in the model</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. Training loss keeps dropping smoothly, but validation loss bottoms out around step 4000 and then starts climbing. What does this pattern usually signal?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Underfitting — the model hasn't learned enough yet</div>
+    <div class="quiz-opt">Overfitting — the model is starting to memorize training data instead of learning the general pattern</div>
+    <div class="quiz-opt">A bug in the loss function, since loss should never rise once it starts falling</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A small, narrow fine-tuning dataset makes a language model excellent at the fine-tuning task but noticeably worse at general tasks it used to handle fine. What's this specific failure called?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Underfitting</div>
+    <div class="quiz-opt">Regularization</div>
+    <div class="quiz-opt">Catastrophic forgetting</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. On the bias-variance tradeoff curve, high bias corresponds to which failure mode, and high variance to which?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">High bias = overfitting; high variance = underfitting</div>
+    <div class="quiz-opt">High bias = underfitting (consistently wrong in the same way); high variance = overfitting (wildly sensitive to which training examples it saw)</div>
+    <div class="quiz-opt">Bias and variance measure the same thing, just at different points in training</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Gradient_descent" target="_blank">Gradient Descent — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Overfitting" target="_blank">Overfitting — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Bias%E2%80%93variance_tradeoff" target="_blank">Bias&ndash;Variance Tradeoff — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Catastrophic_interference" target="_blank">Catastrophic Interference (Forgetting) — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Regularization_(mathematics)" target="_blank">Regularization (Mathematics) — Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want to trace through a training run with your own numbers? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — think about which loss curve moves, and in which direction, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

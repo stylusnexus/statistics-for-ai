@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>From Sample to Population: Estimation & the Central Limit Theorem</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 600px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin: 20px 0; }
+
+  .flow { display: flex; gap: 10px; overflow-x: auto; padding: 6px 2px 14px; margin: 16px 0; }
+  .flow-stage {
+    min-width: 150px; flex: 1 0 150px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 12px 14px; font-size: 0.88em;
+  }
+  .flow-stage .stage-label { color: var(--accent2); font-weight: 700; font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 4px; display: block; }
+  .flow-arrow { align-self: center; color: var(--muted); font-size: 1.2em; flex: 0 0 auto; }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+    .flow { flex-direction: column; }
+    .flow-arrow { transform: rotate(90deg); align-self: flex-start; margin-left: 60px; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 5 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>From Sample to Population: Estimation &amp; the Central Limit Theorem</h1>
+<p class="subtitle">You never have all the data. Here's the math for how much that should worry you — and how models turn a pile of observations into a fitted distribution.</p>
+
+<p>Lesson 4 gave you the named distributions — Normal, Bernoulli, Categorical, Poisson — as if you could just look at a system and know its parameters. You can't. In real AI work you never see "the true distribution of all possible user prompts" or "the true distribution of all text a model could ever generate." You see a <strong>sample</strong>: one eval set, one training corpus, one afternoon's worth of logged requests. This lesson is about the gap between what you measured and what's actually true — and about the one tool (Maximum Likelihood Estimation) that turns a sample into a fitted distribution, which is what "training a model" means at a statistical level.</p>
+
+<h2>1. Population vs. sample — you never have it all</h2>
+
+<p>A <strong>population</strong> is the complete set of everything you'd ideally want to know about. A <strong>sample</strong> is the subset you actually have. Every AI system you build is estimating something about a population using only a sample:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Training data</h4>
+    <p>Population: all text a model could ever see, across every domain, language, and time period. Sample: your training corpus — a few trillion tokens scraped, licensed, or curated, which is a vanishingly small and non-random slice of "all possible text."</p>
+  </div>
+  <div class="card">
+    <h4>Eval sets</h4>
+    <p>Population: all possible user queries your product will ever receive. Sample: the 200 or 2,000 test prompts your eval set actually contains.</p>
+  </div>
+  <div class="card">
+    <h4>A/B tests</h4>
+    <p>Population: every user who will ever hit your product. Sample: the users who happened to be active during the two weeks you ran the test.</p>
+  </div>
+  <div class="card">
+    <h4>Human preference labels</h4>
+    <p>Population: what "all humans" would prefer, given a pair of model outputs. Sample: the handful of raters who actually labeled your RLHF data.</p>
+  </div>
+</div>
+
+<p>This isn't a footnote — it's the condition every number in AI is produced under. "This model scores 87% on our eval" is not a fact about the population of all possible queries. It's a fact about one sample of queries, and samples carry uncertainty that the raw number hides.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Every metric you report — accuracy, average score, win rate — is a <strong>sample statistic</strong>, a number computed from a sample, standing in for a <strong>population parameter</strong> you can never directly observe. The whole discipline of statistics exists to answer one question: how much should you trust the sample statistic as a stand-in for the real thing?
+</div>
+
+<h2>2. Why sampling introduces uncertainty</h2>
+
+<p>Say your product's true, population-level accuracy — if you could somehow test it on every query it will ever receive — is exactly 80%. You don't get to know that number. You only get to run an eval set and compute the sample accuracy. Watch what happens with different eval set sizes, assuming the true rate is 80% and each query is independently right or wrong (a Bernoulli trial, straight out of Lesson 4):</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Eval set size</th><th>Plausible range of observed accuracy</th><th>What it looks like</th></tr></thead>
+  <tbody>
+    <tr><td class="num">10</td><td class="num">~55% – 100%</td><td>A single unlucky (or lucky) batch swings the number wildly</td></tr>
+    <tr><td class="num">30</td><td class="num">~65% – 93%</td><td>Still noisy enough to mislead a launch decision</td></tr>
+    <tr><td class="num">200</td><td class="num">~74% – 86%</td><td>Tightening, but a ±3-4 point swing is still plausible from chance alone</td></tr>
+    <tr><td class="num">2,000</td><td class="num">~78% – 82%</td><td>Now a 3-point difference between two models is probably real</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Nothing about the model changed across these rows — the true accuracy is 80% in every one. What changed is how much random noise the sample size lets through. A 10-example eval set can easily hand you "70% accuracy" or "100% accuracy" from a model that's really sitting at 80%, purely because of which 10 queries you happened to draw.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  "We ran the new prompt on our 20-example eval set and it scored 5 points higher" is close to meaningless on its own. With only 20 examples, a 5-point swing is well within the range you'd expect from random sampling noise even if the two prompts were truly identical. This is the exact seed that grows into Lesson 9's statistical significance testing — for now, just internalize: <strong>small samples lie by accident, not by malice.</strong>
+</div>
+
+<h2>3. The Central Limit Theorem — why averages calm down</h2>
+
+<p>Here's the question that matters: if you keep drawing samples and averaging them, what happens to those averages? The answer is one of the most useful facts in all of statistics.</p>
+
+<p>Imagine repeating an experiment many times: draw an eval set of size <em>N</em>, compute the average score, write it down, repeat. Do that hundreds of times and look at the distribution of those averages. The <strong>Central Limit Theorem (CLT)</strong> says:</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight — Central Limit Theorem</span>
+  If you repeatedly sample and average, the sample averages cluster into a <strong>Normal distribution</strong> — the bell curve from Lesson 4 — centered on the true population mean, and that bell curve gets <strong>narrower as N grows</strong>. This holds <em>even if the underlying data itself isn't Normal at all.</em> Individual scores can be lopsided, binary, spiky, anything — the averages of those scores still smooth into a bell curve.
+</div>
+
+<p>This is genuinely surprising the first time you see it. Individual eval scores are often 0-or-1 (a Bernoulli distribution, not remotely bell-shaped). But the <em>average</em> score over N examples behaves like a Normal distribution once N is reasonably large. This is why the Normal distribution "shows up everywhere" in statistics and AI reporting — it's not that raw data is usually Normal, it's that <strong>averages of almost anything become Normal</strong>, and averages are what you report.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three panels showing the distribution of sample-mean eval scores at N=5, N=30, and N=200. As N grows, the distribution of averages narrows and becomes more sharply bell-shaped around the true value.">
+  <text x="300" y="20" text-anchor="middle" fill="#e2e8f0" font-size="14" font-weight="700">Distribution of "average eval score" as N grows (true mean = 0.80)</text>
+
+  <!-- Panel N=5 -->
+  <text x="100" y="42" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="700">N = 5</text>
+  <g>
+    <rect x="20"  y="200" width="14" height="30" fill="#6c8fff" opacity="0.55"/>
+    <rect x="36"  y="180" width="14" height="50" fill="#6c8fff" opacity="0.65"/>
+    <rect x="52"  y="150" width="14" height="80" fill="#6c8fff" opacity="0.75"/>
+    <rect x="68"  y="120" width="14" height="110" fill="#6c8fff"/>
+    <rect x="84"  y="100" width="14" height="130" fill="#6c8fff"/>
+    <rect x="100" y="95"  width="14" height="135" fill="#6c8fff"/>
+    <rect x="116" y="105" width="14" height="125" fill="#6c8fff"/>
+    <rect x="132" y="125" width="14" height="105" fill="#6c8fff" opacity="0.75"/>
+    <rect x="148" y="155" width="14" height="75"  fill="#6c8fff" opacity="0.65"/>
+    <rect x="164" y="185" width="14" height="45"  fill="#6c8fff" opacity="0.55"/>
+    <rect x="180" y="205" width="14" height="25"  fill="#6c8fff" opacity="0.45"/>
+  </g>
+  <line x1="16" y1="230" x2="200" y2="230" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="108" y1="88" x2="108" y2="232" stroke="#34d399" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <text x="108" y="248" text-anchor="middle" fill="#94a3b8" font-size="9">wide, jumpy</text>
+
+  <!-- Panel N=30 -->
+  <text x="300" y="42" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="700">N = 30</text>
+  <g>
+    <rect x="240" y="215" width="12" height="15" fill="#a78bfa" opacity="0.5"/>
+    <rect x="254" y="190" width="12" height="40" fill="#a78bfa" opacity="0.65"/>
+    <rect x="268" y="150" width="12" height="80" fill="#a78bfa" opacity="0.8"/>
+    <rect x="282" y="100" width="12" height="130" fill="#a78bfa"/>
+    <rect x="296" y="78"  width="12" height="152" fill="#a78bfa"/>
+    <rect x="310" y="100" width="12" height="130" fill="#a78bfa"/>
+    <rect x="324" y="150" width="12" height="80" fill="#a78bfa" opacity="0.8"/>
+    <rect x="338" y="190" width="12" height="40" fill="#a78bfa" opacity="0.65"/>
+    <rect x="352" y="215" width="12" height="15" fill="#a78bfa" opacity="0.5"/>
+  </g>
+  <line x1="236" y1="230" x2="366" y2="230" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="301" y1="70" x2="301" y2="232" stroke="#34d399" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <text x="301" y="248" text-anchor="middle" fill="#94a3b8" font-size="9">tighter, bell-ish</text>
+
+  <!-- Panel N=200 -->
+  <text x="480" y="42" text-anchor="middle" fill="#94a3b8" font-size="12" font-weight="700">N = 200</text>
+  <g>
+    <rect x="440" y="220" width="10" height="10" fill="#34d399" opacity="0.55"/>
+    <rect x="452" y="180" width="10" height="50" fill="#34d399" opacity="0.7"/>
+    <rect x="464" y="110" width="10" height="120" fill="#34d399" opacity="0.9"/>
+    <rect x="476" y="62"  width="10" height="168" fill="#34d399"/>
+    <rect x="488" y="110" width="10" height="120" fill="#34d399" opacity="0.9"/>
+    <rect x="500" y="180" width="10" height="50" fill="#34d399" opacity="0.7"/>
+    <rect x="512" y="220" width="10" height="10" fill="#34d399" opacity="0.55"/>
+  </g>
+  <line x1="436" y1="230" x2="526" y2="230" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="481" y1="54" x2="481" y2="232" stroke="#34d399" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <text x="481" y="248" text-anchor="middle" fill="#94a3b8" font-size="9">narrow, sharp bell</text>
+
+  <text x="300" y="272" text-anchor="middle" fill="#94a3b8" font-size="11" font-style="italic">Same true score (0.80) every time — only N changes. More data doesn't change the truth, it shrinks the noise around your estimate of it.</text>
+</svg>
+</div>
+<p class="viz-caption">All three panels are sampling the same underlying system. At N=5 an average eval run could plausibly land anywhere from ~0.5 to ~1.0. By N=200 the averages are tightly packed around the true 0.80 — the shape is Normal in all three cases, just progressively narrower.</p>
+
+<p>Notice what does <em>not</em> change across the three panels: the center. The true score is 0.80 in all three. What shrinks is the <strong>spread</strong> — how far a single measured average is likely to land from that true center. That shrinking spread is exactly what the next section puts a number on.</p>
+
+<h2>4. Standard error and confidence intervals — how far off could this be?</h2>
+
+<p>Lesson 2 gave you standard deviation: how spread out individual data points are. <strong>Standard error</strong> is a close cousin, but it answers a different question — not "how spread out are individual scores?" but "how spread out would the <em>average</em> be if I reran this whole eval many times?" The formula is simple:</p>
+
+<div class="step-box">
+<div class="line">standard error = standard deviation of the data / √N</div>
+</div>
+
+<p>The √N in the denominator is the CLT made concrete: as N grows, standard error shrinks — but not linearly. To cut your uncertainty in half, you need <strong>4x</strong> the data, because of the square root. This is a genuinely important, slightly annoying fact about statistics: early data is cheap to learn from, and each additional point of precision gets more expensive.</p>
+
+<div class="step-box">
+<div class="line">Eval scores: individual score std dev ≈ 0.40 (scores are 0 or 1, so spread is naturally large)</div>
+<div class="line"> </div>
+<div class="line">N = 25 examples:  standard error = 0.40 / √25  = 0.40 / 5   = 0.080</div>
+<div class="line">N = 100 examples: standard error = 0.40 / √100 = 0.40 / 10  = 0.040</div>
+<div class="line">N = 400 examples: standard error = 0.40 / √400 = 0.40 / 20  = 0.020</div>
+</div>
+
+<p>Quadrupling N from 25 to 100 halves the standard error. Quadrupling again, from 100 to 400, halves it again. That's the √N tax in action.</p>
+
+<p>A <strong>confidence interval</strong> takes standard error and turns it into a plain-language range: "the true score is plausibly within about ±2 standard errors of what I measured." (The "2" here is a common rough rule for a 95%-style interval — the precise mechanics of confidence levels are Lesson 9's territory; for now, treat it as an intuitive width, not an exact computation.)</p>
+
+<div class="step-box">
+<div class="line">Measured average accuracy on N=100 eval set: 0.84</div>
+<div class="line">standard error: 0.040</div>
+<div class="line"> </div>
+<div class="line">plausible range ≈ 0.84 ± (2 × 0.040)</div>
+<div class="line result">                ≈ 0.76 to 0.92</div>
+</div>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  "Model A scored 0.84, Model B scored 0.81" on 100-example eval sets does <em>not</em> mean Model A is better. If both scores carry a plausible range of roughly ±0.08, their ranges overlap heavily — the difference could easily be sampling noise, not a real capability gap. Reporting a bare average without acknowledging its standard error is one of the most common ways AI teams fool themselves about progress.
+</div>
+
+<h2>5. Maximum Likelihood Estimation — how training actually fits a distribution</h2>
+
+<p>Lesson 4 handed you distributions with parameters already filled in: "a Bernoulli with p = 0.5," "a Normal with mean 100, std dev 15." In the real world, nobody hands you those parameters — you have to <strong>estimate</strong> them from data. <strong>Maximum Likelihood Estimation (MLE)</strong> is the single most important idea for how that's done, and it's also, in disguise, what "training a model" means.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  MLE's core idea in one sentence: <strong>choose the distribution's parameters that make the data you actually observed as likely as possible.</strong> You're not guessing at truth directly — you're asking "which parameter values would have made this exact data the most probable outcome?" and picking those.
+</div>
+
+<h3>Worked example: estimating a coin's bias from flips</h3>
+<p>Suppose you're checking whether an LLM's binary classifier (say, "is this email spam?") behaves like a fair coin flip or is biased toward one answer. This is a Bernoulli distribution from Lesson 4 — you just don't know its parameter <em>p</em> (the true probability of "spam"). You observe 20 real classification outcomes from a labeled sample: <strong>14 spam, 6 not-spam.</strong></p>
+
+<p>MLE asks: of all possible values of <em>p</em> between 0 and 1, which one makes "14 spam out of 20" the most probable result? Intuitively — and it turns out, mathematically exactly — the answer is just the observed proportion:</p>
+
+<div class="step-box">
+<div class="line">p_hat (MLE estimate) = count of spam / total observations</div>
+<div class="line">                     = 14 / 20</div>
+<div class="line result">                     = 0.70</div>
+</div>
+
+<p>That feels almost too obvious to call a "theorem" — and that's exactly the point. MLE formalizes the obvious move (use the observed proportion) and, crucially, generalizes it to cases where the "obvious" answer isn't obvious at all: fitting a Normal distribution's mean <em>and</em> variance simultaneously, fitting dozens of categorical probabilities at once, or fitting the millions of parameters inside a neural network.</p>
+
+<h3>Worked example: fitting a categorical distribution</h3>
+<p>Recall from Lesson 4 that an LLM's next-token output is a categorical distribution over the vocabulary. Training data works the same way in miniature. Say you're estimating a simple unigram language model — the probability of each word — from a tiny corpus of 50 observed words, where "the" appeared 8 times, "a" appeared 5 times, and so on for the rest of the vocabulary:</p>
+
+<div class="step-box">
+<div class="line">MLE estimate for P("the") = count("the") / total words</div>
+<div class="line">                           = 8 / 50</div>
+<div class="line result">                           = 0.16</div>
+<div class="line"> </div>
+<div class="line">MLE estimate for P("a")   = count("a") / total words</div>
+<div class="line">                           = 5 / 50</div>
+<div class="line result">                           = 0.10</div>
+</div>
+
+<p>Do this for every word in the vocabulary and you've fit an entire categorical distribution by MLE — each probability is just "how often did I observe this, out of everything I observed." Fitting a Normal distribution's mean and variance to a batch of continuous scores (like the token-count or latency data from Lesson 2) follows the identical logic: the MLE estimate of the mean is the sample mean, and the MLE estimate of the variance is (almost exactly) the sample variance you already know how to compute.</p>
+
+<div class="flow">
+  <div class="flow-stage"><span class="stage-label">1. Observe</span>Real data: coin flips, word counts, labeled outcomes, token frequencies</div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-stage"><span class="stage-label">2. Choose a distribution shape</span>Bernoulli, Categorical, Normal — from Lesson 4's family</div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-stage"><span class="stage-label">3. Ask MLE's question</span>Which parameter values make this exact data most probable?</div>
+  <div class="flow-arrow">&#8594;</div>
+  <div class="flow-stage"><span class="stage-label">4. Fitted model</span>A distribution whose parameters now match the observed data as closely as the math allows</div>
+</div>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  "Training a model" is, at its statistical core, this exact process scaled up to millions or billions of parameters: pick parameter values that make the training data you actually have as likely as possible under the model. In Lessons 7 and 8 you'll see this same MLE intuition come back wearing a different name — <strong>the loss function models are literally trained with</strong> (cross-entropy loss is, mathematically, negative log-likelihood — MLE in disguise). You've already met its two simplest cases here: the coin-flip proportion and the word-count proportion.
+</div>
+
+<h2>Recap</h2>
+<ul>
+  <li>You never work with a full <strong>population</strong> — training corpora, eval sets, and A/B test users are all <strong>samples</strong>, and every reported metric is a sample statistic standing in for a population parameter you can't directly observe.</li>
+  <li>Small samples introduce real uncertainty: a tiny eval set can report a misleadingly high or low score purely by chance, even with zero change to the underlying model.</li>
+  <li>The <strong>Central Limit Theorem</strong>: averages of repeated samples cluster into a Normal distribution centered on the true value, and that cluster narrows as N grows — regardless of the shape of the underlying data. This is why the Normal distribution is everywhere, and why bigger eval sets are more trustworthy.</li>
+  <li><strong>Standard error</strong> = standard deviation / √N — it shrinks with more data, but only at the rate of a square root, so precision gets more expensive as you chase it. A rough <strong>confidence interval</strong> is about ±2 standard errors around your measured average.</li>
+  <li><strong>Maximum Likelihood Estimation</strong>: pick the distribution parameters that make your observed data as probable as possible. For a Bernoulli or Categorical distribution, MLE is just "the observed proportion" — the same math that, scaled up, is how models get trained (more in Lessons 7-8).</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. Your eval set has only 15 examples, and a new prompt version scores 6 points higher than the old one. What should you conclude?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">The new prompt is definitely better — the score went up</div>
+    <div class="quiz-opt">With only 15 examples, a 6-point swing is well within what random sampling noise alone could produce — you can't yet conclude the new prompt is actually better</div>
+    <div class="quiz-opt">Eval set size never affects how trustworthy a score is</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. According to the Central Limit Theorem, what happens to the distribution of sample averages as N grows, even if the underlying data isn't Normal?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">It becomes more skewed and unpredictable</div>
+    <div class="quiz-opt">It stays exactly the same shape as the underlying data</div>
+    <div class="quiz-opt">It clusters into a Normal distribution centered on the true value, and that cluster narrows as N increases</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. Standard error at N=100 is 0.04. Roughly what happens to standard error if you quadruple your sample to N=400?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">It roughly halves, to about 0.02, because standard error shrinks with the square root of N</div>
+    <div class="quiz-opt">It roughly quarters, to about 0.01, because standard error shrinks linearly with N</div>
+    <div class="quiz-opt">It stays the same — sample size beyond 100 doesn't matter</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. You observe 30 binary classification outcomes: 21 labeled "positive," 9 labeled "negative." What's the Maximum Likelihood Estimate of the true positive rate p?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">0.50, because MLE always assumes a fair split unless told otherwise</div>
+    <div class="quiz-opt">0.70 (21/30) — MLE for a Bernoulli/Categorical parameter is just the observed proportion</div>
+    <div class="quiz-opt">You cannot estimate p without knowing the population size in advance</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. Why does this lesson connect Maximum Likelihood Estimation to "training a model"?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">It doesn't — MLE is a purely theoretical idea with no real use in machine learning</div>
+    <div class="quiz-opt">Because training data must always follow a Bernoulli distribution</div>
+    <div class="quiz-opt">Because training a model means choosing parameters that make the observed training data as probable as possible under the model — the same MLE logic, scaled up. Cross-entropy loss (Lessons 7-8) is literally negative log-likelihood</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Central_limit_theorem" target="_blank">Central Limit Theorem — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Standard_error" target="_blank">Standard Error — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Maximum_likelihood_estimation" target="_blank">Maximum Likelihood Estimation — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Confidence_interval" target="_blank">Confidence Interval — Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want to work through confidence intervals with your own eval numbers? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — think about how sample size, the CLT, or the observed-proportion logic of MLE applies here, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

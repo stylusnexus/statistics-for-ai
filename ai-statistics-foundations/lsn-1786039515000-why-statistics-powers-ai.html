@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Why Statistics Powers AI</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  h1 { font-size: 1.9em; margin: 12px 0 6px; color: var(--text); line-height: 1.25; }
+  h2 { color: var(--accent); font-size: 1.35em; margin: 44px 0 14px; border-bottom: 1px solid var(--border); padding-bottom: 8px; }
+  h3 { color: var(--accent2); font-size: 1.08em; margin: 26px 0 8px; }
+  p { margin: 12px 0; }
+  a { color: var(--accent); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 8px; }
+  .pill {
+    display: inline-block; background: var(--surface2); color: var(--accent2);
+    border: 1px solid var(--border); border-radius: 999px; padding: 4px 14px;
+    font-size: 0.8em; letter-spacing: 0.04em; text-transform: uppercase; font-weight: 600;
+  }
+
+  /* Callouts */
+  .callout {
+    border-left: 4px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout .label {
+    display: block; font-size: 0.75em; font-weight: 700; letter-spacing: 0.06em;
+    text-transform: uppercase; margin-bottom: 6px;
+  }
+  .callout.insight { border-left-color: var(--accent); }
+  .callout.insight .label { color: var(--accent); }
+  .callout.matters { border-left-color: var(--green); }
+  .callout.matters .label { color: var(--green); }
+  .callout.pitfall { border-left-color: var(--red); }
+  .callout.pitfall .label { color: var(--red); }
+  .callout p { margin: 4px 0; }
+
+  /* AI stack tour flow diagram */
+  .tour-scroll { overflow-x: auto; margin: 24px 0 8px; padding-bottom: 6px; }
+  .tour-flow { display: flex; align-items: stretch; gap: 0; min-width: 720px; }
+  .tour-stage {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px; min-width: 150px; flex: 1;
+  }
+  .tour-stage .num {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 22px; height: 22px; border-radius: 50%; background: var(--accent);
+    color: #0f1117; font-size: 0.75em; font-weight: 700; margin-bottom: 8px;
+  }
+  .tour-stage .name { font-weight: 700; color: var(--text); margin-bottom: 4px; font-size: 0.95em; }
+  .tour-stage .desc { color: var(--muted); font-size: 0.82em; }
+  .tour-arrow {
+    display: flex; align-items: center; justify-content: center;
+    color: var(--muted); font-size: 1.3em; padding: 0 6px; flex: 0 0 auto;
+  }
+
+  /* Stop sections */
+  .stop {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 18px 20px; margin: 16px 0;
+  }
+  .stop .q { color: var(--yellow); font-weight: 600; font-size: 0.95em; margin: 0 0 8px; }
+  .stop .tag {
+    display: inline-block; font-size: 0.72em; text-transform: uppercase; letter-spacing: 0.05em;
+    color: var(--accent2); border: 1px solid var(--border); border-radius: 5px;
+    padding: 2px 8px; margin-bottom: 10px;
+  }
+
+  /* Roadmap timeline */
+  .roadmap { margin: 20px 0; }
+  .roadmap-item {
+    display: grid; grid-template-columns: 46px 1fr; gap: 14px;
+    padding: 12px 0; border-bottom: 1px solid var(--border);
+  }
+  .roadmap-item:last-child { border-bottom: none; }
+  .roadmap-num {
+    width: 34px; height: 34px; border-radius: 50%; background: var(--surface2);
+    border: 1px solid var(--border); color: var(--muted);
+    display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.9em;
+  }
+  .roadmap-item.current .roadmap-num {
+    background: var(--accent); color: #0f1117; border-color: var(--accent);
+  }
+  .roadmap-title { font-weight: 600; color: var(--text); font-size: 0.98em; }
+  .roadmap-item.current .roadmap-title { color: var(--accent); }
+  .roadmap-desc { color: var(--muted); font-size: 0.85em; margin-top: 2px; }
+  @media (max-width: 600px) {
+    .roadmap-item { grid-template-columns: 1fr; }
+    .roadmap-num { margin-bottom: 4px; }
+  }
+
+  /* Quiz */
+  .quiz {
+    margin-top: 40px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 20px 22px;
+  }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 22px 0 8px; }
+  .quiz-q:first-of-type { margin-top: 8px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer {
+    margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border);
+    color: var(--muted); font-size: 0.88em;
+  }
+  footer a { color: var(--accent2); }
+  footer .teacher-note { margin-top: 12px; }
+</style>
+</head>
+<body>
+
+  <span class="pill">Lesson 1 of 10</span>
+  <h1>Why Statistics Powers AI</h1>
+  <p class="subtitle">The tour before the road trip: where statistics actually shows up when you build, train, and evaluate AI systems — no math yet, just the map.</p>
+
+  <h2>You're already using statistics — you just haven't named it yet</h2>
+  <p>
+    You build RAG systems, agents, and evals. Every one of those already leans on statistics,
+    quietly, underneath the parts you can see: the similarity score that decides which chunk gets
+    retrieved, the confidence number a classifier attaches to its guess, the eval metric that
+    tells you whether your new prompt actually helped or just got lucky on five test cases, the
+    randomness that makes an LLM answer differently each time you ask the same question.
+  </p>
+  <p>
+    None of that is optional trivia. It's the machinery. This course exists to give you the
+    vocabulary and intuition for that machinery — not so you can derive formulas by hand, but so
+    you can read a model card, debug a weird eval result, or reason about why your RAG pipeline
+    keeps retrieving the wrong chunk, without the math turning into noise.
+  </p>
+
+  <div class="callout insight">
+    <span class="label">Key insight</span>
+    <p>Statistics isn't a chapter of AI theory you can skip. It's the language the field is
+    written in — every "confidence," "score," "loss," and "temperature" you've clicked past is a
+    statistical idea wearing a product-UI costume.</p>
+  </div>
+
+  <p>
+    This lesson is a tour, not a tutorial. We'll walk the AI stack top to bottom — from raw data,
+    through probability, through training, through evaluation, to the way an LLM actually picks
+    its next word — and stop at each layer just long enough to see the statistics doing the work.
+    The actual math starts in Lesson 2. Today is orientation: know the map before you drive it.
+  </p>
+
+  <h2>A tour of the AI stack</h2>
+  <p>Five stops, each one a place statistics is quietly running the show:</p>
+
+  <div class="tour-scroll">
+    <div class="tour-flow">
+      <div class="tour-stage">
+        <span class="num">1</span>
+        <div class="name">Describing data</div>
+        <div class="desc">Clean it, summarize it, spot what's weird about it</div>
+      </div>
+      <div class="tour-arrow">→</div>
+      <div class="tour-stage">
+        <span class="num">2</span>
+        <div class="name">Probability models</div>
+        <div class="desc">Turn "maybe" into a number you can act on</div>
+      </div>
+      <div class="tour-arrow">→</div>
+      <div class="tour-stage">
+        <span class="num">3</span>
+        <div class="name">Loss functions</div>
+        <div class="desc">Measure exactly how wrong the model is</div>
+      </div>
+      <div class="tour-arrow">→</div>
+      <div class="tour-stage">
+        <span class="num">4</span>
+        <div class="name">Evaluation</div>
+        <div class="desc">Prove "better" isn't just a lucky sample</div>
+      </div>
+      <div class="tour-arrow">→</div>
+      <div class="tour-stage">
+        <span class="num">5</span>
+        <div class="name">LLM sampling</div>
+        <div class="desc">Pick the next token from a distribution</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="stop">
+    <span class="tag">Stop 1 — Describing data</span>
+    <p class="q">Why does the token-length distribution of your documents matter before you write a single line of chunking code?</p>
+    <p>
+      Say you're building a RAG pipeline and you pick a fixed chunk size of 500 tokens because it
+      "felt reasonable." If you'd actually looked at your document set first — the mean chunk
+      length, the spread around that mean, whether a handful of 50,000-token PDFs are dragging the
+      average around — you'd have caught that fixed-size chunking quietly mangles your longest and
+      shortest documents before you shipped it. Describing data (mean, variance, shape — Lesson 2)
+      is the "look before you leap" step every AI pipeline skips at its own risk.
+    </p>
+  </div>
+
+  <div class="stop">
+    <span class="tag">Stop 2 — Probability models</span>
+    <p class="q">Why does a spam filter output a probability like 0.92, not just a flat "spam" / "not spam" label?</p>
+    <p>
+      Classic email spam filters are built on a genuinely simple idea called <strong>Naive
+      Bayes</strong>: given the words in a message, what's the probability it's spam? That's a
+      direct application of <a href="https://en.wikipedia.org/wiki/Bayes%27_theorem" target="_blank">Bayes' theorem</a>
+      (Lesson 3), and the reason it outputs a probability instead of a hard yes/no is that a
+      probability lets <em>you</em> decide the threshold. Bank telling you about a wire transfer?
+      Maybe you tolerate a false positive at 0.95. Grandma's newsletter? You can afford to be
+      looser. A binary label throws that control away.
+    </p>
+  </div>
+
+  <div class="callout matters">
+    <span class="label">Why this matters</span>
+    <p>Every "confidence score" you've seen from a moderation API, a RAG relevance filter, or an
+    agent's tool-selection step is this same idea: a probability, not a verdict, so a human or a
+    downstream system can set the threshold that fits the stakes.</p>
+  </div>
+
+  <div class="stop">
+    <span class="tag">Stop 3 — Loss functions</span>
+    <p class="q">How does a model even know it's wrong — and by how much?</p>
+    <p>
+      Training a model means repeatedly asking "how far off was that guess?" and nudging the
+      model's parameters to close the gap. The "how far off" question is answered by a
+      <strong>loss function</strong> — for classifiers and LLMs, usually <strong>cross-entropy
+      loss</strong>, a statistical measure of the distance between the model's predicted
+      probability distribution and reality (Lesson 7 covers this properly; Lesson 8 shows it
+      driving training). When you fine-tune an embedding model for retrieval, or watch a training
+      run's loss curve tick down in a dashboard, you're watching statistics act as the model's
+      only feedback signal.
+    </p>
+  </div>
+
+  <div class="stop">
+    <span class="tag">Stop 4 — Evaluation</span>
+    <p class="q">Your new agent prompt scored better on your 5 test cases. Is it actually better, or did it just get lucky?</p>
+    <p>
+      This is a statistics question dressed up as a product question. Precision, recall, and
+      whether a score difference is <em>real</em> or just sampling noise (Lesson 9) are exactly
+      what separates "I eyeballed the outputs and they seemed nicer" from "I can defend this
+      change in a postmortem." If you've ever shipped a prompt tweak that looked great in a demo
+      and then quietly made things worse in production, that's what happens when evaluation skips
+      the statistics.
+    </p>
+  </div>
+
+  <div class="stop">
+    <span class="tag">Stop 5 — LLM sampling</span>
+    <p class="q">Why does ChatGPT sometimes say something different when you ask the exact same question twice?</p>
+    <p>
+      An LLM doesn't "know" the next word — at every step it computes a probability distribution
+      over its entire vocabulary (tens of thousands of possible next tokens) and then <em>samples</em>
+      from that distribution rather than always taking the single most likely one. Parameters like
+      <strong>temperature</strong>, <strong>top-p</strong>, and <strong>top-k</strong> control how
+      that sampling behaves — low temperature squeezes the distribution toward the single most
+      likely token (more deterministic, more repetitive), higher temperature flattens it out (more
+      varied, more surprising).
+      <a href="https://platform.openai.com/docs/api-reference/chat/create#chat-create-temperature" target="_blank">OpenAI's API docs</a>
+      describe exactly this knob. This is Lesson 10's territory, and it's the single most
+      LLM-specific idea in the whole course — everything before it is the runway to understand it.
+    </p>
+  </div>
+
+  <div class="callout pitfall">
+    <span class="label">Pitfall</span>
+    <p>Treating an AI system's output as a fact instead of a sample from a distribution. A model
+    that answers correctly 9 times out of 10 will still be confidently, fluently wrong the 10th
+    time — and without the statistics to describe that variability, "it worked when I tried it"
+    tells you almost nothing about production reliability.</p>
+  </div>
+
+  <h2>How this course builds</h2>
+  <p>
+    Each lesson assumes only what came before it. Lessons 2–5 build the general statistical
+    toolkit — describing data, probability, the key distributions, and how a sample relates to a
+    population. Lessons 6–8 apply that toolkit to how models actually fit and train. Lessons 9–10
+    apply it to evaluating models rigorously and to the statistics that are unique to LLMs
+    specifically. By the end, when a paper or a model card throws around "cross-entropy,"
+    "calibration," or "top-p," none of it should feel like a wall.
+  </p>
+
+  <h3>Where this course goes</h3>
+  <div class="roadmap">
+    <div class="roadmap-item current">
+      <div class="roadmap-num">1</div>
+      <div>
+        <div class="roadmap-title">Why Statistics Powers AI</div>
+        <div class="roadmap-desc">You are here — the map before the drive.</div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-num">2</div>
+      <div>
+        <div class="roadmap-title">Describing Data</div>
+        <div class="roadmap-desc">Mean, variance, standard deviation, distribution shape.</div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-num">3</div>
+      <div>
+        <div class="roadmap-title">Probability Foundations & Bayes' Theorem</div>
+        <div class="roadmap-desc">The math behind that spam-filter probability.</div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-num">4</div>
+      <div>
+        <div class="roadmap-title">The Distributions That Run Machine Learning</div>
+        <div class="roadmap-desc">Normal, Bernoulli, Categorical, Poisson.</div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-num">5</div>
+      <div>
+        <div class="roadmap-title">From Sample to Population</div>
+        <div class="roadmap-desc">Estimation, sampling, the Central Limit Theorem, MLE intuition.</div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-num">6</div>
+      <div>
+        <div class="roadmap-title">Correlation, Regression & Why Models "Fit" Data</div>
+        <div class="roadmap-desc">What "fitting" actually means, mechanically.</div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-num">7</div>
+      <div>
+        <div class="roadmap-title">Information Theory for AI</div>
+        <div class="roadmap-desc">Entropy, cross-entropy, KL divergence.</div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-num">8</div>
+      <div>
+        <div class="roadmap-title">The Statistics Behind Training a Model</div>
+        <div class="roadmap-desc">Loss functions, overfitting, bias-variance tradeoff.</div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-num">9</div>
+      <div>
+        <div class="roadmap-title">Evaluating AI Models Rigorously</div>
+        <div class="roadmap-desc">Precision/recall, confusion matrices, statistical significance.</div>
+      </div>
+    </div>
+    <div class="roadmap-item">
+      <div class="roadmap-num">10</div>
+      <div>
+        <div class="roadmap-title">The Statistics Unique to LLMs</div>
+        <div class="roadmap-desc">Perplexity, sampling (temperature/top-p/top-k), calibration & hallucination.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="quiz">
+    <h3>✅ Check Yourself</h3>
+
+    <p class="quiz-q">1. Why does a spam filter typically output a probability (like 0.92) instead of a flat "spam" / "not spam" label?</p>
+    <div class="quiz-options" data-answer="2">
+      <div class="quiz-opt">Because probabilities are easier to compute than labels</div>
+      <div class="quiz-opt">Because email servers can't store boolean values</div>
+      <div class="quiz-opt">Because a probability lets you choose the decision threshold based on the stakes</div>
+    </div>
+    <div class="quiz-feedback"></div>
+
+    <p class="quiz-q">2. Why might the exact same prompt to an LLM produce two different answers?</p>
+    <div class="quiz-options" data-answer="1">
+      <div class="quiz-opt">The model has a random bug that needs fixing</div>
+      <div class="quiz-opt">The model samples the next token from a probability distribution rather than always picking the single most likely one</div>
+      <div class="quiz-opt">Every request is silently routed to a different, unrelated model</div>
+    </div>
+    <div class="quiz-feedback"></div>
+
+    <p class="quiz-q">3. During training, what tells a model exactly how wrong its current prediction is?</p>
+    <div class="quiz-options" data-answer="1">
+      <div class="quiz-opt">The dataset's file size</div>
+      <div class="quiz-opt">The loss function (e.g. cross-entropy loss)</div>
+      <div class="quiz-opt">The number of GPUs available</div>
+    </div>
+    <div class="quiz-feedback"></div>
+
+    <p class="quiz-q">4. Your new prompt scored higher on 5 test examples. What does this lesson say you actually need before calling it "better"?</p>
+    <div class="quiz-options" data-answer="2">
+      <div class="quiz-opt">Nothing — 5 examples looking good is enough to ship</div>
+      <div class="quiz-opt">A bigger font in the demo</div>
+      <div class="quiz-opt">Evidence the improvement is statistically real, not just sampling noise from a small test set</div>
+    </div>
+    <div class="quiz-feedback"></div>
+
+    <p class="quiz-q">5. Which of these best describes what "describing data" (Lesson 2) would have caught in the RAG chunking example?</p>
+    <div class="quiz-options" data-answer="0">
+      <div class="quiz-opt">That a few very long documents were skewing what a "reasonable" fixed chunk size actually meant</div>
+      <div class="quiz-opt">That the vector database needed more storage</div>
+      <div class="quiz-opt">That the embedding model needed to be retrained from scratch</div>
+    </div>
+    <div class="quiz-feedback"></div>
+  </div>
+
+  <footer>
+    <p><strong>Sources</strong>:
+      <a href="https://en.wikipedia.org/wiki/Bayes%27_theorem" target="_blank">Bayes' theorem (Wikipedia)</a> ·
+      <a href="https://platform.openai.com/docs/api-reference/chat/create#chat-create-temperature" target="_blank">OpenAI API reference — temperature / sampling</a>
+    </p>
+    <p class="teacher-note">Stuck on anything here, or want to go deeper on a specific example? Ask your AI teacher (Claude) — you can revisit this lesson anytime and follow up.</p>
+  </footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct — " + opt.textContent.trim() + ".";
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — think about what problem that choice would actually solve, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

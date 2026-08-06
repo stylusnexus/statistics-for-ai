@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Distributions That Run Machine Learning</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .dist-grid {
+    display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; margin: 20px 0;
+  }
+  .dist-card {
+    background: var(--surface); border: 1px solid var(--border); border-radius: 10px;
+    padding: 12px 12px 8px;
+  }
+  .dist-card svg { display: block; width: 100%; height: auto; }
+  .dist-card .dist-name { font-size: 0.82em; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+
+  .spec-grid {
+    display: grid; grid-template-columns: 140px 1fr; row-gap: 8px; column-gap: 14px;
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+    padding: 14px 16px; margin: 16px 0; font-size: 0.92em;
+  }
+  .spec-label { color: var(--muted); font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+  .spec-value strong { color: var(--accent2); }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+    .dist-grid { grid-template-columns: 1fr; }
+    .spec-grid { grid-template-columns: 1fr; row-gap: 4px; }
+    .spec-label { margin-top: 6px; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 4 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>The Distributions That Run Machine Learning</h1>
+<p class="subtitle">Four named shapes of uncertainty — and the one that's quietly running every single token your LLM ever generates.</p>
+
+<p>In Lesson 2 you learned to describe a pile of numbers: mean, variance, standard deviation, shape. In Lesson 3 you learned to reason about uncertain events with probability and Bayes' theorem. This lesson connects them: a <strong>probability distribution</strong> is a named, reusable "shape" that assigns a probability to every possible outcome of some random process — and it's fully described by a small handful of numbers called <strong>parameters</strong>, often exactly the mean and variance you already know how to compute.</p>
+
+<p>Instead of re-deriving the shape of your data from scratch every time, you recognize which named distribution fits, plug in its parameters, and immediately know a lot about how it behaves. Four distributions below show up constantly in AI systems — one of them, in particular, is the mathematical object sitting at the output of every LLM.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  A distribution is a rule, not a dataset. "Normal distribution" doesn't mean one specific set of numbers — it means a whole family of bell-shaped rules, one for every choice of mean and variance. Naming the family and stating the parameters is enough to describe the whole thing.
+</div>
+
+<h2>1. Normal (Gaussian) — the bell curve</h2>
+
+<p>The <strong>Normal distribution</strong>, also called <strong>Gaussian</strong>, models a continuous quantity that clusters symmetrically around a central value, with values far from the center becoming rapidly less likely. It's the classic bell curve you've probably seen before — now you know exactly what draws it.</p>
+
+<div class="spec-grid">
+  <div class="spec-label">Models</div>
+  <div class="spec-value">A continuous value that clusters around a center with symmetric, tapering spread</div>
+  <div class="spec-label">Parameters</div>
+  <div class="spec-value"><strong>mean (μ)</strong> — the center — and <strong>variance (σ²)</strong> — the spread. Exactly the mean and variance from Lesson 2.</div>
+  <div class="spec-label">Shape</div>
+  <div class="spec-value">Symmetric bell curve. Taller and narrower for small variance; flatter and wider for large variance.</div>
+</div>
+
+<p>Two AI examples where this exact shape shows up by name:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Weight initialization</h4>
+    <p>Before a neural network sees any training data, its weights need starting values. The standard approach draws each weight from a Normal distribution centered at 0 with a small, carefully chosen variance (schemes like Xavier/Glorot or He initialization tune that variance to the layer size, keeping signals from exploding or vanishing as they pass through the network).</p>
+  </div>
+  <div class="card">
+    <h4>Diffusion model noise</h4>
+    <p>Image-generating diffusion models (the family behind Stable Diffusion, DALL-E, Midjourney) are trained by repeatedly adding Gaussian noise to an image until it's pure static, then training a model to reverse that process one small denoising step at a time. The noise added at every step is drawn from a Normal distribution — it's the literal engine of the "diffusion" in the name.</p>
+  </div>
+</div>
+
+<p>Why does the Normal distribution show up so often? A rough intuition for now, formalized in Lesson 5: when a quantity is the sum of many small, independent random effects, the result tends toward a bell shape — regardless of what the individual effects looked like. That's a preview of the Central Limit Theorem, not something you need to prove yet.</p>
+
+<h2>2. Bernoulli — a single yes/no trial</h2>
+
+<p>The <strong>Bernoulli distribution</strong> models the simplest possible random process: one trial, two outcomes. Success or failure. Yes or no. Spam or not-spam. It's named after Jacob Bernoulli and it's the atomic building block that several other distributions (including the next one) are built from.</p>
+
+<div class="spec-grid">
+  <div class="spec-label">Models</div>
+  <div class="spec-value">A single trial with exactly two outcomes, conventionally labeled 1 ("success") and 0 ("failure")</div>
+  <div class="spec-label">Parameter</div>
+  <div class="spec-value"><strong>p</strong> — the probability of success. The probability of failure is automatically <strong>1 − p</strong>, since the two outcomes must add to 1.</div>
+  <div class="spec-label">Shape</div>
+  <div class="spec-value">Just two bars: height p at outcome 1, height 1−p at outcome 0. No curve, no spread — one number decides everything.</div>
+</div>
+
+<p>In AI systems, Bernoulli shows up wherever a label or decision is binary:</p>
+
+<ul>
+  <li><strong>Classifier labels.</strong> In a spam classifier, each email's true label is a draw from a Bernoulli distribution with parameter p equal to the base rate of spam in your traffic — the same base rate that mattered so much for Bayes' theorem in Lesson 3.</li>
+  <li><strong>Binary cross-entropy loss.</strong> The most common loss function for binary classification is built directly on the assumption that labels follow a Bernoulli distribution — you'll see this by name again in Lesson 8.</li>
+</ul>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  A classifier's <em>predicted</em> probability (say, 0.83 for "this email is spam") is not itself Bernoulli-distributed — it's a single number between 0 and 1. What's Bernoulli-distributed is the underlying <em>true label</em>, which the model is trying to predict. Don't confuse the parameter p with the model's output score, even though they're often compared directly.
+</div>
+
+<h2>3. Categorical / Multinomial — the one running your LLM right now</h2>
+
+<p>The <strong>Categorical distribution</strong> generalizes Bernoulli from two outcomes to <strong>K</strong> outcomes — any fixed number of categories, each with its own probability, all summing to exactly 1. Roll a K-sided die once, and the result follows a categorical distribution. (Do it N times and tally how many times each side came up, and the tally follows a related distribution called <strong>Multinomial</strong> — categorical is one draw, multinomial is the count across many draws. The single-draw case is the one that matters most for what's next.)</p>
+
+<div class="spec-grid">
+  <div class="spec-label">Models</div>
+  <div class="spec-value">One outcome chosen from K distinct categories, each with its own probability</div>
+  <div class="spec-label">Parameters</div>
+  <div class="spec-value">K probabilities, <strong>p₁, p₂, … , p_K</strong>, one per category, constrained to sum to exactly 1</div>
+  <div class="spec-label">Shape</div>
+  <div class="spec-value">A bar per category, heights equal to each category's probability. No inherent order — categories are just labels.</div>
+</div>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Every time a large language model generates a token, its final layer produces a <strong>softmax</strong> vector — one number per word/subword in the entire vocabulary (often 30,000 to 100,000+ entries), all positive, all summing to exactly 1. That vector is not "sort of like" a categorical distribution. It <em>is</em> a categorical distribution: K = vocabulary size, and p₁ … p_K are its parameters, recomputed fresh at every single token position. Generating text means sampling one outcome from this categorical distribution, over and over, one token at a time.
+</div>
+
+<p>A tiny worked example makes this concrete. Say a toy vocabulary has only 5 tokens, and the model has just generated "The cat sat on the" — here's what its softmax output over that vocabulary might look like for the next token:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Next token</th><th class="num">Probability (p)</th></tr></thead>
+  <tbody>
+    <tr><td>"mat"</td><td class="num">0.42</td></tr>
+    <tr><td>"floor"</td><td class="num">0.31</td></tr>
+    <tr><td>"chair"</td><td class="num">0.15</td></tr>
+    <tr><td>"roof"</td><td class="num">0.08</td></tr>
+    <tr><td>"moon"</td><td class="num">0.04</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Five numbers, one per category, summing to 1.00 — a categorical distribution with K = 5. "Greedy" generation always picks the highest-probability token ("mat"). Actual sampling draws randomly according to these probabilities — "mat" is most likely to come up, but "floor" or even "moon" can still be sampled, exactly as a weighted die roll would produce the less-likely face sometimes. Lesson 10 comes back to exactly this mechanism — temperature, top-k, and top-p sampling are all just different ways of reshaping this categorical distribution before drawing from it.</p>
+
+<h2>4. Poisson — counting rare events in a fixed window</h2>
+
+<p>The <strong>Poisson distribution</strong> models how many times a rare, random event happens in a fixed interval of time or space — given only the <em>average</em> rate at which it happens. It answers questions shaped like "given that this happens about λ times per interval on average, what's the probability it happens exactly k times this particular interval?"</p>
+
+<div class="spec-grid">
+  <div class="spec-label">Models</div>
+  <div class="spec-value">A count of events (0, 1, 2, 3, …) occurring in a fixed interval, when events are rare and happen independently</div>
+  <div class="spec-label">Parameter</div>
+  <div class="spec-value"><strong>λ (lambda)</strong> — the average rate of events per interval. This single number is both the distribution's mean <em>and</em> its variance.</div>
+  <div class="spec-label">Shape</div>
+  <div class="spec-value">Discrete spikes at whole numbers only (you can't have 2.5 events). Right-skewed for small λ — the long-tail shape from Lesson 2 shows up here as a named distribution.</div>
+</div>
+
+<p>Two places Poisson shows up in AI systems:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>API request volume</h4>
+    <p>"We get about 40 requests per minute" is a Poisson rate, λ = 40. Capacity planning uses this to estimate how often you'll see spikes well above 40 in any given minute — critical for setting autoscaling thresholds and avoiding both wasted capacity and outages.</p>
+  </div>
+  <div class="card">
+    <h4>Rare-error counting</h4>
+    <p>"Our model hallucinates in roughly 3 out of every 100 generations" sets a Poisson-style rate for hallucinations per batch. Poisson-based reasoning lets you estimate how unusual it would be to see, say, 10 hallucinations in the next 100 generations if the true rate really is 3 — a first step toward statistical significance testing in Lesson 9.</p>
+  </div>
+</div>
+
+<p>Worked mini-example: if API requests hit an endpoint at an average rate of λ = 2 per second, the Poisson distribution tells you the probability of seeing exactly k requests in the next second:</p>
+
+<div class="step-box">
+<div class="line">P(0 requests) = 0.135   (13.5%)</div>
+<div class="line">P(1 request)  = 0.271   (27.1%)</div>
+<div class="line">P(2 requests) = 0.271   (27.1%)  &lt;- matches the average, most likely single outcome</div>
+<div class="line">P(3 requests) = 0.180   (18.0%)</div>
+<div class="line">P(4 requests) = 0.090   ( 9.0%)</div>
+<div class="line">P(5 requests) = 0.036   ( 3.6%)</div>
+<div class="line">P(6+ requests) &lt; 2%   — increasingly rare, but never zero</div>
+</div>
+
+<p>Notice the shape: it peaks near λ, then tapers off — right-skewed, exactly like the token-count and latency distributions from Lesson 2. That's not a coincidence; Poisson is often the named distribution sitting underneath a real-world right-skewed count.</p>
+
+<h2>5. Shapes, side by side</h2>
+
+<p>Here's what these four distributions actually look like, drawn to the same visual language. Notice which are smooth curves over continuous values and which are bars over discrete, separate outcomes.</p>
+
+<div class="dist-grid">
+
+  <div class="dist-card">
+    <div class="dist-name">Normal — weight initialization</div>
+    <svg viewBox="0 0 260 175" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Normal distribution: a smooth symmetric bell curve centered on the mean, labeled mu at the peak, with sigma marking the spread.">
+      <path d="M20,148 C55,148 62,36 130,36 C198,36 205,148 240,148" fill="none" stroke="#6c8fff" stroke-width="2.5"/>
+      <path d="M20,148 C55,148 62,36 130,36 C198,36 205,148 240,148 L240,150 L20,150 Z" fill="#6c8fff" opacity="0.15"/>
+      <line x1="16" y1="150" x2="248" y2="150" stroke="#2e3248" stroke-width="1.5"/>
+      <line x1="130" y1="30" x2="130" y2="152" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,3"/>
+      <text x="130" y="22" text-anchor="middle" fill="#34d399" font-size="11" font-weight="700">&#956; (mean)</text>
+      <line x1="80" y1="160" x2="180" y2="160" stroke="#94a3b8" stroke-width="1"/>
+      <text x="130" y="172" text-anchor="middle" fill="#94a3b8" font-size="10">&#963; (spread)</text>
+      <text x="130" y="167" text-anchor="middle" fill="#94a3b8" font-size="9">&#8592; &#963; &#8594;</text>
+      <text x="130" y="145" text-anchor="middle" fill="#94a3b8" font-size="9" dy="14">weight value &#8594;</text>
+    </svg>
+  </div>
+
+  <div class="dist-card">
+    <div class="dist-name">Bernoulli — spam / not-spam label</div>
+    <svg viewBox="0 0 260 175" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bernoulli distribution: two bars, one at outcome 0 not spam with height 0.7, one at outcome 1 spam with height 0.3.">
+      <line x1="16" y1="150" x2="248" y2="150" stroke="#2e3248" stroke-width="1.5"/>
+      <line x1="16" y1="150" x2="16" y2="30" stroke="#2e3248" stroke-width="1.5"/>
+      <text x="8" y="34" text-anchor="end" fill="#94a3b8" font-size="9">1.0</text>
+      <text x="8" y="150" text-anchor="end" fill="#94a3b8" font-size="9">0</text>
+      <rect x="70" y="66" width="46" height="84" fill="#a78bfa"/>
+      <text x="93" y="58" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="700">0.7</text>
+      <text x="93" y="163" text-anchor="middle" fill="#94a3b8" font-size="10">0 (not spam)</text>
+      <rect x="150" y="114" width="46" height="36" fill="#f87171"/>
+      <text x="173" y="106" text-anchor="middle" fill="#e2e8f0" font-size="11" font-weight="700">0.3</text>
+      <text x="173" y="163" text-anchor="middle" fill="#94a3b8" font-size="10">1 (spam)</text>
+      <text x="130" y="12" text-anchor="middle" fill="#94a3b8" font-size="9">probability &#8595;</text>
+    </svg>
+  </div>
+
+  <div class="dist-card">
+    <div class="dist-name">Categorical — LLM next-token softmax</div>
+    <svg viewBox="0 0 260 175" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Categorical distribution: five bars over vocabulary tokens mat, floor, chair, roof, moon with decreasing heights that sum to one, tallest bar mat highlighted.">
+      <line x1="16" y1="150" x2="248" y2="150" stroke="#2e3248" stroke-width="1.5"/>
+      <line x1="16" y1="150" x2="16" y2="30" stroke="#2e3248" stroke-width="1.5"/>
+      <rect x="26"  y="55"  width="30" height="95" fill="#34d399"/>
+      <rect x="66"  y="80"  width="30" height="70" fill="#6c8fff"/>
+      <rect x="106" y="116" width="30" height="34" fill="#6c8fff"/>
+      <rect x="146" y="132" width="30" height="18" fill="#6c8fff"/>
+      <rect x="186" y="141" width="30" height="9"  fill="#6c8fff"/>
+      <text x="41"  y="48" text-anchor="middle" fill="#34d399" font-size="10" font-weight="700">.42</text>
+      <text x="81"  y="73" text-anchor="middle" fill="#94a3b8" font-size="9">.31</text>
+      <text x="121" y="109" text-anchor="middle" fill="#94a3b8" font-size="9">.15</text>
+      <text x="161" y="125" text-anchor="middle" fill="#94a3b8" font-size="9">.08</text>
+      <text x="201" y="134" text-anchor="middle" fill="#94a3b8" font-size="9">.04</text>
+      <text x="41" y="163" text-anchor="middle" fill="#94a3b8" font-size="8">mat</text>
+      <text x="81" y="163" text-anchor="middle" fill="#94a3b8" font-size="8">floor</text>
+      <text x="121" y="163" text-anchor="middle" fill="#94a3b8" font-size="8">chair</text>
+      <text x="161" y="163" text-anchor="middle" fill="#94a3b8" font-size="8">roof</text>
+      <text x="201" y="163" text-anchor="middle" fill="#94a3b8" font-size="8">moon</text>
+      <text x="130" y="12" text-anchor="middle" fill="#94a3b8" font-size="9">next-token candidates (K = 5)</text>
+    </svg>
+  </div>
+
+  <div class="dist-card">
+    <div class="dist-name">Poisson — requests per second, &#955;=2</div>
+    <svg viewBox="0 0 260 175" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Poisson distribution: sparse discrete spikes at counts 0 through 7 events, peaking around 1 and 2 events then tapering off, right skewed.">
+      <line x1="16" y1="150" x2="248" y2="150" stroke="#2e3248" stroke-width="1.5"/>
+      <line x1="16" y1="150" x2="16" y2="30" stroke="#2e3248" stroke-width="1.5"/>
+      <g stroke="#fbbf24" stroke-width="3">
+        <line x1="34"  y1="150" x2="34"  y2="134"/>
+        <line x1="62"  y1="150" x2="62"  y2="69"/>
+        <line x1="90"  y1="150" x2="90"  y2="69"/>
+        <line x1="118" y1="150" x2="118" y2="90"/>
+        <line x1="146" y1="150" x2="146" y2="118"/>
+        <line x1="174" y1="150" x2="174" y2="136"/>
+        <line x1="202" y1="150" x2="202" y2="146"/>
+        <line x1="230" y1="150" x2="230" y2="149"/>
+      </g>
+      <g fill="#fbbf24">
+        <circle cx="34" cy="134" r="3.5"/>
+        <circle cx="62" cy="69" r="3.5"/>
+        <circle cx="90" cy="69" r="3.5"/>
+        <circle cx="118" cy="90" r="3.5"/>
+        <circle cx="146" cy="118" r="3.5"/>
+        <circle cx="174" cy="136" r="3.5"/>
+        <circle cx="202" cy="146" r="3.5"/>
+        <circle cx="230" cy="149" r="3.5"/>
+      </g>
+      <text x="34" y="163" text-anchor="middle" fill="#94a3b8" font-size="9">0</text>
+      <text x="62" y="163" text-anchor="middle" fill="#94a3b8" font-size="9">1</text>
+      <text x="90" y="163" text-anchor="middle" fill="#94a3b8" font-size="9">2</text>
+      <text x="118" y="163" text-anchor="middle" fill="#94a3b8" font-size="9">3</text>
+      <text x="146" y="163" text-anchor="middle" fill="#94a3b8" font-size="9">4</text>
+      <text x="174" y="163" text-anchor="middle" fill="#94a3b8" font-size="9">5</text>
+      <text x="202" y="163" text-anchor="middle" fill="#94a3b8" font-size="9">6</text>
+      <text x="230" y="163" text-anchor="middle" fill="#94a3b8" font-size="9">7</text>
+      <text x="130" y="12" text-anchor="middle" fill="#94a3b8" font-size="9">requests in the next second &#8594;</text>
+    </svg>
+  </div>
+
+</div>
+<p class="viz-caption">Same underlying idea — a rule assigning probability to outcomes — four different shapes depending on what's being modeled. Normal is smooth and continuous; the other three are bars over discrete, separate outcomes.</p>
+
+<h2>6. Quick-reference comparison</h2>
+
+<div class="table-wrap">
+<table>
+  <thead>
+    <tr><th>Distribution</th><th>Models…</th><th>Parameter(s)</th><th>AI example</th></tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td><strong>Normal / Gaussian</strong></td>
+      <td>A continuous value clustered symmetrically around a center</td>
+      <td>mean (μ), variance (σ²)</td>
+      <td>Weight initialization; noise in diffusion models</td>
+    </tr>
+    <tr>
+      <td><strong>Bernoulli</strong></td>
+      <td>One yes/no trial</td>
+      <td>p (success probability)</td>
+      <td>A binary classifier's true label (spam / not-spam)</td>
+    </tr>
+    <tr>
+      <td><strong>Categorical / Multinomial</strong></td>
+      <td>One outcome among K categories (categorical); tallies across N draws (multinomial)</td>
+      <td>p₁ … p_K, summing to 1</td>
+      <td>An LLM's softmax output over the entire vocabulary at each token step</td>
+    </tr>
+    <tr>
+      <td><strong>Poisson</strong></td>
+      <td>A count of rare events in a fixed interval</td>
+      <td>λ (average rate per interval)</td>
+      <td>API requests per minute; hallucinations per N generations</td>
+    </tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  This lesson only describes the shapes — it does not show you how to figure out a real dataset's parameters (what's the actual λ for your API traffic? what's the actual μ and σ for your weight distribution?). That's <strong>estimation</strong>, and it's the entire subject of Lesson 5. Naming the right distribution is step one; fitting it to real data is step two.
+</div>
+
+<h2>Recap</h2>
+<ul>
+  <li>A <strong>distribution</strong> is a named rule assigning probability to every possible outcome, fully described by a small set of parameters.</li>
+  <li><strong>Normal (Gaussian)</strong>: continuous, symmetric bell curve; parameters mean and variance — weight initialization, diffusion noise.</li>
+  <li><strong>Bernoulli</strong>: a single yes/no trial with parameter p; the true label behind every binary classifier.</li>
+  <li><strong>Categorical / Multinomial</strong>: one outcome among K categories with probabilities summing to 1 — this is exactly what an LLM's softmax layer produces at every token step.</li>
+  <li><strong>Poisson</strong>: a count of rare events in a fixed interval, driven by rate λ — API load and hallucination-rate reasoning.</li>
+  <li>Fitting these distributions' parameters to real data (estimation) is Lesson 5, not this lesson.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. What are the two parameters of a Normal (Gaussian) distribution?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Minimum and maximum value</div>
+    <div class="quiz-opt">Mean (the center) and variance (the spread) — the same two numbers from Lesson 2</div>
+    <div class="quiz-opt">Median and mode</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. A binary spam classifier's true label (spam = 1, not spam = 0) is best modeled by which distribution?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">Bernoulli — a single trial with two outcomes, parameter p</div>
+    <div class="quiz-opt">Normal — because probabilities are continuous</div>
+    <div class="quiz-opt">Poisson — because spam is a rare event</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. An LLM's softmax output at each token-generation step — a vector of probabilities, one per vocabulary word, summing to 1 — is an example of which distribution?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Normal, because it's a smooth probability curve</div>
+    <div class="quiz-opt">Bernoulli, because the model is choosing yes or no for each word</div>
+    <div class="quiz-opt">Categorical, because it's one outcome chosen among K categories (the vocabulary), each with its own probability</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. Your team says "we average 40 API requests per minute." Which distribution helps you estimate how likely it is to see, say, 60 requests in a given minute?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Bernoulli, since a request either happens or it doesn't</div>
+    <div class="quiz-opt">Poisson, since it models counts of events in a fixed interval given an average rate (λ)</div>
+    <div class="quiz-opt">Categorical, since there are many possible request counts</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. True or false: this lesson taught you how to calculate the actual parameters (like λ or σ²) from your own real dataset.</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">True — you now know how to fit any distribution to data</div>
+    <div class="quiz-opt">False — this lesson only described the distributions' shapes and parameters; fitting parameters to real data (estimation) is Lesson 5</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Normal_distribution" target="_blank">Normal distribution — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Bernoulli_distribution" target="_blank">Bernoulli distribution — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Categorical_distribution" target="_blank">Categorical distribution — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Softmax_function" target="_blank">Softmax function — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Poisson_distribution" target="_blank">Poisson distribution — Wikipedia</a></li>
+    <li><a href="https://arxiv.org/abs/2006.11239" target="_blank">Denoising Diffusion Probabilistic Models (Ho, Jain, Abbeel, 2020) — arXiv</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Weight_initialization" target="_blank">Weight initialization — Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — think about how many possible outcomes there are, and whether the value is continuous or a count. Try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Statistics Unique to LLMs</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 640px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Distribution chart labels */
+  .bar-token { fill: var(--muted); font-size: 10px; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bar-pct { fill: var(--text); font-size: 10px; font-weight: 600; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .panel-title { fill: var(--text); font-size: 13px; font-weight: 700; }
+  .panel-sub { fill: var(--accent2); font-size: 11px; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .panel-entropy { fill: var(--yellow); font-size: 11px; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .axis-line { stroke: var(--border); stroke-width: 1; }
+  .bar-base { fill: var(--accent); }
+  .bar-kept { fill: var(--green); }
+  .bar-excluded { fill: var(--surface2); stroke: var(--border); stroke-width: 1; stroke-dasharray: 2 2; opacity: 0.6; }
+
+  /* Course-complete banner */
+  .course-complete {
+    border: 1px solid var(--green); background: rgba(52,211,153,0.08); border-radius: 12px;
+    padding: 18px 20px; margin: 24px 0; text-align: center;
+  }
+  .course-complete .cc-label { font-size: 0.8em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--green); margin-bottom: 6px; }
+  .course-complete p { margin: 0; color: var(--text); }
+
+  .timeline { list-style: none; padding: 0; margin: 20px 0; }
+  .timeline li {
+    background: var(--surface); border: 1px solid var(--border); border-left: 3px solid var(--accent);
+    border-radius: 8px; padding: 12px 16px; margin-bottom: 10px;
+  }
+  .timeline li.current { border-left-color: var(--green); background: rgba(52,211,153,0.06); }
+  .timeline .t-num { color: var(--accent); font-weight: 700; font-size: 0.82em; letter-spacing: 0.04em; text-transform: uppercase; margin-right: 4px; }
+  .timeline li.current .t-num { color: var(--green); }
+  .timeline .t-name { color: var(--text); font-weight: 600; }
+  .timeline .t-desc { color: var(--muted); font-size: 0.92em; margin-top: 4px; }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 10 of 10 &middot; Capstone &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>The Statistics Unique to LLMs</h1>
+<p class="subtitle">Everything so far — distributions, entropy, cross-entropy, overfitting, evaluation rigor — generalizes to any predictive model. This lesson is where it all converges on the thing that made you start this course: the statistics that specifically make an LLM's next-token machinery tick.</p>
+
+<p>An LLM, at every single step of generating text, does one thing: it produces a probability distribution over its entire vocabulary — tens of thousands of candidate next tokens, each assigned a probability, all summing to 1. That's the <strong>categorical distribution</strong> from Lesson 4. Training that model means minimizing <strong>cross-entropy loss</strong> — Lesson 7's "how surprised was the model by the true next token, on average." Everything in this lesson is what happens once you have that trained distribution in hand: how good was the training (perplexity), how do you turn a distribution into an actual chosen word (sampling strategies), can you trust what the model tells you about its own confidence (calibration), and why does it sometimes say things that are fluent but false (hallucination).</p>
+
+<h2>1. Perplexity — cross-entropy loss, made interpretable</h2>
+
+<p>Lesson 7 gave you cross-entropy loss: at each position in a sequence, take the negative log of the probability the model assigned to the <em>true</em> next token, then average that across every position. That number is what an LLM is actually trained to minimize. It's mathematically correct and it's the real training signal — but as a number, "1.15 nats" tells a human almost nothing on its own.</p>
+
+<p><strong>Perplexity solves that.</strong> It's defined as:</p>
+
+<div class="step-box">
+<div class="line">Perplexity = exp( cross-entropy loss )</div>
+</div>
+
+<p>That's it — perplexity is cross-entropy loss put through <code>exp()</code> and placed on a scale you can actually reason about: roughly <strong>"how many words was the model effectively choosing between, on average, at each step."</strong> A perplexity of 1 means the model put 100% probability on the correct token every time — perfect prediction. A perplexity equal to the size of the vocabulary means the model was, on average, no better than picking uniformly at random. Everything in between tells you the model's effective "branching factor" at decision time.</p>
+
+<h3>Worked example</h3>
+<p>Say a model is scored on a 4-token stretch of text, and here's the probability it assigned to the actual next token at each position:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Position</th><th class="num">P(true token)</th><th class="num">&minus;ln(p)</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="num">0.50</td><td class="num">0.693</td></tr>
+    <tr><td>2</td><td class="num">0.25</td><td class="num">1.386</td></tr>
+    <tr><td>3</td><td class="num">0.80</td><td class="num">0.223</td></tr>
+    <tr><td>4</td><td class="num">0.10</td><td class="num">2.303</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="step-box">
+<div class="line">Average cross-entropy loss = (0.693 + 1.386 + 0.223 + 2.303) / 4</div>
+<div class="line">                            = 4.605 / 4 = 1.151 nats</div>
+<div class="line"> </div>
+<div class="line">Perplexity = exp(1.151)</div>
+<div class="line result">           &asymp; 3.16</div>
+</div>
+
+<p>The model was, on average, choosing among roughly <strong>3.16 equally-plausible options</strong> at each step — even though its confidence swung wildly, from 80% on one token down to 10% on another. Perplexity smooths that per-token variance into a single, comparable number. (Note: training loss is conventionally reported in <em>nats</em> — natural log, matching PyTorch's and most frameworks' cross-entropy loss. If you're thinking in bits, log base 2, from Lesson 7's entropy examples, the idea is identical — just swap <code>exp()</code> for <code>2^()</code>.)</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  When you see a model leaderboard reporting "Model A: perplexity 12.3 vs. Model B: perplexity 18.7" on the same held-out text, that's not an abstract score — it means Model A was, on average, choosing among about 12 plausible next tokens at each position, while Model B was choosing among about 19. Lower perplexity is a real, interpretable claim about how sharply the model narrows down the vocabulary.
+</div>
+
+<h2>2. Sampling strategies — reshaping the categorical distribution before you pick</h2>
+
+<p>Lesson 4 established that an LLM's next-token step <em>is</em> a categorical distribution produced by softmax — a probability for every token in the vocabulary, summing to 1. Once you have that distribution, you still need a rule for turning it into one chosen token. That rule is a <strong>sampling strategy</strong>, and the three most common ones all work by reshaping the distribution before drawing from it.</p>
+
+<p>Picture the distribution after the prompt "The cat &#95;&#95;&#95;" — six plausible next tokens and their base probabilities:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Token</th><th class="num">Base probability</th></tr></thead>
+  <tbody>
+    <tr><td>sat</td><td class="num">42%</td></tr>
+    <tr><td>ran</td><td class="num">23%</td></tr>
+    <tr><td>jumped</td><td class="num">15%</td></tr>
+    <tr><td>slept</td><td class="num">10%</td></tr>
+    <tr><td>meowed</td><td class="num">6%</td></tr>
+    <tr><td>flew</td><td class="num">4%</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>That base distribution has entropy &asymp; 2.19 bits (Lesson 7: "average surprise" — higher means the model is more spread out/uncertain across options). Here's what each strategy does to it.</p>
+
+<h3>Temperature</h3>
+<p>Temperature rescales the logits (the pre-softmax scores) by dividing by a value <em>T</em> before applying softmax again. <strong>Low temperature</strong> (T &lt; 1) sharpens the distribution — the already-likely token gets pushed even higher, entropy drops, and sampling becomes more confident and deterministic. <strong>High temperature</strong> (T &gt; 1) flattens the distribution — probabilities move closer together, entropy rises, and sampling becomes more random and "creative." As T &rarr; 0, sampling converges to always picking the single highest-probability token (greedy decoding, zero entropy).</p>
+
+<h3>Top-k sampling</h3>
+<p>Keep only the <em>k</em> highest-probability tokens, discard everything else, and renormalize the remaining probabilities so they sum back to 1 before sampling. Simple and effective, but <em>k</em> is fixed regardless of context — the same k=3 might needlessly restrict a very open-ended continuation, or fail to trim a genuinely narrow one.</p>
+
+<h3>Top-p (nucleus) sampling</h3>
+<p>Instead of a fixed count, keep the smallest set of tokens whose <strong>cumulative probability</strong> exceeds a threshold <em>p</em>, then renormalize and sample from just that set. Because the set size adapts to how peaked or flat the distribution already is, nucleus sampling tends to keep few tokens when the model is confident and more tokens when it's genuinely uncertain — the fix for top-k's fixed-count blind spot. This method comes from Holtzman et al.'s 2019 paper <em>"The Curious Case of Neural Text Degeneration,"</em> cited below.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Bar charts showing the same next-token distribution reshaped by low temperature, high temperature, and top-k/top-p truncation">
+  <!-- Panel A: Low Temperature -->
+  <text x="129" y="20" text-anchor="middle" class="panel-title">Low Temperature</text>
+  <text x="129" y="36" text-anchor="middle" class="panel-sub">T = 0.5 &mdash; sharper</text>
+  <line x1="15" y1="240" x2="248" y2="240" class="axis-line"/>
+  <rect x="20"  y="134.4" width="28" height="105.6" class="bar-base"/>
+  <rect x="58"  y="208.3" width="28" height="31.7"  class="bar-base"/>
+  <rect x="96"  y="226.5" width="28" height="13.5"  class="bar-base"/>
+  <rect x="134" y="234.0" width="28" height="6.0"   class="bar-base"/>
+  <rect x="172" y="237.8" width="28" height="2.2"   class="bar-base"/>
+  <rect x="210" y="239.0" width="28" height="1.0"   class="bar-base"/>
+  <text x="34"  y="129" text-anchor="middle" class="bar-pct">66%</text>
+  <text x="72"  y="203" text-anchor="middle" class="bar-pct">20%</text>
+  <text x="110" y="221" text-anchor="middle" class="bar-pct">8%</text>
+  <text x="34"  y="253" text-anchor="middle" class="bar-token">sat</text>
+  <text x="72"  y="253" text-anchor="middle" class="bar-token">ran</text>
+  <text x="110" y="253" text-anchor="middle" class="bar-token">jump</text>
+  <text x="148" y="253" text-anchor="middle" class="bar-token">slpt</text>
+  <text x="186" y="253" text-anchor="middle" class="bar-token">meow</text>
+  <text x="224" y="253" text-anchor="middle" class="bar-token">fly</text>
+  <text x="129" y="272" text-anchor="middle" class="panel-entropy">H &asymp; 1.46 bits</text>
+
+  <!-- Panel B: High Temperature -->
+  <text x="429" y="20" text-anchor="middle" class="panel-title">High Temperature</text>
+  <text x="429" y="36" text-anchor="middle" class="panel-sub">T = 2.0 &mdash; flatter</text>
+  <line x1="315" y1="240" x2="548" y2="240" class="axis-line"/>
+  <rect x="320" y="194.4" width="28" height="45.6" class="bar-base"/>
+  <rect x="358" y="206.3" width="28" height="33.7" class="bar-base"/>
+  <rect x="396" y="212.8" width="28" height="27.2" class="bar-base"/>
+  <rect x="434" y="217.8" width="28" height="22.2" class="bar-base"/>
+  <rect x="472" y="222.8" width="28" height="17.2" class="bar-base"/>
+  <rect x="510" y="225.9" width="28" height="14.1" class="bar-base"/>
+  <text x="334" y="189" text-anchor="middle" class="bar-pct">28%</text>
+  <text x="372" y="201" text-anchor="middle" class="bar-pct">21%</text>
+  <text x="410" y="208" text-anchor="middle" class="bar-pct">17%</text>
+  <text x="334" y="253" text-anchor="middle" class="bar-token">sat</text>
+  <text x="372" y="253" text-anchor="middle" class="bar-token">ran</text>
+  <text x="410" y="253" text-anchor="middle" class="bar-token">jump</text>
+  <text x="448" y="253" text-anchor="middle" class="bar-token">slpt</text>
+  <text x="486" y="253" text-anchor="middle" class="bar-token">meow</text>
+  <text x="524" y="253" text-anchor="middle" class="bar-token">fly</text>
+  <text x="429" y="272" text-anchor="middle" class="panel-entropy">H &asymp; 2.48 bits</text>
+
+  <!-- Panel C: Top-k / Top-p truncation -->
+  <text x="729" y="20" text-anchor="middle" class="panel-title">Top-k=3 / Top-p=0.8</text>
+  <text x="729" y="36" text-anchor="middle" class="panel-sub">tail truncated</text>
+  <line x1="615" y1="240" x2="848" y2="240" class="axis-line"/>
+  <rect x="620" y="172.8" width="28" height="67.2" class="bar-kept"/>
+  <rect x="658" y="203.2" width="28" height="36.8" class="bar-kept"/>
+  <rect x="696" y="216.0" width="28" height="24.0" class="bar-kept"/>
+  <rect x="734" y="224.0" width="28" height="16.0" class="bar-excluded"/>
+  <rect x="772" y="230.4" width="28" height="9.6"  class="bar-excluded"/>
+  <rect x="810" y="233.6" width="28" height="6.4"  class="bar-excluded"/>
+  <text x="634" y="168" text-anchor="middle" class="bar-pct">42%</text>
+  <text x="672" y="198" text-anchor="middle" class="bar-pct">23%</text>
+  <text x="710" y="211" text-anchor="middle" class="bar-pct">15%</text>
+  <text x="634" y="253" text-anchor="middle" class="bar-token">sat</text>
+  <text x="672" y="253" text-anchor="middle" class="bar-token">ran</text>
+  <text x="710" y="253" text-anchor="middle" class="bar-token">jump</text>
+  <text x="748" y="253" text-anchor="middle" class="bar-token">slpt&times;</text>
+  <text x="786" y="253" text-anchor="middle" class="bar-token">meow&times;</text>
+  <text x="824" y="253" text-anchor="middle" class="bar-token">fly&times;</text>
+  <text x="729" y="272" text-anchor="middle" class="panel-entropy">H &asymp; 1.46 bits (kept set)</text>
+</svg>
+</div>
+<p class="viz-caption">Same base distribution ("The cat &#95;&#95;&#95;"), reshaped three ways. Left: low temperature sharpens it and lowers entropy. Middle: high temperature flattens it and raises entropy. Right: top-k=3 and top-p=0.8 both happen to keep the same three tokens here (cumulative probability hits exactly 0.80 at "jumped") and discard the rest (&times;) before renormalizing — a hard cutoff rather than a continuous reshape, but it also lands at a similarly low entropy.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Condition</th><th class="num">Entropy (bits)</th><th>Effect</th></tr></thead>
+  <tbody>
+    <tr><td>Base (T = 1, no truncation)</td><td class="num">2.19</td><td>Original model output</td></tr>
+    <tr><td>Low temperature (T = 0.5)</td><td class="num">1.46</td><td>Sharper, more deterministic</td></tr>
+    <tr><td>High temperature (T = 2.0)</td><td class="num">2.48</td><td>Flatter, more random</td></tr>
+    <tr><td>Top-k=3 / top-p=0.8 (renormalized)</td><td class="num">1.46</td><td>Tail deleted outright, not reshaped</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Temperature and top-k/top-p can both lower entropy, but they don't do it the same way. Temperature continuously reshapes every probability in the distribution — nothing is ever truly zeroed out. Top-k and top-p draw a hard line and delete the tail entirely, no matter how low you set the temperature elsewhere. They're often combined in production (e.g. temperature 0.7 with top-p 0.9) rather than used alone — check the docs for the API or library you're calling, since the order these are applied in (temperature first vs. truncation first) can change the result.
+</div>
+
+<h2>3. Calibration — does stated confidence match reality?</h2>
+
+<p>A model is <strong>well-calibrated</strong> if, across many predictions where it says "I'm 80% confident," it's actually correct about 80% of the time. This is Lesson 3's Bayesian instinct turned into a checkable empirical claim, and it's measured with exactly Lesson 9's evaluation discipline: bucket predictions by stated confidence, compare each bucket's average confidence to its actual accuracy on held-out data.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Stated confidence bucket</th><th class="num">n predictions</th><th class="num">Actual accuracy</th><th>Read</th></tr></thead>
+  <tbody>
+    <tr><td>90&ndash;100%</td><td class="num">200</td><td class="num">72%</td><td>Overconfident by ~23 points</td></tr>
+    <tr><td>70&ndash;80%</td><td class="num">180</td><td class="num">68%</td><td>Roughly calibrated</td></tr>
+    <tr><td>50&ndash;60%</td><td class="num">150</td><td class="num">55%</td><td>Well calibrated</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The 90&ndash;100% bucket is the dangerous one: the model is loudly confident and wrong nearly 3 times in 10. If a downstream system auto-approves anything the model reports above 90% confidence, that gap between stated and actual accuracy becomes a silent, systematic error rate.</p>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Calibration is what tells you whether a model's confidence score is safe to use as a decision gate — auto-approve above X%, route to human review below it. An accurate but poorly-calibrated model (Lesson 9's precision/recall can look fine in aggregate) can still hand you confidence numbers you cannot trust individually. This is a separate failure mode from "the model is often wrong" — calibration is about whether "wrong" and "confident" are correlated the way they should be.
+</div>
+
+<h2>4. Hallucination, framed statistically</h2>
+
+<p>"Hallucination" sounds like a mysterious glitch. Statistically, it's the predictable consequence of two things you've now already learned, working together.</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>1. Sampling from a real distribution</h4>
+    <p>Go back to the Section 2 chart. "Flew" had only 4% probability under the base distribution — but at high temperature it rose to 8.8%. Sample enough times at that temperature, and eventually you draw "flew": "The cat flew across the room." Fluent, grammatical, and false. That's not a malfunction — it's a low-probability, high-entropy token that the sampling procedure was always going to pick <em>sometimes</em>, by design.</p>
+  </div>
+  <div class="card">
+    <h4>2. Poor calibration in low-data regions</h4>
+    <p>Lesson 8's overfitting/generalization problem resurfaces here: in a region of the training distribution the model saw rarely (an obscure fact, a niche API, a rare drug interaction), the model may still confidently assign high probability to one specific, wrong continuation — it's extrapolating into territory it wasn't well-trained on, and nothing in training taught it to say "I don't know" there instead.</p>
+  </div>
+</div>
+
+<p>The first failure mode is about the sampling <em>step</em> — even a perfectly calibrated model will occasionally sample its way into a false statement, because "occasionally sample the unlikely thing" is exactly what temperature &gt; 0 sampling means. The second is about the model's <em>underlying distribution itself</em> being wrong in sparse regions — badly calibrated, confidently peaked on the wrong answer, no useful signal from entropy or probability to warn you. Reducing hallucination in practice means attacking both: lower temperature or tighter top-p for factual tasks (attacks failure mode 1), and better calibration training or retrieval-grounding so the model has real information to condition on instead of extrapolating (attacks failure mode 2).</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  "The model hallucinated" is often said like it's a categorically different kind of error from "the model was wrong." Statistically, it isn't — it's what happens when you sample from a probability distribution over token sequences and either (a) an unlikely-but-nonzero continuation gets drawn, or (b) the distribution itself was miscalibrated going in. Both are describable, measurable, and — to a degree — controllable through exactly the levers this lesson covers: temperature, truncation, and calibration.
+</div>
+
+<h2>5. A glimpse of RLHF</h2>
+
+<p>You'll see "RLHF" (Reinforcement Learning from Human Feedback) mentioned constantly in model release notes, so it's worth recognizing what it is in one paragraph. After the pretraining that minimizes cross-entropy loss (Section 1), models are typically fine-tuned using comparisons — humans or other AI models judging "which of these two responses is better" — turned into a reward signal via reinforcement learning. Left unconstrained, that fine-tuning could drift the model's output distribution very far from its original, broadly-trained distribution in pursuit of the reward. To prevent that, the fine-tuning objective usually includes a <strong>KL-divergence penalty</strong> — Lesson 7's "distance between two distributions" — that keeps the fine-tuned model's next-token distribution close to the original pretrained one, penalizing it for straying too far even while it optimizes for the preference reward.
+
+<div class="step-box">
+<div class="line">RLHF objective &asymp; reward(preference) &minus; &beta; &middot; KL(fine-tuned || original)</div>
+</div>
+
+That's the whole shape of it: chase the reward, but don't let KL divergence from the original distribution grow unchecked.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li><strong>Perplexity</strong> = exp(cross-entropy loss) — cross-entropy on an interpretable scale: roughly how many tokens the model was effectively choosing between at each step.</li>
+  <li>Sampling strategies reshape the next-token categorical distribution before drawing from it: <strong>temperature</strong> rescales continuously (low = sharper/lower entropy, high = flatter/higher entropy), <strong>top-k</strong> keeps a fixed count of top tokens, <strong>top-p</strong> keeps the smallest cumulative-probability set exceeding a threshold.</li>
+  <li><strong>Calibration</strong> checks whether stated confidence matches actual accuracy across many predictions — a measurable claim, not a vibe, and it's what makes a confidence score safe to use as a decision gate.</li>
+  <li><strong>Hallucination</strong> is the natural result of sampling from a real probability distribution: sometimes an unlikely-but-real token gets drawn, and sometimes the distribution itself is miscalibrated in a sparse, poorly-generalized region of the training data.</li>
+  <li><strong>RLHF</strong> fine-tunes on preference comparisons, typically with a KL-divergence penalty keeping the result close to the original pretrained distribution.</li>
+</ul>
+
+<div class="course-complete">
+  <div class="cc-label">&#127891; Course Complete</div>
+  <p>You've reached the end of <em>Statistics for AI, GenAI &amp; LLMs</em> — ten lessons from "why does statistics matter at all" to the exact mechanics running inside the model you talk to every day.</p>
+</div>
+
+<h2>What you now know</h2>
+<p>Here's how the ten lessons built toward this one:</p>
+
+<ol class="timeline">
+  <li><span class="t-num">Lesson 1</span><br><span class="t-desc"><strong>Why Statistics Powers AI</strong> — set the premise that every AI system, from a classifier to an LLM, is fundamentally a statistical machine reasoning under uncertainty. Everything since has been filling in that claim.</span></li>
+  <li><span class="t-num">Lesson 2</span><br><span class="t-desc"><strong>Describing Data</strong> — mean, variance, std dev, and distribution shape gave you the vocabulary to describe any pile of numbers, including the probability numbers an LLM outputs.</span></li>
+  <li><span class="t-num">Lesson 3</span><br><span class="t-desc"><strong>Probability Foundations &amp; Bayes' Theorem</strong> — conditional probability and the base-rate fallacy became the backbone of calibration in Section 3 above: confidence is a probability claim, checkable exactly the way you checked a detector's posterior.</span></li>
+  <li><span class="t-num">Lesson 4</span><br><span class="t-desc"><strong>The Distributions That Run Machine Learning</strong> — named the categorical distribution that Section 2 above spent the whole section reshaping with temperature, top-k, and top-p.</span></li>
+  <li><span class="t-num">Lesson 5</span><br><span class="t-desc"><strong>From Sample to Population</strong> — sampling and estimation gave you the lens for treating "the model's true accuracy" and "the model's true calibration" as things you estimate from a finite evaluation set, not facts you simply know.</span></li>
+  <li><span class="t-num">Lesson 6</span><br><span class="t-desc"><strong>Correlation, Regression &amp; Why Models "Fit" Data</strong> — the mechanics of fitting a model to data underlie every distribution this lesson manipulated; a model's next-token probabilities are the direct output of that fitting process.</span></li>
+  <li><span class="t-num">Lesson 7</span><br><span class="t-desc"><strong>Information Theory for AI</strong> — entropy, cross-entropy, and KL divergence are the three ideas this entire lesson is built directly on top of: perplexity is exp(cross-entropy), sampling strategies are entropy management, and RLHF leans on KL divergence.</span></li>
+  <li><span class="t-num">Lesson 8</span><br><span class="t-desc"><strong>The Statistics Behind Training a Model</strong> — overfitting and generalization explained exactly why a model hallucinates with confidence in sparse regions of its training distribution: it's extrapolating into territory it never learned well.</span></li>
+  <li><span class="t-num">Lesson 9</span><br><span class="t-desc"><strong>Evaluating AI Models Rigorously</strong> — precision, recall, and the discipline of measuring on held-out data is exactly the method Section 3 above used to check calibration bucket by bucket.</span></li>
+  <li class="current"><span class="t-num">Lesson 10 (this one)</span><br><span class="t-desc"><strong>The Statistics Unique to LLMs</strong> — perplexity, sampling strategies, calibration, and hallucination, all standing on the shoulders of the nine lessons before it.</span></li>
+</ol>
+
+<p>You started this course as a total beginner in statistics. You now have the tools to read a model card, question a reported accuracy number, reason about why turning up temperature changes what comes out, and explain — with actual math, not a shrug — why a language model sometimes says something confidently false. That's fluency, earned one distribution at a time.</p>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. Perplexity is defined as:</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">The variance of the model's predicted probabilities</div>
+    <div class="quiz-opt">The KL divergence between the model and a uniform distribution</div>
+    <div class="quiz-opt">exp(cross-entropy loss) &mdash; cross-entropy put on an interpretable "effective number of choices" scale</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. Lowering the temperature before sampling a next token does what to the distribution?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">Sharpens it &mdash; the already-likely token gets pushed higher and entropy decreases</div>
+    <div class="quiz-opt">Flattens it &mdash; all tokens become closer to equally likely</div>
+    <div class="quiz-opt">Has no effect on entropy, only on which token is technically "correct"</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. What's the key difference between top-k and top-p (nucleus) sampling?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Top-k rescales probabilities continuously; top-p deletes tokens outright</div>
+    <div class="quiz-opt">Top-k keeps a fixed count of tokens regardless of context; top-p keeps however many tokens are needed to cross a cumulative-probability threshold, so the count adapts to how peaked or flat the distribution is</div>
+    <div class="quiz-opt">Top-k only works with temperature 1.0; top-p works at any temperature</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A model states "85% confident" on many separate predictions. If the model is well-calibrated, what should you observe?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">The model should be correct 100% of the time on those predictions</div>
+    <div class="quiz-opt">The model should be correct about 85% of the time across those predictions</div>
+    <div class="quiz-opt">Calibration is unrelated to how often the model is actually correct</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. Which best describes hallucination in statistical terms?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">A random hardware or software bug unrelated to how the model was trained</div>
+    <div class="quiz-opt">Proof that the model's training data was too small to matter</div>
+    <div class="quiz-opt">Either sampling a legitimately low-probability, high-entropy continuation that happens to be false, or the model being poorly calibrated (confidently wrong) in a sparse region of its training distribution</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://huggingface.co/docs/transformers/en/perplexity" target="_blank">Perplexity of Fixed-Length Models &mdash; Hugging Face Transformers docs</a></li>
+    <li><a href="https://huggingface.co/blog/mlabonne/decoding-strategies" target="_blank">Decoding Strategies in Large Language Models &mdash; Hugging Face</a></li>
+    <li><a href="https://arxiv.org/abs/1904.09751" target="_blank">Holtzman et al., "The Curious Case of Neural Text Degeneration" (original nucleus/top-p sampling paper), arXiv:1904.09751</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want to keep exploring past this final lesson? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time. Thanks for taking the whole course.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — think about what each mechanism actually does to the distribution, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

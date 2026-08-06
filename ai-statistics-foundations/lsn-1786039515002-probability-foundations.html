@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Probability Foundations &amp; Bayes' Theorem</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 3 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Probability Foundations &amp; Bayes' Theorem</h1>
+<p class="subtitle">You can already describe a dataset you can see. This lesson is about reasoning over outcomes you haven't seen yet — the math every classifier, spam filter, and hallucination detector runs on.</p>
+
+<p>In Lesson 2 you described the shape of data sitting in front of you — mean, median, spread. That's looking backward at what happened. <strong>Probability</strong> is looking forward: given what you know, how likely is an outcome you haven't observed? Every AI classifier — spam filter, content moderator, fraud detector, hallucination checker — is a machine that outputs a probability and then someone (or something) decides what to do with it. This lesson gives you the vocabulary and the one theorem that makes that reasoning rigorous: <strong>Bayes' Theorem</strong>.</p>
+
+<h2>1. What probability formally means</h2>
+
+<p>Probability is a number between 0 and 1 assigned to an outcome, where 0 means "never happens" and 1 means "always happens." Across every possible outcome of a situation, the probabilities must sum to exactly 1 — something has to happen.</p>
+
+<p>Say a content-moderation model classifies a post into exactly one of three categories. A well-formed model output might look like this:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Outcome</th><th class="num">Probability</th></tr></thead>
+  <tbody>
+    <tr><td>Safe</td><td class="num">0.82</td></tr>
+    <tr><td>Needs review</td><td class="num">0.15</td></tr>
+    <tr><td>Violates policy</td><td class="num">0.03</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="step-box">
+<div class="line">0.82 + 0.15 + 0.03 = 1.00</div>
+</div>
+
+<p>That's not a coincidence — it's a requirement. If you've ever looked at the raw output of a classification model and seen a row of numbers that add to 1.0, you were looking at a probability distribution over outcomes. This is the same "distribution" idea from Lesson 2, just now describing <em>uncertain future outcomes</em> instead of a pile of numbers you already collected. (Lesson 4 gives these shapes formal names — Normal, Bernoulli, Categorical. For now, just recognize the pattern: a set of numbers, each between 0 and 1, summing to 1 across every possible outcome.)</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  A probability of 0.03 doesn't mean "this post violates policy 3% of the way." It means: if you ran this exact situation many times, you'd expect a policy violation about 3% of the time. Probability describes frequency of outcomes under uncertainty, not a partial or fuzzy version of the outcome itself.
+</div>
+
+<h2>2. Conditional probability — probability <em>given</em> something else is true</h2>
+
+<p>Most useful probabilities in AI aren't standalone — they're conditional. You rarely ask "what's the probability an email is spam?" in a vacuum. You ask "what's the probability an email is spam <em>given</em> that it contains the word 'free'?" That's a completely different, usually much higher, number.</p>
+
+<p>Notation: <strong>P(A|B)</strong> reads as "the probability of A, given that B is true." The bar isn't division — it means "restrict your attention to the world where B already happened, then ask about A."</p>
+
+<p>Say you run a search engine and you're evaluating retrieval quality. Two different questions:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>P(relevant)</h4>
+    <p>Across every document in your entire index, what fraction are relevant to a random query? Almost certainly tiny — most documents have nothing to do with any given search.</p>
+  </div>
+  <div class="card">
+    <h4>P(relevant | matched query)</h4>
+    <p>Restrict to just the documents your search engine <em>returned</em> for a query. What fraction of <em>those</em> are actually relevant? This is what you actually care about — it's your retrieval precision.</p>
+  </div>
+</div>
+
+<p>Conditioning narrows the population you're reasoning about. "P(spam)" looks at all email ever sent. "P(spam | contains 'free')" looks only at the slice of email containing that word — a much smaller, much spammier slice. This narrowing is the entire mechanism behind Bayes' Theorem, which you'll build in section 4.</p>
+
+<h2>3. Independence vs. dependence</h2>
+
+<p>Two events are <strong>independent</strong> if knowing one happened tells you nothing about whether the other happened. They're <strong>dependent</strong> if knowing one changes your estimate of the other.</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Independent (roughly)</h4>
+    <p>Whether an LLM API call lands on a Tuesday, and whether that response happens to contain a hallucinated fact. Day of the week tells you essentially nothing about hallucination risk.</p>
+  </div>
+  <div class="card">
+    <h4>Dependent</h4>
+    <p>Whether an email contains the word "free," and whether it's spam. Knowing the word appeared substantially raises your estimate that the email is spam. These two facts are entangled.</p>
+  </div>
+</div>
+
+<p>Formally: A and B are independent exactly when P(A|B) = P(A) — conditioning on B doesn't move the probability of A at all. The moment P(A|B) ≠ P(A), the events are dependent, and that gap between the two numbers is precisely the signal a classifier is built to exploit. A spam filter is, in essence, a machine for finding words and patterns where P(spam | pattern) is far higher than the baseline P(spam).</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Independence is an assumption you make, not something you can usually verify with certainty from a small sample. Many AI methods (including a classic spam filter called "Naive Bayes") explicitly assume features are independent of each other because it makes the math tractable — even though it's rarely exactly true in reality. That approximation is often good enough to be useful, but it's worth knowing when a model is quietly relying on it.
+</div>
+
+<h2>4. Bayes' Theorem — flipping the condition around</h2>
+
+<p>Here's the problem Bayes' Theorem solves. You usually know P(evidence | hypothesis) — that's easy to measure from data you've already labeled. Example: "given that an email really is spam, what fraction of the time does it contain 'free'?" You can just count that up from a labeled dataset.</p>
+
+<p>But that's backwards from what you actually want to know. You want P(hypothesis | evidence) — "given that this new email contains 'free', what's the probability it's spam?" That's the question you can't directly count, because you don't yet know whether this new email is spam. That's exactly what you're trying to find out.</p>
+
+<p>Bayes' Theorem is the formula that flips one into the other:</p>
+
+<div class="step-box">
+<div class="line">             P(evidence | hypothesis) &times; P(hypothesis)</div>
+<div class="line">P(hypothesis | evidence) = ───────────────────────────────────────────</div>
+<div class="line">                          P(evidence)</div>
+</div>
+
+<p>Each piece has a name, and each name matters because you'll see them again anywhere probabilistic reasoning shows up in AI:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Term</th><th>Name</th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>P(hypothesis)</td><td><strong>Prior</strong></td><td>What you believed before seeing this evidence — the baseline rate.</td></tr>
+    <tr><td>P(evidence | hypothesis)</td><td><strong>Likelihood</strong></td><td>How probable this evidence is, assuming the hypothesis is true.</td></tr>
+    <tr><td>P(evidence)</td><td><strong>Evidence</strong> (or normalizer)</td><td>How probable this evidence is overall, across every hypothesis — it rescales the answer back into a valid 0–1 probability.</td></tr>
+    <tr><td>P(hypothesis | evidence)</td><td><strong>Posterior</strong></td><td>What you believe <em>after</em> seeing the evidence — the updated, more informed answer.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>In one sentence: <strong>Bayes' Theorem is how you update a belief when new evidence arrives.</strong> Start with a prior, weigh it by how well the evidence fits, and land on a posterior. This is the mathematical backbone of every classifier that reasons under uncertainty — it's quite literally how a spam filter, a fraud detector, or a hallucination checker turns "I saw this pattern" into "here's my updated probability that something bad is going on."</p>
+
+<h2>5. Worked example: a hallucination detector</h2>
+
+<p>Say your team ships a lightweight classifier that flags LLM responses likely to contain a hallucinated fact. It's been evaluated and you know two things about it from a labeled test set:</p>
+
+<ul>
+  <li>Overall, <strong>2%</strong> of responses in production actually contain a hallucination. This is your <strong>prior</strong> — the base rate, before the detector says anything.</li>
+  <li>The detector is fairly good: if a response <em>does</em> contain a hallucination, it flags it <strong>90%</strong> of the time (this is the likelihood of a flag given a real hallucination). If a response is <em>clean</em>, the detector still false-flags it <strong>5%</strong> of the time.</li>
+</ul>
+
+<p>The detector flags a response. What's the probability it's <em>actually</em> a hallucination? Most people's gut says "90%, since that's how good the detector is." Let's compute it properly.</p>
+
+<p>Imagine 10,000 responses, and split them by the real numbers above:</p>
+
+<div class="step-box">
+<div class="line">Total responses: 10,000</div>
+<div class="line">Actually hallucinated (2% prior): 10,000 &times; 0.02 = 200</div>
+<div class="line">Actually clean:                  10,000 &times; 0.98 = 9,800</div>
+<div class="line"> </div>
+<div class="line">Of the 200 hallucinated, detector flags 90%:</div>
+<div class="line">  200 &times; 0.90 = 180  (true positives)</div>
+<div class="line"> </div>
+<div class="line">Of the 9,800 clean, detector false-flags 5%:</div>
+<div class="line">  9,800 &times; 0.05 = 490  (false positives)</div>
+<div class="line"> </div>
+<div class="line">Total flagged = 180 + 490 = 670</div>
+</div>
+
+<p>Now apply Bayes' Theorem directly — the posterior is the true positives divided by <em>all</em> flags, true and false:</p>
+
+<div class="step-box">
+<div class="line">P(hallucination | flagged) = P(flagged | hallucination) &times; P(hallucination)</div>
+<div class="line">                              ─────────────────────────────────────────────────</div>
+<div class="line">                                            P(flagged)</div>
+<div class="line"> </div>
+<div class="line">                            = (0.90 &times; 0.02) / 0.067</div>
+<div class="line">                            = 0.018 / 0.067</div>
+<div class="line result">                            &asymp; 0.269  →  about 27%</div>
+</div>
+
+<p>Here's the flow of the calculation, laid out the way the pieces move through the formula:</p>
+
+<div class="bayes-flow">
+  <div class="bayes-step prior">
+    <div class="label">Prior</div>
+    <div class="value">2%</div>
+    <div class="desc">Base rate of real hallucinations in production</div>
+  </div>
+  <div class="bayes-arrow">&rarr;</div>
+  <div class="bayes-step likelihood">
+    <div class="label">Likelihood</div>
+    <div class="value">90%</div>
+    <div class="desc">Detector's true-positive rate</div>
+  </div>
+  <div class="bayes-arrow">&rarr;</div>
+  <div class="bayes-step evidence">
+    <div class="label">Evidence</div>
+    <div class="value">6.7%</div>
+    <div class="desc">P(flagged) overall — 670 / 10,000</div>
+  </div>
+  <div class="bayes-arrow">&rarr;</div>
+  <div class="bayes-step posterior">
+    <div class="label">Posterior</div>
+    <div class="value">~27%</div>
+    <div class="desc">P(real hallucination | flagged)</div>
+  </div>
+</div>
+
+<p>A detector with a 90% catch rate and only a 5% false-flag rate still turns out to be wrong <strong>about 73% of the time</strong> when it raises a flag. That's not a bad detector — it's the base rate working against you.</p>
+
+<h2>6. The base rate fallacy — why rare events break "accurate" detectors</h2>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  When the thing you're detecting is rare, even a highly accurate test produces mostly false alarms. This is the <strong>base rate fallacy</strong> — ignoring how rare the real condition is, and reading a test's accuracy as if it were the answer to "given a flag, is this real?" It is one of the most consequential mistakes in applied AI, because it's exactly backwards from how people intuitively read a "90% accurate" claim.
+</div>
+
+<p>See it laid out as a population split — 10,000 responses, divided first by ground truth (hallucinated vs. clean) and then by what the detector said:</p>
+
+<div class="grid2x2-wrap">
+<div class="grid2x2">
+  <div class="cell corner"></div>
+  <div class="cell head">Actually hallucinated (200)</div>
+  <div class="cell head">Actually clean (9,800)</div>
+
+  <div class="cell head">Detector flagged</div>
+  <div class="cell tp"><span class="count">180</span><span class="tag">True positive</span></div>
+  <div class="cell fp"><span class="count">490</span><span class="tag">False positive</span></div>
+
+  <div class="cell head">Detector didn't flag</div>
+  <div class="cell fn"><span class="count">20</span><span class="tag">False negative</span></div>
+  <div class="cell tn"><span class="count">9,310</span><span class="tag">True negative</span></div>
+</div>
+</div>
+<p class="viz-caption">Read the "Detector flagged" row: 180 real catches against 490 false alarms. The false-positive column is 49x wider than the true-condition column is rare — that imbalance, not the detector's quality, is what drags the posterior down to ~27%.</p>
+
+<p>Why does this happen? Because the clean population (9,800) is so much larger than the hallucinated population (200) that even a small false-positive <em>rate</em> (5%) generates a large false-positive <em>count</em> (490) — more than double the true positives (180). The detector's 90%/5% numbers describe performance <em>within</em> each true class. They say nothing on their own about what a flag means until you weight them by how common each class actually is. That weighting is exactly what the prior does in Bayes' Theorem.</p>
+
+<p>This isn't a hallucination-detector-only problem. The identical arithmetic shows up in:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Fraud detection</h4>
+    <p>Fraud might be 0.1% of transactions. A "99% accurate" fraud model can still flag mostly-legitimate transactions, because legitimate transactions vastly outnumber fraudulent ones.</p>
+  </div>
+  <div class="card">
+    <h4>Rare-disease medical screening</h4>
+    <p>The textbook version of this problem — a 99%-accurate test for a disease affecting 1 in 1,000 people is still wrong most of the time when it comes back positive.</p>
+  </div>
+  <div class="card">
+    <h4>Content moderation at scale</h4>
+    <p>If policy violations are rare relative to total posts, even a strong classifier generates a flood of false flags for human reviewers to wade through.</p>
+  </div>
+</div>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  "This model is 90% accurate" is not the same claim as "when this model flags something, it's right 90% of the time." The first is about the detector's behavior given the true label (likelihood). The second is about the true label given the detector's output (posterior). Confusing the two is the base rate fallacy, and it's exactly the gap Bayes' Theorem exists to close.
+</div>
+
+<h2>7. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Bayes' Theorem isn't a historical curiosity — it's load-bearing infrastructure for how modern AI reasons under uncertainty.
+</div>
+
+<h3>Classifiers are Bayesian machines under the hood</h3>
+<p>Many classifiers — spam filters, content moderators, intent classifiers — are literally computing (an approximation of) P(class | features) using exactly this structure: a prior over classes, a likelihood of the observed features given each class, normalized by the evidence. "Naive Bayes" classifiers do this almost exactly as shown above, just with more features multiplied together under the independence assumption from section 3.</p>
+
+<h3>Setting a detector's threshold requires knowing the base rate</h3>
+<p>Once you know a 90%/5% detector produces a 27% posterior on a 2%-prevalence problem, you can make an informed decision: route flagged responses to human review instead of auto-rejecting them, or raise the detector's precision, or accept the false-positive cost because catching 90% of real hallucinations is still worth 490 wasted reviews. Without knowing the base rate, you can't reason about this tradeoff at all — you'd just be guessing.</p>
+
+<h3>Reading eval reports without getting fooled</h3>
+<p>When someone hands you a model eval and reports "95% accuracy," your first question should be: accurate on what distribution, and what's the base rate of the thing that matters? A model can post a great accuracy number on an imbalanced test set (echoing the class-imbalance pitfall from Lesson 2) while still being close to useless at the one job you actually need it to do. Lesson 9 builds the full toolkit — precision, recall, confusion matrices — for auditing exactly this.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>Probability assigns each outcome a number from 0 to 1; across all possible outcomes for a situation, those numbers sum to 1.</li>
+  <li><strong>Conditional probability</strong> P(A|B) restricts your view to the world where B is already true, then asks about A. It's usually a very different number from the unconditional P(A).</li>
+  <li>Events are <strong>independent</strong> when P(A|B) = P(A) — knowing B tells you nothing new about A. Otherwise they're dependent, and that gap is what classifiers exploit.</li>
+  <li><strong>Bayes' Theorem</strong> flips P(evidence | hypothesis), which you can measure, into P(hypothesis | evidence), which you actually want: posterior = (likelihood &times; prior) / evidence.</li>
+  <li>The <strong>base rate fallacy</strong>: when the real condition is rare, even a highly accurate detector produces mostly false positives among its flags. Always ask "accurate given the true label, or true given the flag?" — they're different questions with different answers.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. A model outputs P(safe) = 0.7, P(needs review) = 0.2, P(violates policy) = 0.1 for a post. What must be true of any valid probability distribution over outcomes?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Each probability must be exactly 0.5</div>
+    <div class="quiz-opt">All the probabilities must sum to 1 across every possible outcome</div>
+    <div class="quiz-opt">There must be exactly two outcomes listed</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. What does P(relevant | matched query) mean, in plain English?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">The probability that a query is relevant to any document in the index</div>
+    <div class="quiz-opt">The probability that a document matches a query, given it's relevant</div>
+    <div class="quiz-opt">Among only the documents that matched this query, the probability one of them is actually relevant</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. Which pair of events is closest to independent?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">An email contains the word "free," and the email is spam</div>
+    <div class="quiz-opt">The day of the week an LLM API call is made, and whether that response contains a hallucination</div>
+    <div class="quiz-opt">A transaction is flagged by a fraud model, and the transaction is actually fraudulent</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. In Bayes' Theorem, P(hypothesis) — your belief before seeing new evidence — is called the:</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">Prior</div>
+    <div class="quiz-opt">Likelihood</div>
+    <div class="quiz-opt">Posterior</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. A hallucination detector catches 90% of real hallucinations and false-flags only 5% of clean responses — but real hallucinations are rare (2% of all responses). Why can P(real hallucination | flagged) still be as low as ~27%?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Because the detector's math must be wrong if the posterior is that low</div>
+    <div class="quiz-opt">Because clean responses vastly outnumber hallucinated ones, so even a small 5% false-positive rate produces more false flags in raw count than the 90% true-positive rate produces true flags</div>
+    <div class="quiz-opt">Because 90% and 5% don't actually relate to each other mathematically</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Bayes%27_theorem" target="_blank">Bayes' Theorem — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Base_rate_fallacy" target="_blank">Base Rate Fallacy — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Naive_Bayes_classifier" target="_blank">Naive Bayes Classifier — Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — think about prior, likelihood, and posterior separately, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

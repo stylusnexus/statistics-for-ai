@@ -1,0 +1,35 @@
+{
+  "title": "Statistics for AI, GenAI & LLMs",
+  "topic": "ai-statistics",
+  "icon": "📊",
+  "description": "The statistics you actually need to build, evaluate, and reason about AI, generative models, and LLMs.",
+  "tags": ["ai", "statistics"],
+  "colorScheme": "green",
+  "starred": false,
+  "archived": false,
+  "createdAt": "2026-08-06",
+  "lessons": [
+    { "id": "lsn-1786039515000", "title": "Why Statistics Powers AI", "file": "lsn-1786039515000-why-statistics-powers-ai.html", "source": "skill" },
+    { "id": "lsn-1786039515001", "title": "Describing Data: Mean, Variance & Distribution Shape", "file": "lsn-1786039515001-describing-data.html", "source": "skill" },
+    { "id": "lsn-1786039515002", "title": "Probability Foundations & Bayes' Theorem", "file": "lsn-1786039515002-probability-foundations.html", "source": "skill" },
+    { "id": "lsn-1786039515003", "title": "The Distributions That Run Machine Learning", "file": "lsn-1786039515003-ml-distributions.html", "source": "skill" },
+    { "id": "lsn-1786039515004", "title": "From Sample to Population: Estimation & the CLT", "file": "lsn-1786039515004-sampling-and-estimation.html", "source": "skill" },
+    { "id": "lsn-1786039515005", "title": "Correlation, Regression & Why Models \"Fit\" Data", "file": "lsn-1786039515005-correlation-and-regression.html", "source": "skill" },
+    { "id": "lsn-1786039515006", "title": "Information Theory for AI: Entropy, Cross-Entropy & KL Divergence", "file": "lsn-1786039515006-information-theory.html", "source": "skill" },
+    { "id": "lsn-1786039515007", "title": "The Statistics Behind Training a Model", "file": "lsn-1786039515007-training-statistics.html", "source": "skill" },
+    { "id": "lsn-1786039515008", "title": "Evaluating AI Models Rigorously", "file": "lsn-1786039515008-evaluating-ai-models.html", "source": "skill" },
+    { "id": "lsn-1786039515009", "title": "The Statistics Unique to LLMs", "file": "lsn-1786039515009-llm-statistics.html", "source": "skill" }
+  ],
+  "completion": {
+    "lsn-1786039515000": { "viewed": false, "completed": false, "starred": false },
+    "lsn-1786039515001": { "viewed": false, "completed": false, "starred": false },
+    "lsn-1786039515002": { "viewed": false, "completed": false, "starred": false },
+    "lsn-1786039515003": { "viewed": false, "completed": false, "starred": false },
+    "lsn-1786039515004": { "viewed": false, "completed": false, "starred": false },
+    "lsn-1786039515005": { "viewed": false, "completed": false, "starred": false },
+    "lsn-1786039515006": { "viewed": false, "completed": false, "starred": false },
+    "lsn-1786039515007": { "viewed": false, "completed": false, "starred": false },
+    "lsn-1786039515008": { "viewed": false, "completed": false, "starred": false },
+    "lsn-1786039515009": { "viewed": false, "completed": false, "starred": false }
+  }
+}

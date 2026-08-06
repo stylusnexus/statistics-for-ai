@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Statistics for AI, GenAI &amp; LLMs</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #34d399; --accent2: #6c8fff;
+    --text: #e2e8f0; --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  .eyebrow { color: var(--muted); font-size: 0.85em; letter-spacing: 0.08em; text-transform: uppercase; }
+  h1 { font-size: 2.1em; margin: 10px 0 8px; line-height: 1.2; }
+  .lede { color: var(--muted); font-size: 1.08em; margin: 0 0 32px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 40px; }
+  .chip {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 14px; font-size: 0.82em; color: var(--muted);
+  }
+  ol.lessons { list-style: none; counter-reset: lsn; padding: 0; margin: 0; }
+  ol.lessons li { counter-increment: lsn; margin-bottom: 12px; }
+  a.card {
+    display: block; text-decoration: none; color: inherit; position: relative;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 22px 18px 68px; transition: border-color .15s, background .15s, transform .15s;
+  }
+  a.card:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-1px); }
+  a.card::before {
+    content: counter(lsn); position: absolute; left: 20px; top: 18px;
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--accent); font-weight: 700; font-size: 0.95em;
+    display: flex; align-items: center; justify-content: center;
+  }
+  a.card:hover::before { border-color: var(--accent); }
+  .card h2 { font-size: 1.05em; margin: 0 0 4px; line-height: 1.35; color: var(--text); }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; line-height: 1.55; }
+  .aside {
+    margin-top: 44px; background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2); border-radius: 8px; padding: 18px 22px;
+  }
+  .aside h3 { margin: 0 0 8px; font-size: 0.95em; }
+  .aside p { margin: 0 0 10px; color: var(--muted); font-size: 0.92em; }
+  .aside p:last-child { margin-bottom: 0; }
+  .aside a { color: var(--accent2); }
+  footer { margin-top: 40px; color: var(--muted); font-size: 0.85em; border-top: 1px solid var(--border); padding-top: 20px; }
+  @media (max-width: 480px) {
+    body { padding: 32px 16px 60px; }
+    h1 { font-size: 1.7em; }
+    a.card { padding: 16px 16px 16px 60px; }
+    a.card::before { left: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<p class="eyebrow">📊 Self-paced course</p>
+<h1>Statistics for AI, GenAI &amp; LLMs</h1>
+<p class="lede">The statistics you actually need to build, evaluate, and reason about AI, generative models, and LLMs — grounded in AI examples throughout, not dice and coins.</p>
+
+<div class="meta">
+  <span class="chip">10 lessons</span>
+  <span class="chip">Sequential — each builds on the last</span>
+  <span class="chip">No prerequisites</span>
+  <span class="chip">Quizzes included</span>
+</div>
+
+<ol class="lessons">
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515000-why-statistics-powers-ai.html">
+    <h2>Why Statistics Powers AI</h2>
+    <p>The tour before the road trip: where statistics actually shows up when you build, train, and evaluate AI systems — no math yet, just the map.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515001-describing-data.html">
+    <h2>Describing Data: Mean, Variance &amp; Distribution Shape</h2>
+    <p>The four numbers you compute first on any dataset — and why AI datasets lie to you if you only look at one of them.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515002-probability-foundations.html">
+    <h2>Probability Foundations &amp; Bayes' Theorem</h2>
+    <p>Reasoning over outcomes you haven't seen yet — the math every classifier, spam filter, and hallucination detector runs on.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515003-ml-distributions.html">
+    <h2>The Distributions That Run Machine Learning</h2>
+    <p>Four named shapes of uncertainty — and the one that's quietly running every single token your LLM ever generates.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515004-sampling-and-estimation.html">
+    <h2>From Sample to Population: Estimation &amp; the CLT</h2>
+    <p>You never have all the data. Here's the math for how much that should worry you — and how models turn a pile of observations into a fitted distribution.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515005-correlation-and-regression.html">
+    <h2>Correlation, Regression &amp; Why Models "Fit" Data</h2>
+    <p>Two variables that move together, a line that summarizes the pattern, and the realization that fitting that line is a miniature version of training.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515006-information-theory.html">
+    <h2>Information Theory: Entropy, Cross-Entropy &amp; KL Divergence</h2>
+    <p>The three quantities that measure "how surprised" a model is — and the actual loss function running underneath every LLM's training loop.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515007-training-statistics.html">
+    <h2>The Statistics Behind Training a Model</h2>
+    <p>What actually happens when a model tries to shrink its loss over millions of steps — and the two ways that process quietly goes wrong.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515008-evaluating-ai-models.html">
+    <h2>Evaluating AI Models Rigorously</h2>
+    <p>You built a model. Now: is it actually good, or does it just look good on the one number you checked?</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515009-llm-statistics.html">
+    <h2>The Statistics Unique to LLMs</h2>
+    <p>Where it all converges: perplexity, sampling and temperature, calibration, and the statistical shape of hallucination.</p>
+  </a></li>
+</ol>
+
+<div class="aside">
+  <h3>Also in this repo</h3>
+  <p><strong>40 flashcards</strong> — four per lesson, written for active recall rather than definition-matching. Anki-importable, readable as plain Markdown either way.</p>
+  <p><strong>A memory map</strong> — a 54-node JSON Canvas laying out how the ten lessons connect. Renders in Obsidian.</p>
+  <p>See the <a href="README.md">README</a> for how to use each.</p>
+</div>
+
+<footer>
+  <p>Sources are cited as outbound links throughout — Wikipedia, arXiv, Hugging Face, the Google SRE Book, and others. Lesson content is AI-generated and spot-checked; see the README before relying on it for anything load-bearing.</p>
+</footer>
+
+</body>
+</html>
