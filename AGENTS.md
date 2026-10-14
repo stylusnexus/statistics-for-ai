@@ -1,6 +1,6 @@
 # AGENTS.md
 
-Workspace-wide rules (commits, security, plan-before-code, approval gates) live in `/Applications/Development/Projects/AGENTS.md`; this file only adds what is specific to this project.
+Workspace-wide rules (commits, security, plan-before-code, approval gates) live in the `AGENTS.md` at the root of the Projects workspace folder; this file only adds what is specific to this project.
 
 ## Project Overview
 
