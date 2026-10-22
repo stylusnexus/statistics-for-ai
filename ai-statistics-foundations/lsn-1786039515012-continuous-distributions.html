@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Continuous Distributions: Density, the CDF, and the Shapes Beyond the Bell Curve</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+<span class="lesson-pill">Lesson 13 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Continuous Distributions: Density, the CDF, and the Shapes Beyond the Bell Curve</h1>
+<p class="subtitle">Latency, time between requests, and a model's true accuracy are not countable outcomes. They live on a smooth scale, and they need a different way to talk about probability.</p>
+
+<p>Lesson 4 gave you distributions for outcomes you can list: a label, a token, a request count. Lesson 12 defined random variables, expectation, and variance. Much of what you monitor in an AI system does not come in steps: a response takes 412.7318&hellip; ms, the pause between two API calls is any positive number of seconds, a model's real accuracy is some number between 0 and 1. These are <strong>continuous</strong> random variables, and probability works differently for them. Then come four shapes you will meet constantly: <strong>uniform</strong>, <strong>exponential</strong>, <strong>gamma</strong>, and <strong>beta</strong>.</p>
+
+<h2>1. Why one exact value has probability zero</h2>
+
+<p>Suppose gaps between requests can be any positive real number. Ask: what is the probability that the next gap is <em>exactly</em> 0.5 seconds, not 0.5000001, not 0.4999999? Infinitely many values are packed into any interval, so the probability of landing on one specific value is <strong>0</strong>. That is not impossible (some exact value occurs every time); each single value just carries no probability of its own.
+
+What does have probability is a <em>range</em>. To describe how probability is spread over the line, a continuous variable gets a <strong>probability density function</strong> (PDF), written f(t). Its rule is simple:</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Probability is <strong>area under the density curve</strong>, not the height of the curve. P(a &le; X &le; b) is the area between a and b. The total area under the whole curve is exactly 1.
+</div>
+
+<p>Take gaps between requests that follow f(t) = 2e<sup>&minus;2t</sup> for t &ge; 0 (the exponential shape from section 4). Look at the height at t = 0.5 and the probability of narrow windows starting there:</p>
+
+<div class="step-box">
+<div class="line">height at t = 0.5:  f(0.5) = 2 &times; e^(-1) = 0.736</div>
+<div class="line"> </div>
+<div class="line">P(0.5 &le; T &le; 0.6)    = e^(-1.0) - e^(-1.2) = 0.0667</div>
+<div class="line">P(0.5 &le; T &le; 0.51)   = e^(-1.0) - e^(-1.02) = 0.00728</div>
+<div class="line result">window width &rarr; 0   gives   probability &rarr; 0</div>
+</div>
+
+<p>Each window is about 0.736 &times; its width: the height times a sliver of width, which is a sliver of area. Shrink the sliver to nothing and the area vanishes. The height 0.736 is a <em>density</em>, probability per second, not a probability.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 560 272" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Exponential density with rate 2 per second. The area under the curve between 0 and 0.5 seconds is shaded and equals 0.632. The curve height at 0.5 seconds is 0.736, a density value, not a probability.">
+<line x1="50" y1="230" x2="528" y2="230" stroke="#2e3248" stroke-width="1.5"/><line x1="50" y1="24" x2="50" y2="230" stroke="#2e3248" stroke-width="1.5"/><line x1="50.0" y1="230" x2="50.0" y2="235" stroke="#94a3b8"/><text x="50.0" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">0</text><line x1="206.7" y1="230" x2="206.7" y2="235" stroke="#94a3b8"/><text x="206.7" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">1</text><line x1="363.3" y1="230" x2="363.3" y2="235" stroke="#94a3b8"/><text x="363.3" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">2</text><line x1="520.0" y1="230" x2="520.0" y2="235" stroke="#94a3b8"/><text x="520.0" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">3</text><line x1="45" y1="230.0" x2="50" y2="230.0" stroke="#94a3b8"/><text x="41" y="234.0" text-anchor="end" fill="#94a3b8" font-size="11">0</text><line x1="45" y1="139.1" x2="50" y2="139.1" stroke="#94a3b8"/><text x="41" y="143.1" text-anchor="end" fill="#94a3b8" font-size="11">1</text><line x1="45" y1="48.2" x2="50" y2="48.2" stroke="#94a3b8"/><text x="41" y="52.2" text-anchor="end" fill="#94a3b8" font-size="11">2</text><text x="289" y="265" text-anchor="middle" fill="#94a3b8" font-size="11">gap between requests t (seconds)</text>
+<path d="M50,48 L57,63 L63,76 L70,88 L76,100 L83,110 L89,120 L96,129 L102,137 L109,144 L115,151 L122,157 L128,163 L128.3,230 L50,230 Z" fill="#6c8fff" opacity="0.28"/>
+<path d="M50,48 L74,95 L97,130 L120,156 L144,175 L168,189 L191,200 L214,208 L238,214 L262,218 L285,221 L308,223 L332,225 L356,226 L379,227 L402,228 L426,229 L450,229 L473,229 L496,229 L520,230" fill="none" stroke="#6c8fff" stroke-width="2.5"/>
+<line x1="128.3" y1="230" x2="128.3" y2="163.1" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,3"/>
+<circle cx="128.3" cy="163.1" r="4" fill="#34d399"/>
+<text x="140" y="153.1" fill="#34d399" font-size="11" font-weight="700">height f(0.5) = 0.736</text>
+<text x="236" y="86" fill="#6c8fff" font-size="12" font-weight="700">shaded area = P(0 &#8804; T &#8804; 0.5) = 0.632</text>
+<text x="14" y="30" fill="#94a3b8" font-size="11">density</text>
+</svg>
+<p class="viz-caption">The shaded area from 0 to 0.5 seconds is the probability of a gap that short: 1 &minus; e<sup>&minus;1</sup> = 0.632. The dot marks a height, not a probability.</p>
+</div>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  A density can exceed 1. This curve starts at height 2, which would be a nonsense probability. Only the area must stay at or below 1. For the same reason, P(X &lt; 0.5) and P(X &le; 0.5) are identical for a continuous variable.
+</div>
+
+<p>Lesson 12's expectation and variance keep their meaning here: the sum over outcomes becomes an integral. You will not integrate by hand; the formulas below are all you need.</p>
+
+<h2>2. The CDF, and reading percentiles off it</h2>
+
+<p>Areas are awkward to read from a density. The <strong>cumulative distribution function</strong> (CDF) does the accumulating for you: F(t) = P(X &le; t), the area under the density up to t. It climbs from 0 to 1 and never goes down. For the gap distribution above, F(t) = 1 &minus; e<sup>&minus;2t</sup>:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>t (seconds)</th><th class="num">F(t) = 1 &minus; e<sup>&minus;2t</sup></th><th>Reads as</th></tr></thead>
+  <tbody>
+    <tr><td>0.5</td><td class="num">0.6321</td><td>63.2% are 0.5 s or shorter</td></tr>
+    <tr><td>1.5</td><td class="num">0.9502</td><td>95.0% are 1.5 s or shorter</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Two uses matter day to day. First, any range probability is a difference of two CDF values: P(a &lt; X &le; b) = F(b) &minus; F(a). For gaps between 0.25 s and 0.75 s: F(0.75) &minus; F(0.25) = 0.7769 &minus; 0.3935 = 0.3834.</p>
+
+<p>Second, running the CDF <em>backwards</em> gives a <strong>percentile</strong>. The 95th percentile (p95) is the value t where F(t) = 0.95. Set 1 &minus; e<sup>&minus;2t</sup> = 0.95, so e<sup>&minus;2t</sup> = 0.05, so t = ln(20) / 2 = 1.498 s. The median (p50) solves F(t) = 0.5, giving t = ln(2) / 2 = 0.347 s.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 560 272" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Cumulative distribution function of the exponential with rate 2 per second. The curve rises from 0 to 1. The median is marked at 0.347 seconds where the curve reaches 0.5, and the 95th percentile is marked at 1.498 seconds where it reaches 0.95.">
+<line x1="50" y1="230" x2="528" y2="230" stroke="#2e3248" stroke-width="1.5"/><line x1="50" y1="24" x2="50" y2="230" stroke="#2e3248" stroke-width="1.5"/><line x1="50.0" y1="230" x2="50.0" y2="235" stroke="#94a3b8"/><text x="50.0" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">0</text><line x1="206.7" y1="230" x2="206.7" y2="235" stroke="#94a3b8"/><text x="206.7" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">1</text><line x1="363.3" y1="230" x2="363.3" y2="235" stroke="#94a3b8"/><text x="363.3" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">2</text><line x1="520.0" y1="230" x2="520.0" y2="235" stroke="#94a3b8"/><text x="520.0" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">3</text><line x1="45" y1="230.0" x2="50" y2="230.0" stroke="#94a3b8"/><text x="41" y="234.0" text-anchor="end" fill="#94a3b8" font-size="11">0</text><line x1="45" y1="130.0" x2="50" y2="130.0" stroke="#94a3b8"/><text x="41" y="134.0" text-anchor="end" fill="#94a3b8" font-size="11">0.5</text><line x1="45" y1="40.0" x2="50" y2="40.0" stroke="#94a3b8"/><text x="41" y="44.0" text-anchor="end" fill="#94a3b8" font-size="11">0.95</text><line x1="45" y1="30.0" x2="50" y2="30.0" stroke="#94a3b8"/><text x="41" y="34.0" text-anchor="end" fill="#94a3b8" font-size="11">1</text><text x="289" y="265" text-anchor="middle" fill="#94a3b8" font-size="11">gap between requests t (seconds)</text>
+<path d="M50,230 L74,178 L97,140 L120,111 L144,90 L168,75 L191,63 L214,54 L238,48 L262,43 L285,40 L308,37 L332,35 L356,34 L379,33 L402,32 L426,32 L450,31 L473,31 L496,31 L520,30" fill="none" stroke="#6c8fff" stroke-width="2.5"/>
+<line x1="50" y1="130" x2="104.3" y2="130" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="104.3" y1="130" x2="104.3" y2="230" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,3"/><circle cx="104.3" cy="130" r="4" fill="#fbbf24"/>
+<text x="114.3" y="152" fill="#fbbf24" font-size="11" font-weight="700">p50 = 0.347 s</text>
+<line x1="50" y1="40" x2="284.7" y2="40" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,3"/><line x1="284.7" y1="40" x2="284.7" y2="230" stroke="#34d399" stroke-width="1.5" stroke-dasharray="4,3"/><circle cx="284.7" cy="40" r="4" fill="#34d399"/>
+<text x="294.7" y="184" fill="#34d399" font-size="11" font-weight="700">p95 = 1.498 s</text>
+<text x="294.7" y="200" fill="#94a3b8" font-size="11">95% of gaps are shorter</text>
+<text x="14" y="30" fill="#94a3b8" font-size="11">F(t)</text>
+</svg>
+<p class="viz-caption">Read across from 0.95 on the vertical axis until you hit the curve, then straight down: 1.498 s. The same move from 0.5 gives the median.</p>
+</div>
+
+<p>This is exactly what a latency dashboard does when it reports p50 and p95: it reads the CDF backwards. Notice the median (0.347 s) sits well below the mean (0.5 s, derived in section 4). That is the right-skew from Lesson 2: a long tail of large values pulls the mean past the median.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Percentiles do not average. If server A has p95 = 300 ms and server B has 500 ms, the combined p95 is not 400 ms. Pool the raw measurements and read the percentile from the pooled CDF.
+</div>
+
+<h2>3. Uniform: every value in a range equally likely</h2>
+
+<p>The simplest continuous shape is the <strong>uniform</strong> distribution on [a, b]: a flat density of height 1/(b &minus; a) between a and b, and zero outside. Its CDF is a straight ramp, F(x) = (x &minus; a)/(b &minus; a). Mean and variance (Lesson 12's two summaries) come out as:</p>
+
+<div class="step-box">
+<div class="line">mean     = (a + b) / 2</div>
+<div class="line">variance = (b - a)^2 / 12</div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Random weight initialization</h4>
+    <p>Draw each starting weight from Uniform(&minus;0.1, 0.1). Mean = (&minus;0.1 + 0.1)/2 = 0. Variance = (0.2)&sup2;/12 = 0.04/12 = 0.00333, so the standard deviation is 0.0577. Half the weights land within &plusmn;0.05, since 0.1 of width out of 0.2 total is 0.5.</p>
+  </div>
+  <div class="card">
+    <h4>Random sampling threshold</h4>
+    <p>To log 30% of requests for review, draw u from Uniform(0, 1) per request and log it when u &lt; 0.3. The CDF of a Uniform(0, 1) is F(x) = x, so P(u &lt; 0.3) = 0.3 exactly. Every request gets an independent draw.</p>
+  </div>
+</div>
+
+
+<h2>4. Exponential: the time until the next event</h2>
+
+<p>In Lesson 4 the Poisson distribution counted requests per second when they arrive at an average rate &lambda;. The <strong>exponential</strong> distribution describes the same traffic from the other side: not <em>how many</em> arrive in a second, but <em>how long you wait</em> between one arrival and the next. Same &lambda;, one rate, two views.</p>
+
+<div class="step-box">
+<div class="line">density  f(t) = &lambda; e^(-&lambda;t)           for t &ge; 0</div>
+<div class="line">CDF      F(t) = 1 - e^(-&lambda;t)</div>
+<div class="line">mean     = 1 / &lambda;</div>
+<div class="line">variance = 1 / &lambda;^2</div>
+<div class="line"> </div>
+<div class="line">&lambda; = 2 requests per second:</div>
+<div class="line">  mean gap = 1/2 = 0.5 s,  variance = 1/4 = 0.25,  sd = 0.5 s</div>
+<div class="line">  P(gap &gt; 1 s) = e^(-2) = 0.1353</div>
+</div>
+
+<p>That last number should look familiar. In Lesson 4 you saw that with &lambda; = 2 the chance of zero requests in a given second is 0.135. It is the same event: "no request in a second" is the same as "the next gap is longer than a second."</p>
+
+<h3>The memoryless property</h3>
+<p>The exponential has an odd, useful property. If you have already waited and nothing has arrived, the remaining wait has the same distribution as a fresh wait. Say 0.5 seconds have passed with no request. What is the chance you wait more than 1 additional second?</p>
+
+<div class="step-box">
+<div class="line">P(T &gt; 1.5 | T &gt; 0.5) = P(T &gt; 1.5) / P(T &gt; 0.5)</div>
+<div class="line">                     = e^(-3) / e^(-1)</div>
+<div class="line">                     = e^(-2)</div>
+<div class="line result">                     = 0.1353   (identical to P(T &gt; 1))</div>
+</div>
+
+<p>The system is never "due": silence so far does not make the next request more likely. That is what independent arrivals from many users look like. It fits arrival gaps, not how long a job takes to finish.</p>
+
+
+<h2>5. Gamma: the wait for the k-th event</h2>
+
+<p>How long until the <em>third</em> request arrives? That wait is the first gap plus the second gap plus the third gap: a sum of k independent exponentials, each with rate &lambda;. The <strong>gamma</strong> distribution (the version with whole-number k) is exactly this sum. By the rules of Lesson 12, expectations add, and for independent pieces so do variances:</p>
+
+<div class="step-box">
+<div class="line">mean     = k &times; (1/&lambda;)   = k / &lambda;</div>
+<div class="line">variance = k &times; (1/&lambda;^2) = k / &lambda;^2</div>
+</div>
+
+<h3>Worked example: waiting for the third request</h3>
+<p>Requests arrive at &lambda; = 2 per second. A micro-batcher waits until k = 3 requests have arrived before running the model.</p>
+
+<div class="step-box">
+<div class="line">mean wait     = 3 / 2 = 1.5 s</div>
+<div class="line">variance      = 3 / 4 = 0.75   &rarr;   sd = sqrt(0.75) = 0.866 s</div>
+<div class="line"> </div>
+<div class="line">P(third request arrives by t = 1.5 s)</div>
+<div class="line">  = P(at least 3 arrivals in 1.5 s)       (Poisson mean = 2 &times; 1.5 = 3)</div>
+<div class="line">  = 1 - P(0) - P(1) - P(2)</div>
+<div class="line">  = 1 - e^(-3) &times; (1 + 3 + 3^2/2)</div>
+<div class="line">  = 1 - 0.04979 &times; 8.5</div>
+<div class="line result">  = 1 - 0.4232 = 0.577</div>
+</div>
+
+<p>So the batch is full within the mean wait 57.7% of the time, more than half. The distribution is right-skewed: a few unlucky long waits pull the mean above the median. As k grows the hump moves right (mean k/&lambda;), widens (variance k/&lambda;&sup2;), and becomes more symmetric and bell-like, the pattern the Central Limit Theorem (Lesson 5) describes for sums. With k = 1 the gamma is just the exponential.</p>
+
+
+
+<h2>6. Beta: a distribution over a probability</h2>
+
+<p>Every shape so far describes a measurement. The <strong>beta</strong> distribution describes something different: your uncertainty about an unknown probability, a number between 0 and 1. In Lesson 4 a Bernoulli trial has a parameter p, such as a classifier's true accuracy. You never know p exactly; you only see a finite test set. A Beta distribution says which values of p are plausible.</p>
+
+<p>It has two positive parameters, &alpha; and &beta;, and lives on [0, 1]:</p>
+
+<div class="step-box">
+<div class="line">Beta(&alpha;, &beta;):   density proportional to  x^(&alpha;-1) &times; (1-x)^(&beta;-1)   on [0, 1]</div>
+<div class="line">mean     = &alpha; / (&alpha; + &beta;)</div>
+<div class="line">variance = &alpha;&beta; / ( (&alpha;+&beta;)^2 &times; (&alpha;+&beta;+1) )</div>
+</div>
+
+<p>Two knobs, two jobs. The <strong>ratio</strong> &alpha;:&beta; sets where the hump sits (the mean). The <strong>total</strong> &alpha; + &beta; sets how tightly it clusters. A useful way to read them: &alpha; and &beta; behave like counts of successes and failures, so larger counts mean more evidence and a narrower belief.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Beta(&alpha;, &beta;)</th><th class="num">Mean</th><th class="num">Variance</th><th class="num">Std dev</th><th>Shape</th></tr></thead>
+  <tbody>
+    <tr><td>Beta(1, 1)</td><td class="num">1/2 = 0.5</td><td class="num">0.0833</td><td class="num">0.289</td><td>Flat: every accuracy equally plausible (uniform)</td></tr>
+    <tr><td>Beta(9, 3)</td><td class="num">9/12 = 0.75</td><td class="num">0.0144</td><td class="num">0.120</td><td>Leans toward high accuracy, moderately wide</td></tr>
+    <tr><td>Beta(30, 10)</td><td class="num">30/40 = 0.75</td><td class="num">0.00457</td><td class="num">0.068</td><td>Same mean as above, much tighter</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 560 272" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Three Beta densities on the interval 0 to 1: Beta(1,1) is flat, Beta(9,3) is a hump centred near 0.75 with moderate width, and Beta(30,10) has the same mean 0.75 but is much taller and narrower.">
+<line x1="50" y1="230" x2="528" y2="230" stroke="#2e3248" stroke-width="1.5"/><line x1="50" y1="24" x2="50" y2="230" stroke="#2e3248" stroke-width="1.5"/><line x1="50.0" y1="230" x2="50.0" y2="235" stroke="#94a3b8"/><text x="50.0" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">0</text><line x1="167.5" y1="230" x2="167.5" y2="235" stroke="#94a3b8"/><text x="167.5" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">0.25</text><line x1="285.0" y1="230" x2="285.0" y2="235" stroke="#94a3b8"/><text x="285.0" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">0.5</text><line x1="402.5" y1="230" x2="402.5" y2="235" stroke="#94a3b8"/><text x="402.5" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">0.75</text><line x1="520.0" y1="230" x2="520.0" y2="235" stroke="#94a3b8"/><text x="520.0" y="249" text-anchor="middle" fill="#94a3b8" font-size="11">1</text><line x1="45" y1="230.0" x2="50" y2="230.0" stroke="#94a3b8"/><text x="41" y="234.0" text-anchor="end" fill="#94a3b8" font-size="11">0</text><line x1="45" y1="168.5" x2="50" y2="168.5" stroke="#94a3b8"/><text x="41" y="172.5" text-anchor="end" fill="#94a3b8" font-size="11">2</text><line x1="45" y1="106.9" x2="50" y2="106.9" stroke="#94a3b8"/><text x="41" y="110.9" text-anchor="end" fill="#94a3b8" font-size="11">4</text><line x1="45" y1="45.4" x2="50" y2="45.4" stroke="#94a3b8"/><text x="41" y="49.4" text-anchor="end" fill="#94a3b8" font-size="11">6</text><text x="289" y="265" text-anchor="middle" fill="#94a3b8" font-size="11">possible true accuracy p</text>
+<path d="M50,199 L62,199 L74,199 L85,199 L97,199 L109,199 L120,199 L132,199 L144,199 L156,199 L168,199 L179,199 L191,199 L203,199 L214,199 L226,199 L238,199 L250,199 L262,199 L273,199 L285,199 L297,199 L308,199 L320,199 L332,199 L344,199 L356,199 L367,199 L379,199 L391,199 L402,199 L414,199 L426,199 L438,199 L449,199 L461,199 L473,199 L485,199 L496,199 L508,199 L520,199" fill="none" stroke="#fbbf24" stroke-width="2.5"/><path d="M50,230 L62,230 L74,230 L85,230 L97,230 L109,230 L120,230 L132,230 L144,230 L156,230 L168,230 L179,230 L191,230 L203,229 L214,229 L226,228 L238,226 L250,225 L262,222 L273,219 L285,215 L297,210 L308,204 L320,197 L332,189 L344,180 L356,171 L367,161 L379,151 L391,142 L402,135 L414,130 L426,128 L438,130 L449,136 L461,148 L473,164 L485,184 L496,204 L508,222 L520,230" fill="none" stroke="#6c8fff" stroke-width="2.5"/><path d="M50,230 L62,230 L74,230 L85,230 L97,230 L109,230 L120,230 L132,230 L144,230 L156,230 L168,230 L179,230 L191,230 L203,230 L214,230 L226,230 L238,230 L250,230 L262,230 L273,230 L285,229 L297,228 L308,226 L320,221 L332,211 L344,196 L356,172 L367,141 L379,106 L391,74 L402,52 L414,52 L426,75 L438,116 L449,162 L461,199 L473,221 L485,228 L496,230 L508,230 L520,230" fill="none" stroke="#34d399" stroke-width="2.5"/>
+<line x1="402.5" y1="230" x2="402.5" y2="30" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3,3"/>
+<text x="64" y="44" fill="#fbbf24" font-size="12" font-weight="700">Beta(1, 1): flat, mean 0.5</text><text x="64" y="62" fill="#6c8fff" font-size="12" font-weight="700">Beta(9, 3): mean 0.75, sd 0.120</text><text x="64" y="80" fill="#34d399" font-size="12" font-weight="700">Beta(30, 10): mean 0.75, sd 0.068</text>
+<text x="14" y="30" fill="#94a3b8" font-size="11">density</text>
+</svg>
+<p class="viz-caption">Beta(9, 3) and Beta(30, 10) both center on 0.75. The second says the same thing with far more confidence.</p>
+</div>
+
+<p>The same mean can carry very different certainty. Integrating each density numerically, the chance the true accuracy lies between 0.70 and 0.80 is about 0.305 under Beta(9, 3) but about 0.535 under Beta(30, 10). A later lesson on Bayesian inference shows how new test results move &alpha; and &beta;; this lesson only gives you the shape.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  A Beta is a distribution <em>over p</em>, not over outcomes. Do not mix up "the model is 75% accurate" (one number, p = 0.75) with "we believe p is around 0.75, give or take 0.12" (a Beta). The first is a Bernoulli parameter. The second is the uncertainty about it.
+</div>
+
+<h2>7. The bell curve is one member of this family</h2>
+
+<p>The Normal distribution from Lesson 4 is one more member of this family: a continuous density with mean &mu; and variance &sigma;&sup2;, symmetric and spread over the whole number line. Everything above applies to it: probability is area, the CDF accumulates it, percentiles read the CDF backwards. Pick the shape by what the quantity is. A symmetric measurement with no floor suggests Normal; a waiting time suggests exponential or gamma; a value trapped in [0, 1] suggests beta; "any value in a range, no preference" suggests uniform.</p>
+
+
+<h2>8. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Almost everything you time, rate, or score is continuous. Choosing the right shape tells you which questions have clean answers.
+</div>
+
+<ul>
+  <li><strong>Service-level targets are CDF questions.</strong> "95% of requests finish within 800 ms" says F(800 ms) = 0.95. The p95 moves when the tail moves even if the mean does not, so report the percentile your users feel.</li>
+  <li><strong>Traffic models drive capacity decisions.</strong> Exponential gaps and the gamma wait for a full batch of k (mean k/&lambda;, spread &radic;k/&lambda;) let you pick a batch size and timeout with numbers, not hunches.</li>
+  <li><strong>Evaluation results are uncertain rates.</strong> A beta keeps the estimate and the doubt in one object. Two models at 0.75 are not equal if one score rests on a hundred cases and the other on twelve.</li>
+</ul>
+
+<h2>Recap</h2>
+<ul>
+  <li>A continuous variable has probability 0 at any exact value. Probability is the <strong>area under the density</strong> between two points, and the total area is 1. Density heights can exceed 1.</li>
+  <li>The <strong>CDF</strong> F(t) = P(X &le; t) accumulates that area. Range probabilities are F(b) &minus; F(a). A percentile such as p95 is the CDF read backwards.</li>
+  <li><strong>Uniform</strong> (flat on [a, b], mean (a+b)/2, variance (b&minus;a)&sup2;/12) and <strong>exponential</strong>: gap between events at rate &lambda;, mean 1/&lambda;, memoryless. <strong>Gamma</strong>: wait for the k-th event, mean k/&lambda;, variance k/&lambda;&sup2;.</li>
+  <li><strong>Beta(&alpha;, &beta;)</strong>: a distribution over a probability on [0, 1], mean &alpha;/(&alpha;+&beta;). The ratio sets the center and the total &alpha;+&beta; sets how tight.</li>
+  </ul>
+
+<div class="callout insight">
+  <span class="callout-label">Leads into Lesson 14</span>
+  Every distribution here describes one quantity at a time. A real request has latency <em>and</em> output length <em>and</em> cost, and they move together. Lesson 14 covers joint distributions: how to describe two or more random variables at once, how to recover each one alone, and how to measure the way they vary together.
+</div>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. A latency model assigns a continuous density to response times. What is the probability that a response takes exactly 412.5 ms?</p>
+  <div class="quiz-options" data-answer="2" data-hint="Re-think density as area: a single point has no width, so no area.">
+    <div class="quiz-opt">The height of the density curve at 412.5 ms</div>
+    <div class="quiz-opt">A small positive number that depends on the standard deviation</div>
+    <div class="quiz-opt">Zero. Only ranges of values have probability, given by area under the density</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. On a latency CDF, the curve passes through (1.2 s, 0.95). Which statement is correct?</p>
+  <div class="quiz-options" data-answer="1" data-hint="Re-think what F(t) accumulates: F(t) is the probability of being at or below t, so a percentile reads the CDF backwards.">
+    <div class="quiz-opt">95% of requests take longer than 1.2 s</div>
+    <div class="quiz-opt">The p95 latency is 1.2 s: 95% of requests finish in 1.2 s or less</div>
+    <div class="quiz-opt">The average latency is 1.2 s</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. Requests arrive at a steady average rate with independent, exponential gaps. 4 seconds have passed since the last request with no new one. Compared with a fresh start, how long do you expect to wait for the next one?</p>
+  <div class="quiz-options" data-answer="0" data-hint="Re-think the memoryless property of the exponential: elapsed silence does not change the remaining wait.">
+    <div class="quiz-opt">The same as a fresh start. The exponential is memoryless</div>
+    <div class="quiz-opt">Shorter, since a request is now overdue</div>
+    <div class="quiz-opt">Longer, since the quiet period suggests traffic has dropped</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. Requests arrive at &lambda; = 2 per second. What are the mean and variance of the wait until the 4th request arrives?</p>
+  <div class="quiz-options" data-answer="2" data-hint="Re-think the gamma as a sum of k exponentials: mean k/&lambda; and variance k/&lambda;&sup2;.">
+    <div class="quiz-opt">Mean 8 s, variance 16</div>
+    <div class="quiz-opt">Mean 0.5 s, variance 0.25</div>
+    <div class="quiz-opt">Mean 2 s, variance 1</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. Your belief about a model's true accuracy is Beta(6, 2). What is the mean accuracy, and what happens to the spread if you move to Beta(60, 20)?</p>
+  <div class="quiz-options" data-answer="1" data-hint="Re-think the beta: the mean is &alpha;/(&alpha;+&beta;), and a larger total &alpha;+&beta; means a tighter belief.">
+    <div class="quiz-opt">Mean 0.25; the spread stays the same</div>
+    <div class="quiz-opt">Mean 0.75; the spread shrinks, because the total &alpha;+&beta; is larger</div>
+    <div class="quiz-opt">Mean 0.75; the spread grows, because the numbers are larger</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Probability_density_function" target="_blank">Probability Density Function &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Exponential_distribution" target="_blank">Exponential Distribution &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Gamma_distribution" target="_blank">Gamma Distribution &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Beta_distribution" target="_blank">Beta Distribution &mdash; Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — " + (group.dataset.hint || "re-think density as area, the CDF as accumulated area, and which parameters set each shape's mean") + ", then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

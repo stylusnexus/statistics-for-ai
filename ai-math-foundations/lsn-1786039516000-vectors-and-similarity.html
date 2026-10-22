@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vectors: Embeddings, Dot Products &amp; Measuring Similarity</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+
+<body>
+
+<span class="lesson-pill">Lesson 1 of 7 &middot; Math for AI: Linear Algebra &amp; Calculus Essentials</span>
+<h1>Vectors: Embeddings, Dot Products &amp; Measuring Similarity</h1>
+<p class="subtitle">A vector is a list of numbers that you can treat as a point, an arrow, or a meaning. Almost every retrieval system, embedding model, and attention layer is built on three operations on vectors: add them, measure them, and take their dot product.</p>
+
+<p>When a RAG system answers a question, it does not read your documents. It turns the question into a list of numbers, turns every stored text chunk into a list of numbers, and finds the chunks whose numbers sit closest to the question's. Everything in that sentence is vector math. This lesson assumes only high-school algebra and builds the pieces in order: what a vector is, how to combine and measure vectors, the dot product, and the three ways retrieval systems score "closeness" (dot product, cosine similarity, Euclidean distance), which often disagree.</p>
+
+<h2>1. A vector is a list of numbers (and a point, and an arrow)</h2>
+
+<p>A <strong>vector</strong> is an ordered list of numbers. The count of numbers is its <strong>dimension</strong>. Order matters: (3, 1, 2) and (1, 3, 2) are different vectors. We write a vector in bold or with an arrow, and its entries in a column or row. Here we use parentheses: <strong>q</strong> = (3, 1, 2) is a 3-dimensional vector with entries 3, 1, and 2.</p>
+
+<p>The same list can be read three ways, and AI work switches between them constantly:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>A list of features</h4>
+    <p>One row of a dataset: (age, tokens per request, errors per day) = (31, 420, 2). Each position has a meaning you chose.</p>
+  </div>
+  <div class="card">
+    <h4>A point in space</h4>
+    <p>Three numbers locate a point in 3-D. Two vectors that are close together describe similar things, if the numbers were produced sensibly.</p>
+  </div>
+  <div class="card">
+    <h4>An arrow from the origin</h4>
+    <p>The same point drawn as an arrow from (0, 0, 0). The arrow has a length and a direction, and both turn out to matter.</p>
+  </div>
+</div>
+
+<p>An <strong>embedding</strong> is a vector that a model produces to represent a word, sentence, image, or document, so that similar items get nearby vectors. Real text embeddings typically have hundreds to a few thousand dimensions (768 and 1,536 are common sizes). To keep every number checkable by hand, this lesson uses a toy 3-dimensional embedding. Nothing here depends on the dimension being 3; only the pictures do.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  No single entry of a real embedding has a clean human meaning like "royalty" or "food." The meaning lives in the pattern across all entries. What you can rely on is geometry: items the model treats as similar end up pointing in similar directions.
+</div>
+
+<h2>2. Adding vectors and scaling them</h2>
+
+<p>Two operations need no new ideas. To <strong>add</strong> vectors of the same dimension, add entry by entry. To <strong>scale</strong> a vector, multiply every entry by one ordinary number (a <strong>scalar</strong>).</p>
+
+<div class="step-box">
+<div class="line">a = (1, 2, 3)     b = (4, 0, -1)</div>
+<div class="line"> </div>
+<div class="line">a + b = (1+4, 2+0, 3+(-1))  =  (5, 2, 2)</div>
+<div class="line">2a    = (2&times;1, 2&times;2, 2&times;3)  =  (2, 4, 6)</div>
+<div class="line result">a - b = (1-4, 2-0, 3-(-1)) = (-3, 2, 4)</div>
+</div>
+
+<p>Geometrically, <strong>2a</strong> is the same arrow stretched to twice the length, pointing the same way. A negative scalar flips the arrow. Adding two arrows means placing the second's tail at the first's tip; the sum goes from the start to the end. Subtracting <strong>a - b</strong> gives the arrow that gets you from <strong>b</strong> to <strong>a</strong>, which is why subtraction measures "difference."</p>
+
+<p>These two operations are everywhere in model code. Averaging a vector across tokens (adding them up and scaling by 1 divided by the count) is the usual way to get one embedding for a whole sentence. A residual connection in a transformer adds a layer's output vector to its input vector. Updating weights in training is a scaled vector subtraction: new weights = old weights - (step size) &times; (gradient), which the calculus lessons develop.</p>
+
+<h3>Embedding arithmetic (illustrative)</h3>
+<p>Early word-embedding work popularized the observation that differences between embeddings can encode relationships: the vector from "man" to "king" roughly matches the vector from "woman" to "queen". Here is a deliberately tiny toy version, with two made-up dimensions (royalty, gender), constructed so the arithmetic works exactly:</p>
+
+<div class="step-box">
+<div class="line">king = (9, 1)   man = (1, 1)   woman = (1, -1)   queen = (9, -1)</div>
+<div class="line"> </div>
+<div class="line">king - man + woman = (9-1+1, 1-1+(-1)) = (9, -1)</div>
+<div class="line result">which equals queen</div>
+</div>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  This is a hand-built illustration. In a real trained embedding model the result lands near "queen," not exactly on it, and many analogies fail. Treat embedding arithmetic as evidence that direction carries meaning, not as a reliable operation to build a product on.
+</div>
+
+<h2>3. Length: the L2 and L1 norms</h2>
+
+<p>The <strong>length</strong> of a vector, also called its <strong>norm</strong>, is written with double bars, ‖<strong>v</strong>‖. The everyday one is the <strong>L2 norm</strong>: square every entry, add them, take the square root. It is the Pythagorean theorem extended to any number of dimensions.</p>
+
+<div class="step-box">
+<div class="line">v = (3, -4, 12)</div>
+<div class="line">&#8214;v&#8214;<sub>2</sub> = &#8730;(3&sup2; + (-4)&sup2; + 12&sup2;) = &#8730;(9 + 16 + 144) = &#8730;169</div>
+<div class="line result">&#8214;v&#8214;<sub>2</sub> = 13</div>
+</div>
+
+<p>The <strong>L1 norm</strong> adds the absolute values of the entries instead: ‖<strong>v</strong>‖<sub>1</sub> = |3| + |-4| + |12| = 19. It measures "total size" like city-block travel rather than a straight line. You will meet it in regularization, where an L1 penalty on weights pushes many of them to exactly zero, and an L2 penalty shrinks them smoothly (the statistics course, Lesson 8, covers why a penalty on weight size fights overfitting). If a norm is written without a subscript, assume L2.</p>
+
+<p>The distance between two points is the length of their difference: <strong>distance(a, b) = ‖a - b‖</strong>. That is Euclidean distance, and it is why subtraction from section 2 matters.</p>
+
+<h2>4. The dot product</h2>
+
+<p>The <strong>dot product</strong> of two vectors of the same dimension multiplies matching entries and adds the results. The answer is a single number, not a vector.</p>
+
+<div class="step-box">
+<div class="line">a = (1, 2, 3)     b = (4, 0, -1)</div>
+<div class="line">a &middot; b = (1&times;4) + (2&times;0) + (3&times;(-1))</div>
+<div class="line">      = 4 + 0 - 3</div>
+<div class="line result">      = 1</div>
+</div>
+
+<p>That is the by-components recipe. The second description is geometric:</p>
+
+<div class="step-box">
+<div class="line">a &middot; b = &#8214;a&#8214; &times; &#8214;b&#8214; &times; cos(&theta;)</div>
+<div class="line">where &theta; is the angle between the two arrows</div>
+</div>
+
+<p>Both recipes give the same number for the same pair of vectors. The second explains what the number means. Take two vectors in 2-D, <strong>a</strong> = (4, 1) and <strong>b</strong> = (2, 3):</p>
+
+<div class="step-box">
+<div class="line">By components:  a &middot; b = (4&times;2) + (1&times;3) = 8 + 3 = 11</div>
+<div class="line">Lengths:        &#8214;a&#8214; = &#8730;17 &asymp; 4.123     &#8214;b&#8214; = &#8730;13 &asymp; 3.606</div>
+<div class="line">Solve for cos:  cos(&theta;) = 11 / (4.123 &times; 3.606) &asymp; 0.740</div>
+<div class="line result">&theta; &asymp; 42.3&deg;</div>
+</div>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 640 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Two arrows from the origin: a equals (4,1) and b equals (2,3), with a 42 degree angle between them and a dashed projection of b onto a.">
+  <defs>
+    <marker id="arrA" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#6c8fff"/></marker>
+    <marker id="arrB" markerWidth="10" markerHeight="10" refX="8" refY="5" orient="auto"><path d="M0,0 L10,5 L0,10 z" fill="#a78bfa"/></marker>
+  </defs>
+  <line x1="60" y1="260" x2="360" y2="260" stroke="#2e3248" stroke-width="1"/>
+  <line x1="60" y1="260" x2="60" y2="30" stroke="#2e3248" stroke-width="1"/>
+  <line x1="60" y1="260" x2="300" y2="200" stroke="#6c8fff" stroke-width="3" marker-end="url(#arrA)"/>
+  <line x1="60" y1="260" x2="180" y2="80" stroke="#a78bfa" stroke-width="3" marker-end="url(#arrB)"/>
+  <line x1="180" y1="80" x2="215.3" y2="221.2" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="5 4"/>
+  <line x1="60" y1="260" x2="215.3" y2="221.2" stroke="#34d399" stroke-width="5" stroke-opacity="0.55"/>
+  <path d="M108.5,247.9 A50,50 0 0 0 87.7,218.4" fill="none" stroke="#e2e8f0" stroke-width="1.5"/>
+  <text x="120" y="232" fill="#e2e8f0" font-size="15" font-style="italic">&#952; &#8776; 42.3&#176;</text>
+  <text x="308" y="200" fill="#6c8fff" font-size="15" font-weight="700">a = (4, 1)</text>
+  <text x="186" y="76" fill="#a78bfa" font-size="15" font-weight="700">b = (2, 3)</text>
+  <text x="225" y="236" fill="#fbbf24" font-size="12">drop straight down onto a</text>
+  <text x="62" y="283" fill="#34d399" font-size="12">green: length of b along a = (a&#183;b)/&#8214;a&#8214; &#8776; 2.67</text>
+  <text x="300" y="70" fill="#94a3b8" font-size="13">a &#183; b = 4&#215;2 + 1&#215;3 = 11</text>
+  <text x="300" y="94" fill="#94a3b8" font-size="13">&#8214;a&#8214; &#215; &#8214;b&#8214; &#215; cos &#952; = 4.123 &#215; 3.606 &#215; 0.740 &#8776; 11</text>
+  <text x="300" y="130" fill="#94a3b8" font-size="13">small &#952;  &#8594;  cos near 1  &#8594;  large dot product</text>
+  <text x="300" y="154" fill="#94a3b8" font-size="13">&#952; = 90&#176;  &#8594;  cos = 0  &#8594;  dot product 0</text>
+  <text x="300" y="178" fill="#94a3b8" font-size="13">&#952; &gt; 90&#176;  &#8594;  cos &lt; 0  &#8594;  negative dot product</text>
+</svg>
+<div class="viz-caption">The dot product is the length of one vector times how far the other reaches along it. The angle &theta; controls how much of the second vector counts.</div>
+</div>
+
+<p>Read the dot product as <em>"how much do these two arrows point the same way, scaled by how long they are."</em> Three cases cover everything: if the arrows point roughly the same way, cos is near 1 and the dot product is large and positive; at a right angle, cos is 0 and the dot product is 0; pointing opposite ways, it is negative.</p>
+
+<h3>Orthogonality</h3>
+<p>Two vectors are <strong>orthogonal</strong> (perpendicular) exactly when their dot product is 0. Check: (2, -3, 0) &middot; (3, 2, 5) = 6 - 6 + 0 = 0, so these two are orthogonal even though you could not draw them easily. Orthogonal means "carries no shared information in the dot-product sense." You will see this again in the later linear algebra lessons, and in attention, where a query orthogonal to a key contributes a score of zero.</p>
+
+<h2>5. Unit vectors and normalization</h2>
+
+<p>A <strong>unit vector</strong> has length 1. To <strong>normalize</strong> any nonzero vector, divide it by its own length: <strong>u</strong> = <strong>v</strong> / ‖<strong>v</strong>‖. The direction is unchanged and only the length is removed.</p>
+
+<div class="step-box">
+<div class="line">v = (3, 4)         &#8214;v&#8214; = &#8730;(9 + 16) = 5</div>
+<div class="line">u = v / 5 = (0.6, 0.8)</div>
+<div class="line result">&#8214;u&#8214; = &#8730;(0.36 + 0.64) = 1</div>
+</div>
+
+<p>Normalization matters because of the geometric formula. If both ‖a‖ and ‖b‖ equal 1, then a &middot; b = cos(&theta;): the dot product of two unit vectors is purely an angle measurement. Many embedding models output unit-length vectors for exactly this reason, and many vector databases offer a "normalize on insert" option.</p>
+
+<h2>6. Three ways to score "close": dot product, cosine, distance</h2>
+
+<p>Retrieval needs one number saying how well a stored chunk matches a query. Three standard choices:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Score</th><th>Formula</th><th>Best match is the</th><th>Sees length?</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Dot product</strong></td><td>q &middot; c</td><td>largest value</td><td>Yes: longer vectors score higher</td></tr>
+    <tr><td><strong>Cosine similarity</strong></td><td>(q &middot; c) / (&#8214;q&#8214; &#8214;c&#8214;)</td><td>largest value (max 1)</td><td>No: only the angle counts</td></tr>
+    <tr><td><strong>Euclidean distance</strong></td><td>&#8214;q - c&#8214;</td><td>smallest value</td><td>Yes: length differences add distance</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Cosine similarity</strong> is just the dot product with both lengths divided out, so it is the cos(&theta;) from section 4. It ranges from -1 (opposite) through 0 (orthogonal) to 1 (same direction). A related fact from the statistics course, Lesson 6: if you first subtract each vector's own mean from its entries, cosine similarity becomes the Pearson correlation.</p>
+
+<h3>Worked example: one query, three chunks</h3>
+
+<p>A team's retrieval system embeds a query and three document chunks into a toy 3-dimensional space. The numbers are invented for the example:</p>
+
+<div class="step-box">
+<div class="line">query q   = (3, 1, 2)</div>
+<div class="line">chunk A   = (6, 2, 4)     (a long, detailed passage on the topic)</div>
+<div class="line">chunk B   = (2, 1, 2)     (a short passage, similar content)</div>
+<div class="line">chunk C   = (10, 0, 0)    (a long passage heavy on one unrelated feature)</div>
+</div>
+
+<p>First the lengths. ‖q‖ = &#8730;(9 + 1 + 4) = &#8730;14 &asymp; 3.742. ‖A‖ = &#8730;(36 + 4 + 16) = &#8730;56 &asymp; 7.483. ‖B‖ = &#8730;(4 + 1 + 4) = 3. ‖C‖ = &#8730;100 = 10.</p>
+
+<p><strong>Dot products:</strong></p>
+<div class="step-box">
+<div class="line">q &middot; A = 3&times;6 + 1&times;2 + 2&times;4  = 18 + 2 + 8 = 28</div>
+<div class="line">q &middot; B = 3&times;2 + 1&times;1 + 2&times;2  =  6 + 1 + 4 = 11</div>
+<div class="line">q &middot; C = 3&times;10 + 1&times;0 + 2&times;0 = 30</div>
+</div>
+
+<p><strong>Cosine similarities</strong> (dot product divided by ‖q‖ &times; ‖chunk‖):</p>
+<div class="step-box">
+<div class="line">cos(q, A) = 28 / (3.742 &times; 7.483) = 28 / 28   = 1.000</div>
+<div class="line">cos(q, B) = 11 / (3.742 &times; 3)     = 11 / 11.225 &asymp; 0.980</div>
+<div class="line">cos(q, C) = 30 / (3.742 &times; 10)    = 30 / 37.417 &asymp; 0.802</div>
+</div>
+
+<p><strong>Euclidean distances</strong> (length of q - chunk):</p>
+<div class="step-box">
+<div class="line">q - A = (-3, -1, -2)   &rarr; &#8730;(9 + 1 + 4)  = &#8730;14 &asymp; 3.742</div>
+<div class="line">q - B = ( 1,  0,  0)   &rarr; &#8730;1             = 1.000</div>
+<div class="line">q - C = (-7,  1,  2)   &rarr; &#8730;(49 + 1 + 4) = &#8730;54 &asymp; 7.348</div>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Chunk</th><th class="num">Dot product</th><th class="num">Cosine</th><th class="num">Distance</th></tr></thead>
+  <tbody>
+    <tr><td>A</td><td class="num">28</td><td class="num">1.000 (best)</td><td class="num">3.742</td></tr>
+    <tr><td>B</td><td class="num">11</td><td class="num">0.980</td><td class="num">1.000 (best)</td></tr>
+    <tr><td>C</td><td class="num">30 (best)</td><td class="num">0.802</td><td class="num">7.348</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Three metrics, three different winners. Chunk A points in exactly the same direction as the query (it is 2&times; the query, since 2 &times; (3, 1, 2) = (6, 2, 4)), so cosine rates it a perfect match. Chunk B is the closest point in space, so distance picks it. Chunk C has a huge length and a big component that overlaps with the query's biggest entry, so it wins on raw dot product, even though its direction is the worst of the three. The dot product mixed "does it match" with "how big is this vector."</p>
+
+<h3>What happens after normalizing</h3>
+<p>Divide every vector by its length first, and the disagreement disappears. For unit vectors, dot product = cosine, and Euclidean distance is a function of cosine: ‖u - v‖<sup>2</sup> = 2 - 2cos(&theta;). Using B as a check: 2 - 2(0.980) = 0.040, which matches the squared distance between the normalized q and normalized B (about 0.0401). Chunk C: 2 - 2(0.802) = 0.396. A: 2 - 2(1) = 0. So after normalization all three metrics rank A, then B, then C.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Pick the metric your embedding model was trained for, and normalize if it says to. Cosine similarity is the usual default for text because a chunk's vector length mostly reflects incidental things (such as passage length or word frequency), not relevance. Raw dot product is right when length is meaningful, as in some recommendation models where a larger vector means a more popular item. Mixing a model trained for one metric with an index configured for another silently changes which chunks come back.
+</div>
+
+<h2>7. High dimensions: why the scores bunch up</h2>
+
+<p>Real embeddings have hundreds to thousands of dimensions, and geometry behaves differently there. Take two directions chosen at random in <em>d</em> dimensions. Their cosine is centered on 0, with a typical spread of about 1/&#8730;<em>d</em>:</p>
+
+<div class="step-box">
+<div class="line">d = 3:     1 / &#8730;3    &asymp; 0.577   (random pairs vary a lot)</div>
+<div class="line">d = 768:   1 / &#8730;768  &asymp; 0.036</div>
+<div class="line">d = 1,536: 1 / &#8730;1536 &asymp; 0.026</div>
+</div>
+
+<p>In high dimensions, two unrelated directions are almost always nearly orthogonal, because there are so many ways to differ. That is useful: it leaves lots of room to store distinct meanings. It also means real similarity scores sit in a narrow band. A cosine of 0.78 versus 0.74 can be the difference between "relevant" and "not," and there is no universal cutoff, because the typical background level depends on the model. Calibrate a threshold against your own labeled queries rather than copying one from a blog post.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Real embeddings are not random directions. Many models place all their outputs in a narrow cone, so unrelated texts can still show a cosine of 0.5 or more. Compare scores within one model and one corpus. A score of 0.8 from one model is not comparable with 0.8 from another.
+</div>
+
+<h2>8. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Dot products are the single most repeated operation in modern AI. Retrieval, attention, and every neural-network layer reduce to them.
+</div>
+
+<h3>Retrieval and RAG</h3>
+<p>A vector database stores one embedding per chunk and, for each query, returns the chunks with the best score under one of the three metrics above. When retrieval returns odd results, check the metric and normalization before changing the chunking or the prompt. A longest-chunk-wins pattern is the signature of raw dot product on unnormalized vectors.</p>
+
+<h3>Attention</h3>
+<p>In a transformer, each token produces a query vector and a key vector, and the attention score between two tokens is a dot product of query and key. High score means "pay attention here." Because dot products grow with dimension, implementations divide the scores by &#8730;(key dimension), which is a normalization of the same kind as section 5. M2 shows how these query, key, and value vectors are produced from a token's embedding by matrices.</p>
+
+<h3>Neural-network layers</h3>
+<p>One neuron computes a dot product between its weight vector and its input vector, adds a bias, and applies a nonlinearity. A layer is many such dot products at once. That bundling is what a matrix is, and it is where this lesson hands off.</p>
+
+<h3>Leads into M2</h3>
+<p>You now have vectors as data and the dot product as the basic measuring tool. M2 (Matrices &amp; Transformations) stacks many vectors into a matrix, uses a matrix to turn one vector into another, and shows that a whole layer of a neural network, and the query, key, and value projections in attention, are just matrix-vector multiplication: lots of dot products done together.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>A <strong>vector</strong> is an ordered list of numbers, readable as a feature row, a point, or an arrow. An embedding is a vector produced by a model so that similar items point in similar directions.</li>
+  <li>Add vectors entry by entry; scale them by multiplying every entry. Embedding arithmetic (king - man + woman &asymp; queen) is an illustration of direction carrying meaning, not a dependable operation.</li>
+  <li>The <strong>L2 norm</strong> is &#8730;(sum of squares), the straight-line length. The <strong>L1 norm</strong> is the sum of absolute values. Distance is the norm of a difference.</li>
+  <li>The <strong>dot product</strong> is the sum of entry-wise products, and also &#8214;a&#8214; &#8214;b&#8214; cos(&theta;). It is 0 for orthogonal vectors.</li>
+  <li><strong>Cosine similarity</strong> divides out both lengths and keeps only the angle. For unit vectors, dot product and cosine are the same number, and Euclidean distance ranks results the same way.</li>
+  <li>In hundreds of dimensions, random directions are nearly orthogonal and real similarity scores cluster in a narrow range, so set thresholds from your own data.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. What is the dot product of a = (2, 0, 5) and b = (1, 4, -1)?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">The vector (2, 0, -5)</div>
+    <div class="quiz-opt">7</div>
+    <div class="quiz-opt">-3</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. Two embeddings have a dot product of exactly 0. What does that tell you about the angle between them?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">They are at 90&deg; (orthogonal)</div>
+    <div class="quiz-opt">They point in the same direction</div>
+    <div class="quiz-opt">They point in opposite directions</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. A retrieval system keeps returning the longest chunks, whose vectors have the largest lengths, even when shorter chunks are clearly more on-topic. The index scores with raw dot product on unnormalized vectors. What is the most direct fix?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Increase the embedding dimension</div>
+    <div class="quiz-opt">Normalize the vectors to unit length (or score with cosine similarity)</div>
+    <div class="quiz-opt">Switch to the L1 norm for the lengths of the query</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. What is the L2 norm of v = (6, -8)?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">14</div>
+    <div class="quiz-opt">2</div>
+    <div class="quiz-opt">10</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. For two unit vectors u and v, which statement is true?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Their dot product is always 1</div>
+    <div class="quiz-opt">Their dot product equals the cosine of the angle between them</div>
+    <div class="quiz-opt">Their dot product equals their Euclidean distance</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Dot_product" target="_blank">Dot product &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Cosine_similarity" target="_blank">Cosine similarity &mdash; Wikipedia</a></li>
+    <li><a href="https://arxiv.org/abs/1301.3781" target="_blank">Mikolov et al., "Efficient Estimation of Word Representations in Vector Space" &mdash; arXiv</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — re-think the dot product, the angle, and what cosine similarity ignores, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

@@ -110,7 +110,7 @@
 </head>
 <body>
 
-<span class="lesson-pill">Lesson 2 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<span class="lesson-pill">Lesson 2 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
 <h1>Describing Data: Mean, Variance, Standard Deviation &amp; Distribution Shape</h1>
 <p class="subtitle">The four numbers you compute first on any dataset — and why AI datasets lie to you if you only look at one of them.</p>
 
@@ -411,7 +411,7 @@
 
 <script>
 document.querySelectorAll(".quiz-options").forEach(group => {
-  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const fb = group.nextElementSibling;
   const opts = group.querySelectorAll(".quiz-opt");
   let solved = false;
   opts.forEach((opt, i) => {

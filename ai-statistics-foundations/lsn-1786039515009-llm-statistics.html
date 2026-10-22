@@ -132,7 +132,7 @@
 </head>
 <body>
 
-<span class="lesson-pill">Lesson 10 of 10 &middot; Capstone &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<span class="lesson-pill">Lesson 10 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
 <h1>The Statistics Unique to LLMs</h1>
 <p class="subtitle">Everything so far — distributions, entropy, cross-entropy, overfitting, evaluation rigor — generalizes to any predictive model. This lesson is where it all converges on the thing that made you start this course: the statistics that specifically make an LLM's next-token machinery tick.</p>
 
@@ -438,7 +438,7 @@ That's the whole shape of it: chase the reward, but don't let KL divergence from
 
 <script>
 document.querySelectorAll(".quiz-options").forEach(group => {
-  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const fb = group.nextElementSibling;
   const opts = group.querySelectorAll(".quiz-opt");
   let solved = false;
   opts.forEach((opt, i) => {

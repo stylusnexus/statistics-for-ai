@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyond a Single Line: Multiple Regression, Logistic Regression &amp; ANOVA</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 19 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Beyond a Single Line: Multiple Regression, Logistic Regression &amp; ANOVA</h1>
+<p class="subtitle">Real systems have many inputs, many outcomes, and more than two things to compare. This lesson stretches the one-line fit from Lesson 6 in three directions, and ends where every sigmoid output in a neural network begins.</p>
+
+<p>Lesson 6 fit one line to one feature. Production never looks like that: quality depends on retrieval depth <em>and</em> prompt length <em>and</em> model version, a moderation score is a probability rather than a point on a line, and a prompt test often has three arms, not two. Three tools cover those cases: <strong>multiple linear regression</strong>, <strong>logistic regression</strong>, and <strong>one-way ANOVA</strong>. The second is the model sitting at the end of almost every classifier you will build.</p>
+
+<h2>1. Multiple regression: several features, one fit</h2>
+
+<p>Multiple regression is Lesson 6's line with more terms:</p>
+
+<div class="step-box">
+<div class="line">score = b0 + b1 &times; (passages retrieved) + b2 &times; (prompt length) + error</div>
+</div>
+
+<p>Each coefficient is read the same way as a slope, with one phrase added: <strong>b1 is the change in score per extra passage, holding prompt length fixed.</strong> That phrase is the whole point. The coefficient is not "the relationship between passages and score." It is the relationship that remains after the other features have been accounted for.</p>
+
+<p>Here is a small, made-up evaluation. A team scores 8 RAG answers with an automated judge (0&ndash;100) and logs how many passages were retrieved and how long the prompt was, in hundreds of tokens:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Run</th><th class="num">Passages (x1)</th><th class="num">Prompt length, 100s of tokens (x2)</th><th class="num">Judge score (y)</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="num">1</td><td class="num">2</td><td class="num">52</td></tr>
+    <tr><td>2</td><td class="num">2</td><td class="num">1</td><td class="num">58</td></tr>
+    <tr><td>3</td><td class="num">2</td><td class="num">4</td><td class="num">57</td></tr>
+    <tr><td>4</td><td class="num">3</td><td class="num">3</td><td class="num">66</td></tr>
+    <tr><td>5</td><td class="num">3</td><td class="num">5</td><td class="num">64</td></tr>
+    <tr><td>6</td><td class="num">4</td><td class="num">4</td><td class="num">73</td></tr>
+    <tr><td>7</td><td class="num">5</td><td class="num">6</td><td class="num">76</td></tr>
+    <tr><td>8</td><td class="num">5</td><td class="num">5</td><td class="num">80</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Fit prompt length alone, as in Lesson 6, and it looks useful: slope 4.28 points per 100 tokens, t = 2.54, p = 0.044 on 6 degrees of freedom. A team reading only that would conclude that longer prompts help. Now fit both features together:</p>
+
+<div class="step-box">
+<div class="line">score = 45.42 + 7.41 &times; passages &minus; 0.75 &times; length</div>
+</div>
+
+<p>The length coefficient changed sign. Holding passages fixed, an extra 100 tokens is worth <em>&minus;0.75</em> points, and (section 5) that estimate is statistically indistinguishable from zero. Prompt length looked helpful only because longer prompts tended to come with more passages (their correlation here is r = 0.78), and passages are what moves the score. This is the same confounding trap from Lesson 6, now with a tool that partly handles it: a regression can separate the effects of features it has measured. It cannot separate effects of things it has not measured, which is the topic of Lesson 17 (study design and confounding).</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  A coefficient depends on which other features are in the model. The same feature can have slope +4.28 alone and &minus;0.75 beside a better explanation. Never quote a coefficient without saying what was held fixed.
+</div>
+
+<h2>2. The matrix form, in one short step</h2>
+
+<p>Write every run as a row. Put a column of 1s first (for the intercept), then the features. That grid is a matrix <strong>X</strong>; the scores are a vector <strong>y</strong>; the coefficients are a vector <strong>&beta;</strong>. The whole model is one line:</p>
+
+<div class="step-box">
+<div class="line">y = X&beta; + error</div>
+</div>
+
+<p>Minimizing the sum of squared residuals (Lesson 6's least squares) has a closed-form answer called the <strong>normal equations</strong>: (X<sup>T</sup>X) &beta; = X<sup>T</sup>y. For the 8 runs above, X<sup>T</sup>X and X<sup>T</sup>y are small enough to write out. The entries are just counts and sums of products: 8 runs, &Sigma;x1 = 25, &Sigma;x2 = 30, &Sigma;x1&sup2; = 93, &Sigma;x1x2 = 107, &Sigma;x2&sup2; = 132, &Sigma;y = 526, &Sigma;x1y = 1744, &Sigma;x2y = 2056.</p>
+
+<div class="step-box">
+<div class="line">         [  8    25    30 ]          [  526 ]</div>
+<div class="line">X<sup>T</sup>X   =  [ 25    93   107 ]    X<sup>T</sup>y =  [ 1744 ]</div>
+<div class="line">         [ 30   107   132 ]          [ 2056 ]</div>
+<div class="line"> </div>
+<div class="line">&beta; = (X<sup>T</sup>X)<sup>-1</sup> X<sup>T</sup>y = [ 45.417, 7.410, &minus;0.753 ]</div>
+</div>
+
+<p>Solving it in Python (a linear solver, and separately a hand-written elimination) gives the same three numbers. Plug a run back in to check the fit: run 4 (3 passages, 300 tokens) predicts 45.417 + 7.410&times;3 &minus; 0.753&times;3 = 65.39, against an actual 66, a residual of +0.61.</p>
+
+<p>The matrix form scales to ten features or ten thousand: still a weighted sum of inputs, still the weights that minimize squared error. A neural network's layers are this same weighted sum, repeated and bent by nonlinearities.</p>
+
+<h2>3. R&sup2; versus adjusted R&sup2;</h2>
+
+<p>Lesson 6 defined R&sup2; = 1 &minus; SSE/SST: the share of variation the model explains. Here SSE = 9.50 and SST = 689.5, so R&sup2; = 1 &minus; 9.50/689.5 = 0.9862.</p>
+
+<p>The weakness of R&sup2; is that it can only go up when you add a feature, even a useless one. Add a column of pure noise (say, the hour of day each run was logged: 9, 14, 11, 16, 10, 15, 13, 12) and the fit gets slightly better by accident:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Model</th><th class="num">R&sup2;</th><th class="num">Adjusted R&sup2;</th></tr></thead>
+  <tbody>
+    <tr><td>passages + length</td><td class="num">0.9862</td><td class="num">0.9807</td></tr>
+    <tr><td>passages + length + hour of day</td><td class="num">0.9864</td><td class="num">0.9763</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Adjusted R&sup2;</strong> charges a penalty for each added coefficient: it replaces SSE and SST with their per-degree-of-freedom versions.</p>
+
+<div class="step-box">
+<div class="line">adj R&sup2; = 1 &minus; [SSE / (n &minus; p)] / [SST / (n &minus; 1)]      (p = number of coefficients incl. intercept)</div>
+<div class="line">         = 1 &minus; (9.498 / 5) / (689.5 / 7) = 1 &minus; 1.8996 / 98.50</div>
+<div class="line result">         = 0.9807</div>
+</div>
+
+<p>The junk feature raised R&sup2; and lowered adjusted R&sup2;, which is the signal you want. This is Lesson 8's overfitting in miniature: more parameters always fit the training data at least as well. Adjusted R&sup2; is a cheap guard; a held-out validation set is the real one.</p>
+
+<h2>4. Collinearity: when two features say the same thing</h2>
+
+<p>The length feature above was correlated with passages (r = 0.78) and the coefficients were still stable (the variance inflation factor, VIF, was 2.5). Now add a feature that is nearly a copy of one already present: prompt length measured in hundreds of <em>characters</em> (x3), which tracks token length almost exactly (r = 0.9985 with x2). Refit all three:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Coefficient</th><th class="num">Without x3: estimate (SE)</th><th class="num">With x3: estimate (SE)</th></tr></thead>
+  <tbody>
+    <tr><td>passages (b1)</td><td class="num">7.41 (0.57)</td><td class="num">5.03 (1.17)</td></tr>
+    <tr><td>length in tokens (b2)</td><td class="num">&minus;0.75 (0.50)</td><td class="num">26.47 (12.44)</td></tr>
+    <tr><td>length in characters (b3)</td><td class="num">n/a</td><td class="num">&minus;6.30 (2.88)</td></tr>
+    <tr><td>R&sup2;</td><td class="num">0.9862</td><td class="num">0.9937</td></tr>
+    <tr><td>VIF of b2, b3</td><td class="num">2.5</td><td class="num">about 2,800 and 2,500</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>These are the symptoms of <strong>collinearity</strong>:</p>
+<ul>
+  <li><strong>Standard errors explode.</strong> The SE on b2 went from 0.50 to 12.44, 25 times larger.</li>
+  <li><strong>Estimates swing and flip.</strong> b2 moved from &minus;0.75 to +26.47, and b3 sits at &minus;6.30. Neither is believable on its own; they are offsetting each other.</li>
+  <li><strong>Other coefficients shift too.</strong> b1 dropped from 7.41 to 5.03.</li>
+  <li><strong>The overall fit stays fine.</strong> R&sup2; did not drop. Predictions on data like the training set are still good. Only the question "what does this one feature do?" has become unanswerable, because the model cannot tell x2 from x3 and splits the credit arbitrarily.</li>
+</ul>
+
+<p>The VIF measures this: VIF = 1/(1 &minus; R&sup2;<sub>j</sub>), where R&sup2;<sub>j</sub> is how well the other features predict feature j. Above about 5&ndash;10 is a warning. Drop or combine the redundant features, or accept that you can predict but not attribute. Overlapping measurements are common in AI work: token and character counts, several similarity scores from one embedding, a model's confidence and its entropy (Lesson 7).</p>
+
+<h2>5. Inference on a coefficient</h2>
+
+<p>Every coefficient is an estimate from a sample of 8 runs, so it has sampling error, exactly as a sample mean did in Lesson 5. The regression gives each coefficient a standard error, and from it a t statistic and confidence interval, using the machinery from Lessons 5 and 15. The SE comes from the residual variance and the matrix you already built:</p>
+
+<div class="step-box">
+<div class="line">s&sup2; = SSE / (n &minus; p) = 9.498 / 5 = 1.8996            (s = 1.378 judge points)</div>
+<div class="line">SE(b_j) = sqrt( s&sup2; &times; [(X<sup>T</sup>X)<sup>-1</sup>]<sub>jj</sub> )</div>
+<div class="line"> </div>
+<div class="line">length (b2):   [(X<sup>T</sup>X)<sup>-1</sup>]<sub>22</sub> = 0.1299</div>
+<div class="line">               SE = sqrt(1.8996 &times; 0.1299) = 0.4968</div>
+<div class="line">               t  = &minus;0.7533 / 0.4968 = &minus;1.52     (5 degrees of freedom)</div>
+<div class="line">               95% CI = &minus;0.7533 &plusmn; 2.571 &times; 0.4968 = &minus;0.7533 &plusmn; 1.2770 = [&minus;2.03, +0.52]</div>
+<div class="line result">               two-sided p = 0.19  &rarr; cannot rule out zero</div>
+<div class="line"> </div>
+<div class="line">passages (b1): SE = 0.5688,  t = 7.4105 / 0.5688 = 13.03,  p = 0.00005</div>
+<div class="line">               95% CI = 7.41 &plusmn; 2.571 &times; 0.5688 = 7.41 &plusmn; 1.46 = [5.95, 8.87]</div>
+</div>
+
+<p>The critical value 2.571 is the t distribution's 97.5th percentile at 5 degrees of freedom (n &minus; p = 8 &minus; 3). Read the results the way Lesson 15 taught: passages has a clear, sizeable effect, between roughly 6 and 9 points per extra passage. Length has an interval that straddles zero, so once passages are accounted for there is no evidence length matters. With only 8 runs, "no evidence" is also partly "not enough data to tell."</p>
+
+<p><strong>Residual checks, in one paragraph.</strong> The inference above assumes the errors are roughly independent, have constant spread, and are not systematically bent away from your line. Check by plotting residuals (actual minus predicted, Lesson 6) against the fitted values: a curve means a missing nonlinear term, a funnel shape (spread growing with the prediction) means the error variance is not constant, and a pattern across run order means runs are not independent, for instance because latency drifted over the day. Normality of the residuals matters least with a reasonable number of rows. Here the 8 residuals run from &minus;1.95 to +1.30 with no obvious shape, though 8 points hide a lot.</p>
+
+<h2>6. Logistic regression: the classifier behind every sigmoid</h2>
+
+<p>Suppose the target is not a score but a yes/no outcome: did this answer contain an unsupported claim (1) or not (0)? A straight-line model is the wrong tool. Its predictions are unbounded, so it can output &minus;0.3 or 1.4 as a "probability." Logistic regression keeps the weighted sum of features and fixes the output in two steps.</p>
+
+<h3>Odds and log-odds</h3>
+
+<p>Probability p can be restated as <strong>odds</strong> = p / (1 &minus; p), the ratio of "happens" to "doesn't." The <strong>log-odds</strong> (the <strong>logit</strong>) is the natural log of that. It runs over the whole number line, which is exactly what a weighted sum does.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th class="num">Probability p</th><th class="num">Odds p/(1&minus;p)</th><th class="num">Log-odds</th></tr></thead>
+  <tbody>
+    <tr><td class="num">0.02</td><td class="num">0.0204</td><td class="num">&minus;3.89</td></tr>
+    <tr><td class="num">0.10</td><td class="num">0.111</td><td class="num">&minus;2.20</td></tr>
+    <tr><td class="num">0.31</td><td class="num">0.449</td><td class="num">&minus;0.80</td></tr>
+    <tr><td class="num">0.50</td><td class="num">1</td><td class="num">0</td></tr>
+    <tr><td class="num">0.90</td><td class="num">9</td><td class="num">+2.20</td></tr>
+    <tr><td class="num">0.98</td><td class="num">49</td><td class="num">+3.89</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The model is linear in the log-odds: <strong>z = b0 + b1x1 + b2x2</strong>. To get back to a probability, invert the logit with the <strong>sigmoid</strong>: p = 1 / (1 + e<sup>&minus;z</sup>). Any z, however large, lands strictly between 0 and 1.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 640 370" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The sigmoid curve, an S-shape rising from 0 to 1 as the log-odds z goes from minus 6 to plus 6. A dashed line at probability 0.5 marks the default decision threshold, a second dashed line at probability 0.10 marks a lower threshold chosen because missing a hallucination costs nine times a wasted review, and a green dot marks the worked example at z of minus 0.8 and probability 0.31.">
+  <line x1="70" y1="235" x2="590" y2="235" stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/><line x1="70" y1="105" x2="590" y2="105" stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/>
+  <line x1="70" y1="30" x2="70" y2="300" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="70" y1="300" x2="590" y2="300" stroke="#2e3248" stroke-width="1.5"/>
+  <text x="62" y="304" text-anchor="end" fill="#94a3b8" font-size="11">0</text><text x="62" y="278" text-anchor="end" fill="#94a3b8" font-size="11">0.1</text><text x="62" y="223" text-anchor="end" fill="#94a3b8" font-size="11">0.31</text><text x="62" y="174" text-anchor="end" fill="#94a3b8" font-size="11">0.5</text><text x="62" y="44" text-anchor="end" fill="#94a3b8" font-size="11">1</text><text x="70" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">-6</text><text x="157" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">-4</text><text x="243" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">-2</text><text x="330" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">0</text><text x="417" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">2</text><text x="503" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">4</text><text x="590" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">6</text>
+  <text x="330" y="340" text-anchor="middle" fill="#94a3b8" font-size="12">log-odds z = b0 + b1&#183;x1 + b2&#183;x2</text>
+  <text x="20" y="170" fill="#94a3b8" font-size="12" transform="rotate(-90 20 170)" text-anchor="middle">predicted probability p</text>
+  <line x1="70" y1="170" x2="590" y2="170" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="590" y="164" text-anchor="end" fill="#94a3b8" font-size="11">default threshold 0.5</text>
+  <line x1="70" y1="274" x2="590" y2="274" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="6,4"/>
+  <text x="590" y="290" text-anchor="end" fill="#fbbf24" font-size="11">cost-based threshold 0.10 (z = &#8722;2.20)</text>
+  <polyline points="70.0,299.4 87.3,299.0 104.7,298.6 122.0,297.9 139.3,296.8 156.7,295.3 174.0,293.1 191.3,289.8 208.7,285.1 226.0,278.4 243.3,269.0 260.7,256.3 278.0,239.8 295.3,219.4 312.7,195.7 330.0,170.0 347.3,144.3 364.7,120.6 382.0,100.2 399.3,83.7 416.7,71.0 434.0,61.6 451.3,54.9 468.7,50.2 486.0,46.9 503.3,44.7 520.7,43.2 538.0,42.1 555.3,41.4 572.7,41.0 590.0,40.6" fill="none" stroke="#6c8fff" stroke-width="3"/>
+  <line x1="295" y1="219" x2="295" y2="300" stroke="#34d399" stroke-width="1.5" stroke-dasharray="3,3"/>
+  <circle cx="295" cy="219" r="6" fill="#34d399"/>
+  <text x="307" y="235" fill="#34d399" font-size="12">worked example: z = &#8722;0.8, p = 0.31</text>
+</svg>
+<p class="viz-caption">The sigmoid turns any log-odds, however large or small, into a probability. A decision threshold is a horizontal line across the curve; where it crosses is the log-odds cutoff.</p>
+</div>
+
+<h3>One worked prediction</h3>
+
+<p>Say a fitted model for "answer contains an unsupported claim" has these coefficients (illustrative): intercept &minus;2.0; &minus;0.9 per supporting passage retrieved; +0.7 per 100 tokens of answer length. For an answer with 1 supporting passage and 300 tokens:</p>
+
+<div class="step-box">
+<div class="line">z = &minus;2.0 + (&minus;0.9)(1) + (0.7)(3) = &minus;0.8</div>
+<div class="line">p = 1 / (1 + e<sup>0.8</sup>) = 1 / (1 + 2.2255) = 0.310</div>
+<div class="line result">predicted probability of an unsupported claim: 31%</div>
+</div>
+
+<h3>Reading a coefficient as an odds ratio</h3>
+
+<p>A logistic coefficient is a change in <em>log-odds</em> per unit of the feature. Exponentiate it and you get a multiplier on the <em>odds</em>:</p>
+
+<div class="step-box">
+<div class="line">+1 supporting passage: odds multiply by e<sup>&minus;0.9</sup> = 0.407</div>
+<div class="line">   before: odds = e<sup>&minus;0.8</sup> = 0.449  (p = 0.310)</div>
+<div class="line">   after:  odds = e<sup>&minus;1.7</sup> = 0.183  (p = 0.154)      check: 0.449 &times; 0.407 = 0.183</div>
+<div class="line"> </div>
+<div class="line">+100 answer tokens: odds multiply by e<sup>0.7</sup> = 2.014   (0.449 &rarr; 0.905, p = 0.475)</div>
+</div>
+
+<p>So one more supporting passage cuts the odds of an unsupported claim by about 59%, and 100 more answer tokens roughly doubles them. Two cautions. First, the odds ratio is constant, but the change in <em>probability</em> is not: that same passage moved p from 0.31 to 0.15 here, and would move it by far less near 0.01 or 0.99. Second, "doubles the odds" is not "doubles the probability" (0.31 to 0.475, not 0.62). Reports that say "twice as likely" when they mean twice the odds are a common error.</p>
+
+<h2>7. Why cross-entropy, not least squares</h2>
+
+<p>How are the coefficients chosen? Not by the normal equations: with a sigmoid in the way there is no closed form. Logistic regression is fit by <strong>maximum likelihood</strong> (Lesson 5): choose the coefficients that make the observed 0/1 labels most probable under Bernoulli outcomes (Lesson 4). Taking the negative log of that likelihood gives exactly the <strong>cross-entropy loss</strong> from Lesson 7, with a one-hot truth and two classes. The optimizer is the gradient descent of Lesson 8 (or a close cousin).</p>
+
+<p>Could you instead keep minimizing squared error, as in linear regression? You could, and it trains badly. Compare what the two losses do when the model is confidently wrong: the true label is 1 (unsupported claim) and the model says p = 0.01.</p>
+
+<div class="step-box">
+<div class="line">                          loss             gradient of loss w.r.t. z</div>
+<div class="line">cross-entropy:   &minus;ln(0.01) = 4.61 nats      p &minus; y = 0.01 &minus; 1 = &minus;0.990</div>
+<div class="line">                 (= 6.64 bits)</div>
+<div class="line">squared error:   (1 &minus; 0.01)&sup2; = 0.980      2(p &minus; y) &times; p(1 &minus; p) = 2(&minus;0.99)(0.0099) = &minus;0.0196</div>
+<div class="line"> </div>
+<div class="line result">cross-entropy pushes 0.990 / 0.0196 = about 50 times harder at this mistake</div>
+</div>
+
+<p>With squared error, the sigmoid's own slope (p(1 &minus; p)) multiplies the gradient, and that slope is nearly zero at the flat ends of the curve. So the worse the confident mistake, the weaker the correction: the model gets stuck exactly where it is most wrong. Cross-entropy's gradient with respect to z is just p &minus; y, which grows with the error. Squared error on a sigmoid is also non-convex in the weights, while cross-entropy keeps logistic regression convex. That is why cross-entropy trains every classifier from a spam filter to a language model.</p>
+
+<h2>8. Thresholds, base rates, and the last layer of a neural network</h2>
+
+<h3>Back to Lesson 3's base rates</h3>
+
+<p>The model outputs a probability; something must still decide. The default cutoff p &gt; 0.5 has no special status. Let a wasted human review of a clean answer cost 1 unit and a missed unsupported claim cost 9. Flag an answer when the expected cost of not flagging exceeds the cost of flagging: p &times; 9 &gt; (1 &minus; p) &times; 1, which gives p &gt; 1/(1 + 9) = 0.10. That is the lower dashed line on the curve above, at log-odds &minus;2.20. Lesson 9 then asks what precision and recall that threshold buys you.</p>
+
+<p>Log-odds also make Lesson 3's Bayes update additive. The hallucination detector there had a 2% base rate and a likelihood ratio of 0.90/0.05 = 18 for a flag:</p>
+
+<div class="step-box">
+<div class="line">prior log-odds:     ln(0.02 / 0.98)  = &minus;3.892     &larr; this is what an intercept-only model learns</div>
+<div class="line">evidence:           ln(18)           = +2.890</div>
+<div class="line">posterior log-odds: &minus;3.892 + 2.890 = &minus;1.002   &rarr;  sigmoid = 0.269</div>
+</div>
+
+<p>That is Lesson 3's 27%, reached by addition. The intercept <em>is</em> the base rate, expressed as log-odds. Practical consequence: train on a rebalanced 50/50 sample but deploy where the real rate is 2%, and the predicted probabilities are far too high until you shift the intercept by ln(0.02/0.98) &minus; ln(0.5/0.5) = &minus;3.89.</p>
+
+<h3>The last layer of a neural network</h3>
+
+<p>Open any binary classifier built on a neural network and its final layer is logistic regression. Every earlier layer turns the input (text, an image, embeddings) into a feature vector h. The last layer computes z = w &middot; h + b and passes it through a sigmoid. Training it with binary cross-entropy is the loss from section 7. The only difference from this lesson is that the network <em>learns the features</em> instead of you supplying passages and token counts. With more than two classes, the sigmoid becomes the softmax from Lesson 4, and the two-class softmax is the sigmoid: softmax over logits (z, 0) gives e<sup>z</sup>/(e<sup>z</sup> + 1) = 0.310 for z = &minus;0.8, the same number as above. A language model's next-token layer is the same idea at scale: one logit per vocabulary token, softmax, cross-entropy against the token that appeared (Lessons 7 and 10).</p>
+
+<h2>9. One-way ANOVA: is any group different?</h2>
+
+<p>Lesson 15 compared two groups with a t-test. A team testing three prompt variants has three groups. <strong>One-way ANOVA</strong> (analysis of variance) answers a single question: <em>are all the group means equal, or is at least one different?</em></p>
+
+<p>It works by splitting the total variation in the scores into two parts and comparing them. Say each of three prompt variants is run on 5 inputs and graded by a judge (0&ndash;100):</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Variant</th><th colspan="5">Scores</th><th class="num">Mean</th></tr></thead>
+  <tbody>
+    <tr><td>Prompt A</td><td class="num">72</td><td class="num">75</td><td class="num">70</td><td class="num">74</td><td class="num">69</td><td class="num">72</td></tr>
+    <tr><td>Prompt B</td><td class="num">78</td><td class="num">80</td><td class="num">76</td><td class="num">82</td><td class="num">79</td><td class="num">79</td></tr>
+    <tr><td>Prompt C</td><td class="num">73</td><td class="num">77</td><td class="num">75</td><td class="num">71</td><td class="num">74</td><td class="num">74</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 640 345" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Dot plot of judge quality scores for three prompt variants, five scores each. Prompt A has mean 72, Prompt B mean 79, Prompt C mean 74, with a dashed grand mean line at 75.">
+  <line x1="70" y1="30" x2="70" y2="300" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="70" y1="300" x2="600" y2="300" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="70" y1="300" x2="600" y2="300" stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/><text x="62" y="304" text-anchor="end" fill="#94a3b8" font-size="11">66</text><line x1="70" y1="242" x2="600" y2="242" stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/><text x="62" y="246" text-anchor="end" fill="#94a3b8" font-size="11">70</text><line x1="70" y1="170" x2="600" y2="170" stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/><text x="62" y="174" text-anchor="end" fill="#94a3b8" font-size="11">75</text><line x1="70" y1="98" x2="600" y2="98" stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/><text x="62" y="102" text-anchor="end" fill="#94a3b8" font-size="11">80</text><line x1="70" y1="40" x2="600" y2="40" stroke="#2e3248" stroke-width="1" stroke-dasharray="2,3"/><text x="62" y="44" text-anchor="end" fill="#94a3b8" font-size="11">84</text><line x1="70" y1="170" x2="600" y2="170" stroke="#94a3b8" stroke-width="1.5" stroke-dasharray="6,4"/><text x="598" y="164" text-anchor="end" fill="#94a3b8" font-size="11">grand mean 75</text><circle cx="138" cy="213" r="5" fill="#6c8fff"/><circle cx="154" cy="170" r="5" fill="#6c8fff"/><circle cx="170" cy="242" r="5" fill="#6c8fff"/><circle cx="186" cy="184" r="5" fill="#6c8fff"/><circle cx="202" cy="257" r="5" fill="#6c8fff"/><line x1="118" y1="213" x2="222" y2="213" stroke="#6c8fff" stroke-width="3"/><text x="170" y="322" text-anchor="middle" fill="#e2e8f0" font-size="13">Prompt A (mean 72)</text><circle cx="298" cy="127" r="5" fill="#34d399"/><circle cx="314" cy="98" r="5" fill="#34d399"/><circle cx="330" cy="156" r="5" fill="#34d399"/><circle cx="346" cy="69" r="5" fill="#34d399"/><circle cx="362" cy="112" r="5" fill="#34d399"/><line x1="278" y1="112" x2="382" y2="112" stroke="#34d399" stroke-width="3"/><text x="330" y="322" text-anchor="middle" fill="#e2e8f0" font-size="13">Prompt B (mean 79)</text><circle cx="458" cy="199" r="5" fill="#a78bfa"/><circle cx="474" cy="141" r="5" fill="#a78bfa"/><circle cx="490" cy="170" r="5" fill="#a78bfa"/><circle cx="506" cy="228" r="5" fill="#a78bfa"/><circle cx="522" cy="184" r="5" fill="#a78bfa"/><line x1="438" y1="184" x2="542" y2="184" stroke="#a78bfa" stroke-width="3"/><text x="490" y="322" text-anchor="middle" fill="#e2e8f0" font-size="13">Prompt C (mean 74)</text>
+  <text x="20" y="165" fill="#94a3b8" font-size="12" transform="rotate(-90 20 165)" text-anchor="middle">judge quality score</text>
+</svg>
+<p class="viz-caption">Thick bars are group means. How far the dots sit from their own bar is the within-group spread (SSW); how far the bars sit from the dashed grand mean is the between-group spread (SSB).</p>
+</div>
+
+<p>The grand mean of all 15 scores is 75. Two kinds of spread exist:</p>
+<ul>
+  <li><strong>Between groups (SSB):</strong> how far each group mean sits from the grand mean, weighted by group size. If the prompts did nothing, the group means would differ only by luck.</li>
+  <li><strong>Within groups (SSW):</strong> how far each score sits from its own group mean. This is the noise: how much one prompt's score varies from input to input.</li>
+</ul>
+
+<div class="step-box">
+<div class="line">SSB = 5(72&minus;75)&sup2; + 5(79&minus;75)&sup2; + 5(74&minus;75)&sup2; = 45 + 80 + 5 = 130</div>
+<div class="line">SSW = A: (0&sup2;+3&sup2;+2&sup2;+2&sup2;+3&sup2;) + B: (1+1+9+9+0) + C: (1+9+1+9+0) = 26 + 20 + 20 = 66</div>
+<div class="line">SST = 130 + 66 = 196        (matches summing (score &minus; 75)&sup2; over all 15 scores)</div>
+<div class="line"> </div>
+<div class="line">degrees of freedom: between = 3 &minus; 1 = 2,   within = 15 &minus; 3 = 12</div>
+<div class="line">MSB = 130 / 2 = 65.0        MSW = 66 / 12 = 5.5</div>
+<div class="line result">F = MSB / MSW = 65.0 / 5.5 = 11.82</div>
+</div>
+
+<p>F is a ratio of signal to noise: the spread between group means, per degree of freedom, divided by the spread inside groups. If the null (all means equal) were true, F would hover near 1. For the F distribution with 2 and 12 degrees of freedom, the tail probability has a closed form, P(F &gt; f) = (12 / (12 + 2f))<sup>6</sup>, so no statistics library is needed:</p>
+
+<div class="step-box">
+<div class="line">p = (12 / (12 + 2 &times; 11.82))<sup>6</sup> = (12 / 35.636)<sup>6</sup> = 0.3367<sup>6</sup></div>
+<div class="line result">p = 0.0015</div>
+<div class="line">5% critical value: F = 6 &times; (0.05<sup>&minus;1/6</sup> &minus; 1) = 3.89;   11.82 is well beyond it</div>
+</div>
+
+<p>Numerically integrating the F density gives the same 0.0015. Reject "all three prompts score the same." The share of total variation explained by the prompt is SSB/SST = 130/196 = 0.66.</p>
+
+<h3>Why not just run three t-tests?</h3>
+
+<p>Because of the multiple-comparisons problem from Lesson 15. Three pairwise tests at 5% each give about a 1 &minus; 0.95<sup>3</sup> = 14% chance of at least one false positive if the prompts are identical (the tests overlap, so the exact figure is a little lower, but still well above 5%). Add a fourth and fifth prompt and it climbs fast. ANOVA asks one question with one test at one 5% error rate, so the chance of falsely declaring "something differs" stays at 5% however many groups you have. Running ANOVA first is the protected way in.</p>
+
+<h3>What ANOVA cannot tell you</h3>
+
+<p>A significant F says only that the means are not all equal. It does not say which prompt is different, by how much, or which is best. To find out you need follow-up comparisons, and those reopen the multiple-comparisons problem, so correct for them. With pooled s = sqrt(MSW) = 2.345, each pairwise standard error is 2.345 &times; sqrt(2/5) = 1.483:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Pair</th><th class="num">Difference</th><th class="num">t (12 df)</th><th class="num">p</th><th class="num">Below 0.05/3 = 0.0167?</th></tr></thead>
+  <tbody>
+    <tr><td>B &minus; A</td><td class="num">+7</td><td class="num">4.72</td><td class="num">0.0005</td><td class="num">yes</td></tr>
+    <tr><td>B &minus; C</td><td class="num">+5</td><td class="num">3.37</td><td class="num">0.0056</td><td class="num">yes</td></tr>
+    <tr><td>C &minus; A</td><td class="num">+2</td><td class="num">1.35</td><td class="num">0.20</td><td class="num">no</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Prompt B beats both others; A and C cannot be told apart. Dedicated post-hoc procedures (Tukey's is the common one) do this more efficiently than the Bonferroni division used here. ANOVA also assumes roughly normal scores within each group, similar spread across groups, and independent observations. With 5 scores per group these are hard to verify. A significant F is the start of the analysis, not the verdict; report the group means and the size of the gaps.</p>
+
+<h2>10. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  These three tools are how you move from "this metric moved" to "this input caused it, and here is how sure we are."
+</div>
+
+<p><strong>Attribution.</strong> Metrics depend on many levers at once: retrieval depth, prompt length, model version, temperature. A regression that includes them all separates their effects, provided you check VIFs and remember that anything unmeasured can still confound.</p>
+<p><strong>Probability models.</strong> Quality gates, hallucination flags, routing and reward models all end in "probability that X." The logit, the odds ratio and a cost-based threshold let you explain a gate, retune it when the base rate shifts, and avoid confusing odds with probability. A well-built logistic regression is also the baseline any heavier model has to beat.</p>
+<p><strong>Experiments with three or more arms.</strong> Run one omnibus test, then corrected pairwise follow-ups, and report effect sizes with intervals, not only the winner.</p>
+
+<h2>11. Where this leaves you</h2>
+
+<p>This is the last lesson of the course, so here is how the pieces connect and where to go from here.</p>
+
+<ul>
+  <li><strong>Describing, counting, distributions and sampling (Lessons 2, 4, 5, 11&ndash;14).</strong> Means, spread and distributions are what ANOVA partitions and what every standard error in this lesson is built from. Correlated features, as in the collinearity section, are the joint distributions of Lesson 14 at work.</li>
+  <li><strong>Probability and Bayes (Lesson 3).</strong> The base rate is the logistic intercept, and the Bayes update is addition in log-odds.</li>
+  <li><strong>Regression, information and training (Lessons 6, 7, 8).</strong> This lesson is those three joined: a fit by least squares, a loss from information theory, a model fit by descent. Logistic regression is where they meet.</li>
+  <li><strong>Evaluation, testing and Bayesian inference (Lessons 9, 15, 16).</strong> Thresholds become precision/recall trade-offs, every p-value and interval here is a Lesson 15 tool, and Lesson 16 shows how to treat a coefficient as a distribution rather than a single number.</li>
+  <li><strong>LLM-specific statistics (Lesson 10).</strong> Softmax, sampling and calibration are the multi-class, generative version of the logistic model.</li>
+  <li><strong>Study design and confounding (Lesson 17) and resampling (Lesson 18).</strong> Regression cannot rescue a badly designed study, and resampling gives intervals where the formulas here assume too much.</li>
+</ul>
+
+<p>Next, practice on your own data: a multiple regression on logged eval scores (check the VIFs), a logistic regression on a flagged-or-not label with a threshold set from real review costs, an ANOVA on your next three-way prompt test. Beyond this course, the natural next steps are regularized and generalized linear models (ridge, lasso, Poisson regression), mixed-effects models for repeated measures on the same inputs, and causal inference for the question regression alone cannot answer.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li><strong>Multiple regression</strong> is y = X&beta;, solved by (X<sup>T</sup>X)&beta; = X<sup>T</sup>y. Each coefficient is the change per unit "holding the others fixed" and shifts with the features included: prompt length went from +4.28 alone to &minus;0.75 beside passages.</li>
+  <li><strong>R&sup2;</strong> never falls when you add a feature; <strong>adjusted R&sup2;</strong> penalizes extra coefficients. <strong>Collinearity</strong> inflates standard errors (0.50 to 12.44) and flips coefficients while the overall fit stays good.</li>
+  <li>Standard error, t and interval work as in Lesson 15; an interval spanning zero (&minus;2.03 to +0.52) means no evidence of an effect.</li>
+  <li><strong>Logistic regression</strong> is linear in the log-odds, then a sigmoid (z = &minus;0.8 gives p = 0.31). exp(coefficient) is an <strong>odds ratio</strong>, not a probability ratio. It is fit with <strong>cross-entropy</strong>, whose gradient p &minus; y stays strong when the model is confidently wrong (about 50 times stronger than squared error's in the example).</li>
+  <li>The intercept encodes the <strong>base rate</strong>; set the <strong>threshold</strong> from error costs. A neural network's final layer is this model.</li>
+  <li><strong>One-way ANOVA</strong> compares between-group to within-group variation (F = 65.0/5.5 = 11.82, p = 0.0015) at one 5% error rate, but says only that some group differs, not which.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. Alone, prompt length has slope +4.28 on the judge score. In a model that also includes passages retrieved, its coefficient is &minus;0.75. What is the best explanation?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">The regression made an arithmetic error because adding a feature should never change an existing coefficient</div>
+    <div class="quiz-opt">Longer prompts really do hurt, and the one-feature fit was wrong</div>
+    <div class="quiz-opt">Longer prompts tended to come with more passages, so alone the length coefficient was picking up the passages' effect; holding passages fixed it has little left</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. Adding a useless feature (hour of day) moved R&sup2; from 0.9862 to 0.9864 and adjusted R&sup2; from 0.9807 to 0.9763. What does that show?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">R&sup2; rises whenever a feature is added, even noise, while adjusted R&sup2; penalizes the extra coefficient and correctly falls</div>
+    <div class="quiz-opt">The hour of day is the most important feature because R&sup2; went up</div>
+    <div class="quiz-opt">Adjusted R&sup2; is broken because it should always be at least as high as R&sup2;</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. A logistic regression has a coefficient of +0.7 on answer length (per 100 tokens). Which statement is correct?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Each extra 100 tokens raises the probability by 0.7</div>
+    <div class="quiz-opt">Each extra 100 tokens multiplies the odds by e<sup>0.7</sup>, about 2.0; the change in probability depends on where you start</div>
+    <div class="quiz-opt">Each extra 100 tokens doubles the probability</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. Why is squared error a poor loss for fitting a sigmoid output, compared with cross-entropy?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Squared error can only be computed on continuous targets, never on 0/1 labels</div>
+    <div class="quiz-opt">Cross-entropy is always smaller, so models train faster on the smaller number</div>
+    <div class="quiz-opt">Its gradient is multiplied by the sigmoid's slope, which is near zero when the model is confidently wrong, so the correction vanishes where it is needed most</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. A one-way ANOVA on three prompt variants gives F = 11.82, p = 0.0015. What can you conclude?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">At least one variant's mean differs from the others; a corrected follow-up comparison is needed to say which</div>
+    <div class="quiz-opt">Every variant differs from every other variant</div>
+    <div class="quiz-opt">The variant with the highest mean is the best, with p = 0.0015 of being wrong</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Linear_regression" target="_blank">Linear Regression &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Multicollinearity" target="_blank">Multicollinearity &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Logistic_regression" target="_blank">Logistic Regression &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Analysis_of_variance" target="_blank">Analysis of Variance &mdash; Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — re-think what each coefficient holds fixed, what a loss's gradient does when the model is confidently wrong, and the gap between odds and probability, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

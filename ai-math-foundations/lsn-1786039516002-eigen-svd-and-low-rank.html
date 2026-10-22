@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Eigenvectors, SVD &amp; Low-Rank Structure: PCA and LoRA</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 3 of 7 &middot; Math for AI: Linear Algebra &amp; Calculus Essentials</span>
+<h1>Eigenvectors, SVD &amp; Low-Rank Structure: PCA and LoRA</h1>
+<p class="subtitle">A matrix can look like a wall of numbers, but most of the useful ones are built from just a few directions. Finding those directions is how you shrink embeddings, find the main axis of a dataset, and fine-tune a huge model by training a tiny fraction of it.</p>
+
+<p>M1 gave you vectors and dot products. M2 gave you matrices as machines that take a vector in and push a new vector out. This lesson asks a sharper question about those machines: <strong>what is a matrix really doing, and how much of it do you actually need?</strong> The answer comes in three pieces: eigenvectors (the directions a matrix only stretches), the singular value decomposition (a way to take any matrix apart into rotate, stretch, rotate), and low-rank approximation (keep the biggest stretches, drop the rest). Two techniques you will meet constantly in AI work, PCA and LoRA, are direct applications.</p>
+
+<h2>1. Eigenvectors and eigenvalues: the directions a matrix only stretches</h2>
+
+<p>Feed most vectors into a matrix and they come out pointing somewhere new. Take the 2&times;2 matrix below, which you can picture as a tiny layer that mixes two features:</p>
+
+<div class="step-box">
+<div class="line">A = [ 2  1 ]</div>
+<div class="line">    [ 1  2 ]</div>
+<div class="line"> </div>
+<div class="line">A &times; (1, 0) = (2&times;1 + 1&times;0, 1&times;1 + 2&times;0) = (2, 1)    &larr; turned toward the y-axis</div>
+<div class="line">A &times; (0, 1) = (1, 2)                                  &larr; turned toward the x-axis</div>
+</div>
+
+<p>Both inputs got rotated as well as stretched. But a few special directions do not turn at all. Try (1, 1) and (1, &minus;1):</p>
+
+<div class="step-box">
+<div class="line">A &times; (1,  1) = (2&times;1 + 1&times;1,  1&times;1 + 2&times;1) = (3,  3) = 3 &times; (1,  1)</div>
+<div class="line">A &times; (1, &minus;1) = (2&times;1 &minus; 1&times;1,  1&times;1 &minus; 2&times;1) = (1, &minus;1) = 1 &times; (1, &minus;1)</div>
+</div>
+
+<p>The matrix sent (1, 1) to three times itself and left (1, &minus;1) exactly as it was. Those directions are the <strong>eigenvectors</strong> of A, and the stretch factors, 3 and 1, are the matching <strong>eigenvalues</strong> (written <em>&lambda;</em>, the Greek letter lambda). In symbols: <strong>A<em>v</em> = <em>&lambda;v</em></strong>. An eigenvector is a direction the matrix does nothing to except scale. A negative eigenvalue flips the direction; an eigenvalue of 0 flattens it away entirely.</p>
+
+<h3>Finding them by hand</h3>
+
+<p>Rearranging A<em>v</em> = <em>&lambda;v</em> gives (A &minus; <em>&lambda;</em>I)<em>v</em> = 0, where I is the identity matrix (ones on the diagonal, zeros elsewhere, so I<em>v</em> = <em>v</em>). A nonzero <em>v</em> can only satisfy that if the matrix A &minus; <em>&lambda;</em>I squashes space flat, which happens exactly when its determinant is 0. For a 2&times;2 matrix [a b; c d], the determinant is ad &minus; bc.</p>
+
+<div class="step-box">
+<div class="line">det(A &minus; &lambda;I) = (2 &minus; &lambda;)(2 &minus; &lambda;) &minus; (1)(1)</div>
+<div class="line">              = &lambda;&sup2; &minus; 4&lambda; + 3</div>
+<div class="line">              = (&lambda; &minus; 1)(&lambda; &minus; 3)</div>
+<div class="line result">&rArr; &lambda; = 3 or &lambda; = 1</div>
+<div class="line"> </div>
+<div class="line">&lambda; = 3:  (A &minus; 3I)v = [&minus;1  1; 1 &minus;1]v = 0  &rArr;  v&#8321; = v&#8322;      &rArr; v = (1, 1)</div>
+<div class="line">&lambda; = 1:  (A &minus; 1I)v = [ 1  1; 1  1]v = 0  &rArr;  v&#8321; = &minus;v&#8322;     &rArr; v = (1, &minus;1)</div>
+<div class="line"> </div>
+<div class="line">Check: sum of eigenvalues 3 + 1 = 4 = trace (2 + 2);  product 3 &times; 1 = 3 = det (4 &minus; 1)</div>
+</div>
+
+<p>A short Python check (numpy&rsquo;s <code>np.linalg.eig</code>) returns eigenvalues 3 and 1 with eigenvectors proportional to (1, 1) and (1, &minus;1), matching the hand result. Any multiple of an eigenvector is also an eigenvector, so libraries return them scaled to length 1: (0.707, 0.707) and (&minus;0.707, 0.707).</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Along its eigenvectors, a matrix is just multiplication by a number. A tangled 2&times;2 mixing becomes two independent, one-dimensional stretches: one by 3, one by 1. That simplification is why eigenvectors keep showing up: they are the coordinate axes in which the matrix is easy to understand.
+</div>
+
+<h2>2. Rank: how many independent directions a matrix really has</h2>
+
+<p>The <strong>rank</strong> of a matrix is the number of independent directions in its output, meaning how many of its columns carry information that the others cannot reproduce. A 3&times;2 matrix could in principle have rank 2, but it can have less. The smallest case is rank 1, built from an <strong>outer product</strong>: a column vector times a row vector.</p>
+
+<div class="step-box">
+<div class="line">u = (1, 2, 3)      v = (4, 5)</div>
+<div class="line"> </div>
+<div class="line">u v&#7511; = [ 1&times;4  1&times;5 ]   [  4   5 ]</div>
+<div class="line">     [ 2&times;4  2&times;5 ] = [  8  10 ]</div>
+<div class="line">     [ 3&times;4  3&times;5 ]   [ 12  15 ]</div>
+</div>
+
+<p>Look at the columns: (4, 8, 12) and (5, 10, 15). Each is just a multiple of u = (1, 2, 3), so the whole 6-number table is a single direction scaled two ways. Rank 1. Python&rsquo;s <code>np.linalg.matrix_rank</code> confirms it. Storing the table takes 6 numbers; storing u and v takes 3 + 2 = 5, and the gap widens fast for bigger matrices: a 1000&times;1000 rank-1 matrix is 1,000,000 numbers but only 2,000 as an outer product.</p>
+
+<p>Real matrices in AI are almost never exactly low-rank, but many are <em>close</em> to it: their information is dominated by a few directions, with the rest being small corrections. Measuring &ldquo;how close&rdquo; is what the next section is for.</p>
+
+<h2>3. The singular value decomposition: rotate, stretch, rotate</h2>
+
+<p>Eigenvectors only work cleanly for certain square matrices. The <strong>singular value decomposition (SVD)</strong> works for <em>any</em> matrix, of any shape, and it is the workhorse of this lesson. It says every matrix A can be written as:</p>
+
+<div class="step-box">
+<div class="line result">A = U &Sigma; V&#7511;</div>
+<div class="line"> </div>
+<div class="line">V&#7511;  rotates (or reflects) the input into a convenient set of axes</div>
+<div class="line">&Sigma;   stretches each axis by a non-negative number &sigma;&#8321; &ge; &sigma;&#8322; &ge; ... (the singular values)</div>
+<div class="line">U   rotates (or reflects) the stretched result into the output space</div>
+</div>
+
+<p>Read it right to left, the order a vector would travel through it: rotate, stretch, rotate. The superscript T means <em>transpose</em>, flipping a matrix across its diagonal. The columns of V are the &ldquo;input directions,&rdquo; the columns of U are the &ldquo;output directions,&rdquo; and the <strong>singular values</strong> <em>&sigma;</em> (sigma) on the diagonal of &Sigma; say how strongly each input direction is amplified. A big singular value marks an important direction. A tiny one marks a direction the matrix nearly ignores.</p>
+
+<h3>A hand-computed example</h3>
+
+<p>Take B = [3 0; 4 5]. The singular values are the square roots of the eigenvalues of B<sup>T</sup>B (a trick worth remembering: B<sup>T</sup>B is always symmetric, so its eigenvalues are real, and they are never negative because <em>x</em><sup>T</sup>B<sup>T</sup>B<em>x</em> = &#8214;B<em>x</em>&#8214;&sup2; &ge; 0).</p>
+
+<div class="step-box">
+<div class="line">B = [ 3  0 ]      B&#7511;B = [ 3&times;3+4&times;4   3&times;0+4&times;5 ] = [ 25  20 ]</div>
+<div class="line">    [ 4  5 ]            [ 0&times;3+5&times;4   0&times;0+5&times;5 ]   [ 20  25 ]</div>
+<div class="line"> </div>
+<div class="line">det(B&#7511;B &minus; &lambda;I) = (25 &minus; &lambda;)&sup2; &minus; 20&sup2; = 0   &rArr;  25 &minus; &lambda; = &plusmn;20  &rArr;  &lambda; = 45 or 5</div>
+<div class="line result">&sigma;&#8321; = &radic;45 &asymp; 6.708      &sigma;&#8322; = &radic;5 &asymp; 2.236</div>
+<div class="line"> </div>
+<div class="line">Input directions (eigenvectors of B&#7511;B):  v&#8321; = (1, 1)/&radic;2,   v&#8322; = (1, &minus;1)/&radic;2</div>
+<div class="line">Output directions u&#7522; = B v&#7522; / &sigma;&#7522;:</div>
+<div class="line">  u&#8321; = B(1,1)/&radic;2 / &radic;45 = (3, 9)/&radic;90 = (1, 3)/&radic;10</div>
+<div class="line">  u&#8322; = B(1,&minus;1)/&radic;2 / &radic;5  = (3, &minus;1)/&radic;10</div>
+</div>
+
+<p>numpy&rsquo;s <code>np.linalg.svd</code> returns the same singular values, 6.708 and 2.236, and the same directions up to an overall sign. One consistency check you can always run: the sum of the squared entries of the matrix equals the sum of the squared singular values. Here 3&sup2; + 0&sup2; + 4&sup2; + 5&sup2; = 50, and 45 + 5 = 50.</p>
+
+<h2>4. Low-rank approximation: keep the biggest stretches</h2>
+
+<p>The SVD can also be written as a sum of rank-1 pieces, each one a singular value times an outer product (the same kind of u v<sup>T</sup> object from section 2):</p>
+
+<div class="step-box">
+<div class="line">A = &sigma;&#8321; u&#8321; v&#8321;&#7511; + &sigma;&#8322; u&#8322; v&#8322;&#7511; + &sigma;&#8323; u&#8323; v&#8323;&#7511; + ...      (pieces ordered biggest to smallest)</div>
+</div>
+
+<p>Keep only the first <em>k</em> pieces and you have the <strong>rank-<em>k</em> approximation</strong>. The <strong>Eckart&ndash;Young theorem</strong> (stated here, not proved) says this truncation is the best possible: no other rank-<em>k</em> matrix is closer to A. And the error is exactly what you threw away: the squared distance between A and its rank-<em>k</em> approximation equals the sum of the squared discarded singular values.</p>
+
+<p>Apply it to B. Keep only the first piece, &sigma;&#8321; u&#8321; v&#8321;<sup>T</sup>:</p>
+
+<div class="step-box">
+<div class="line">&sigma;&#8321; u&#8321; v&#8321;&#7511; = &radic;45 &middot; (1,3)/&radic;10 &middot; (1,1)/&radic;2  =  (&radic;45 / &radic;20) &middot; (1,3)&#7511;(1,1)</div>
+<div class="line">             = 1.5 &times; [ 1  1 ]  =  [ 1.5  1.5 ]</div>
+<div class="line">                 [ 3  3 ]     [ 4.5  4.5 ]</div>
+<div class="line"> </div>
+<div class="line">B &minus; (rank-1) = [ 3&minus;1.5  0&minus;1.5 ] = [  1.5  &minus;1.5 ]</div>
+<div class="line">                [ 4&minus;4.5  5&minus;4.5 ]   [ &minus;0.5   0.5 ]</div>
+<div class="line"> </div>
+<div class="line">Squared error = 1.5&sup2; + 1.5&sup2; + 0.5&sup2; + 0.5&sup2; = 2.25 + 2.25 + 0.25 + 0.25 = 5 = &sigma;&#8322;&sup2;</div>
+<div class="line result">Error size = &radic;5 &asymp; 2.236 = &sigma;&#8322;, and the rank-1 piece holds 45 / 50 = 90% of the matrix&rsquo;s squared size</div>
+</div>
+
+<p>The Frobenius norm check in numpy gives 2.2361 for the error, matching &radic;5. Now a bigger, more typical case. Suppose a team measures four singular values for a feature matrix and gets 9, 4, 2, 1. Their squares are 81, 16, 4, 1, totalling 102.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Keep top <em>k</em></th><th class="num">Squared size kept</th><th class="num">Share kept</th><th class="num">Error (&radic; of discarded squares)</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="num">81 / 102</td><td class="num">79.4%</td><td class="num">&radic;21 &asymp; 4.58</td></tr>
+    <tr><td>2</td><td class="num">97 / 102</td><td class="num">95.1%</td><td class="num">&radic;5 &asymp; 2.24</td></tr>
+    <tr><td>3</td><td class="num">101 / 102</td><td class="num">99.0%</td><td class="num">&radic;1 = 1.00</td></tr>
+    <tr><td>4</td><td class="num">102 / 102</td><td class="num">100%</td><td class="num">0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Two directions out of four recover 95% of the matrix. That is the whole bet behind low-rank methods: if the singular values fall off fast, a few directions carry nearly everything, and the rest is cheap to drop.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Low rank is a property you check, not one you assume. If the singular values of a matrix decay slowly (many of them about the same size), truncating costs real accuracy. Always look at the singular values, or the share of squared size kept, before deciding how many directions to keep.
+</div>
+
+<h2>5. PCA: the eigenvectors of the covariance matrix</h2>
+
+<p><strong>Principal component analysis (PCA)</strong> answers: in which direction does a cloud of data vary the most? The recipe is to subtract the mean from every feature (centering), build the <strong>covariance matrix</strong> (a table of how each pair of features varies together, covered in the statistics course, Lesson 14, &ldquo;Joint Distributions&rdquo;, and previewed through correlation in Lesson 6), and take its eigenvectors. The eigenvector with the biggest eigenvalue is the <strong>first principal component</strong>: the main axis of the cloud. Its eigenvalue is the variance of the data measured along that axis.</p>
+
+<p>A worked example with five points in 2-D. Imagine a team plotting two features of five short documents, say a toy embedding trimmed to two dimensions:</p>
+
+<div class="step-box">
+<div class="line">points (x, y):  (1,2)  (2,1)  (3,4)  (4,3)  (5,5)</div>
+<div class="line">mean:           x&#772; = (1+2+3+4+5)/5 = 3     y&#772; = (2+1+4+3+5)/5 = 3</div>
+<div class="line">centered:       (&minus;2,&minus;1)  (&minus;1,&minus;2)  (0,1)  (1,0)  (2,2)</div>
+<div class="line"> </div>
+<div class="line">var(x)   = (4+1+0+1+4)/4 = 10/4 = 2.5       (divide by n &minus; 1 = 4)</div>
+<div class="line">var(y)   = (1+4+1+0+4)/4 = 10/4 = 2.5</div>
+<div class="line">cov(x,y) = (2+2+0+0+4)/4 =  8/4 = 2.0</div>
+<div class="line"> </div>
+<div class="line">C = [ 2.5  2.0 ]</div>
+<div class="line">    [ 2.0  2.5 ]</div>
+</div>
+
+<p>This covariance matrix is A from section 1 in disguise: same shape, with 2.5 and 2.0 in place of 2 and 1. The same method gives its eigenvalues:</p>
+
+<div class="step-box">
+<div class="line">det(C &minus; &lambda;I) = (2.5 &minus; &lambda;)&sup2; &minus; 2.0&sup2; = 0  &rArr;  2.5 &minus; &lambda; = &plusmn;2  &rArr;  &lambda; = 4.5 or 0.5</div>
+<div class="line">&lambda; = 4.5:  v = (1, 1)/&radic;2     &larr; main axis, pointing up and to the right</div>
+<div class="line">&lambda; = 0.5:  v = (1, &minus;1)/&radic;2    &larr; the leftover, perpendicular direction</div>
+<div class="line"> </div>
+<div class="line result">Share of variance along the main axis = 4.5 / (4.5 + 0.5) = 90%</div>
+</div>
+
+<p>To check the 4.5, project each centered point onto (1, 1)/&radic;2 by taking a dot product (M1): (dx + dy)/&radic;2 gives &minus;2.12, &minus;2.12, 0.71, 0.71, 2.83. Square them (4.5, 4.5, 0.5, 0.5, 8.0, total 18) and divide by 4: variance 4.5. Same answer from two routes. The picture:</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 700 320" role="img" aria-label="Five points in a 2-D cloud with the principal axis drawn through their mean along the direction (1,1) and a shorter perpendicular axis">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#34d399"/>
+    </marker>
+  </defs>
+  <!-- axes -->
+  <line x1="70" y1="290" x2="380" y2="290" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="70" y1="290" x2="70" y2="10" stroke="#2e3248" stroke-width="1.5"/>
+  <text x="372" y="308" fill="#94a3b8" font-size="12" text-anchor="end">feature x</text>
+  <text x="58" y="20" fill="#94a3b8" font-size="12" text-anchor="end">feature y</text>
+  <!-- principal axis -->
+  <line x1="95" y1="265" x2="345" y2="15" stroke="#34d399" stroke-width="3" marker-end="url(#arr)"/>
+  <!-- second axis -->
+  <line x1="170" y1="90" x2="270" y2="190" stroke="#a78bfa" stroke-width="2" stroke-dasharray="6 4"/>
+  <!-- projections -->
+  <g stroke="#fbbf24" stroke-width="1.2" stroke-dasharray="3 3">
+    <line x1="120" y1="190" x2="145" y2="215"/>
+    <line x1="170" y1="240" x2="145" y2="215"/>
+    <line x1="220" y1="90" x2="245" y2="115"/>
+    <line x1="270" y1="140" x2="245" y2="115"/>
+  </g>
+  <!-- points -->
+  <g fill="#6c8fff">
+    <circle cx="120" cy="190" r="6"/><circle cx="170" cy="240" r="6"/>
+    <circle cx="220" cy="90" r="6"/><circle cx="270" cy="140" r="6"/>
+    <circle cx="320" cy="40" r="6"/>
+  </g>
+  <!-- mean -->
+  <circle cx="220" cy="140" r="5" fill="none" stroke="#e2e8f0" stroke-width="2"/>
+  <text x="232" y="158" fill="#e2e8f0" font-size="12">mean (3, 3)</text>
+  <!-- labels on points -->
+  <text x="104" y="180" fill="#94a3b8" font-size="11" text-anchor="end">(1,2)</text>
+  <text x="170" y="262" fill="#94a3b8" font-size="11" text-anchor="middle">(2,1)</text>
+  <text x="208" y="86" fill="#94a3b8" font-size="11" text-anchor="end">(3,4)</text>
+  <text x="284" y="144" fill="#94a3b8" font-size="11">(4,3)</text>
+  <text x="334" y="40" fill="#94a3b8" font-size="11">(5,5)</text>
+  <!-- legend -->
+  <g font-size="13">
+    <line x1="410" y1="60" x2="445" y2="60" stroke="#34d399" stroke-width="3"/>
+    <text x="455" y="65" fill="#e2e8f0">Principal axis (1,1)/&#8730;2</text>
+    <text x="455" y="83" fill="#94a3b8" font-size="12">eigenvalue 4.5 = 90% of variance</text>
+    <line x1="410" y1="120" x2="445" y2="120" stroke="#a78bfa" stroke-width="2" stroke-dasharray="6 4"/>
+    <text x="455" y="125" fill="#e2e8f0">Second axis (1,&#8722;1)/&#8730;2</text>
+    <text x="455" y="143" fill="#94a3b8" font-size="12">eigenvalue 0.5 = 10% of variance</text>
+    <line x1="410" y1="180" x2="445" y2="180" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="3 3"/>
+    <text x="455" y="185" fill="#e2e8f0">Drop to the main axis</text>
+    <text x="455" y="203" fill="#94a3b8" font-size="12">what PCA keeps if told &ldquo;use 1 number&rdquo;</text>
+  </g>
+</svg>
+<div class="viz-caption">Five centered-around-(3,3) points. Collapsing each onto the green axis keeps 90% of the spread and turns two numbers per point into one.</div>
+</div>
+
+<p>That collapse is <strong>dimensionality reduction</strong>: replace each point&rsquo;s two coordinates with a single coordinate along the main axis, and lose only the 10% of variance along the second axis. In real work the same recipe turns 768 numbers per embedding into, say, 50, so you can plot, cluster, or store them more cheaply. PCA and SVD are the same computation seen two ways: the principal directions of centered data are the right singular vectors (V) of the data matrix, and the covariance eigenvalues are the squared singular values divided by n &minus; 1.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Forgetting to center. Run the eigen-analysis on uncentered data and the &ldquo;main axis&rdquo; often just points at the mean, telling you where the data sits instead of how it spreads. Also, PCA ranks directions by variance, not by usefulness: a high-variance direction can be pure noise, and a low-variance one can carry the label you care about.
+</div>
+
+<h2>6. LoRA: a low-rank update instead of a full one</h2>
+
+<p>Fine-tuning a language model normally means changing every weight. A layer with a square weight matrix W of size <em>d</em>&times;<em>d</em> has <em>d</em>&sup2; trainable numbers, and a model has dozens of such matrices. <strong>LoRA</strong> (low-rank adaptation; see the paper in the sources) freezes W and learns only a small correction on top of it, built as the product of two thin matrices:</p>
+
+<div class="step-box">
+<div class="line">W&prime; = W + B A          W: d &times; d (frozen)    B: d &times; r (trained)    A: r &times; d (trained)</div>
+<div class="line">output = W x + B (A x)      r is the chosen rank, much smaller than d</div>
+</div>
+
+<p>The product B A is a <em>d</em>&times;<em>d</em> matrix, but its rank is at most <em>r</em>, because it is a sum of at most <em>r</em> outer products. The bet is the same one as in section 4: the change a model needs for a new task is concentrated in a few directions, so a rank-<em>r</em> update captures most of it. Count the savings for <em>d</em> = 4096 and <em>r</em> = 8:</p>
+
+<div class="step-box">
+<div class="line">Full update:  d &times; d      = 4096 &times; 4096          = 16,777,216 numbers</div>
+<div class="line"> </div>
+<div class="line">LoRA:   B = d &times; r     = 4096 &times; 8             =     32,768</div>
+<div class="line">        A = r &times; d     = 8 &times; 4096             =     32,768</div>
+<div class="line">        total 2 &times; d &times; r = 2 &times; 4096 &times; 8   =     65,536 numbers</div>
+<div class="line"> </div>
+<div class="line">Ratio: 16,777,216 / 65,536 = 256       Share trained: 65,536 / 16,777,216 = 0.39%</div>
+<div class="line result">256 times fewer trainable numbers for this matrix</div>
+</div>
+
+<p>If a team adapted two such matrices in each of 32 layers (an illustrative setup), the trainable count would be 65,536 &times; 2 &times; 32 = 4,194,304, against 16,777,216 &times; 2 &times; 32 = 1,073,741,824 for full updates. Fewer trainable numbers also means less memory for the optimizer&rsquo;s bookkeeping and a small file to save and swap per task. The cost: if the true needed change is not low-rank, a small <em>r</em> underfits. That is why <em>r</em> is a setting you tune, usually by comparing a few values on held-out data.</p>
+
+<h2>7. Compressing embeddings</h2>
+
+<p>The same idea compresses stored tables of vectors. Suppose a team has an embedding table with 50,000 tokens, each a vector of 768 numbers: a 50,000&times;768 matrix. Replace it by a product of a 50,000&times;64 matrix and a 64&times;768 matrix (rank 64):</p>
+
+<div class="step-box">
+<div class="line">Original:   50,000 &times; 768                      = 38,400,000 numbers</div>
+<div class="line">Rank 64:    50,000 &times; 64  +  64 &times; 768          =  3,200,000 + 49,152 = 3,249,152 numbers</div>
+<div class="line result">38,400,000 / 3,249,152 &asymp; 11.8 times smaller</div>
+</div>
+
+<p>Whether this is safe is the question from section 4: check the share of squared singular values you keep at rank 64. If it is 99%, you lose little; if it is 70%, you have blurred real distinctions between tokens. The same trick shrinks the final projection layer of a model, and PCA from section 5 does it to individual embedding vectors before they go into a search index.</p>
+
+<h2>8. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Models are huge, and most of what they store is more structured than its size suggests. Low-rank thinking is how you exploit that structure.
+</div>
+
+<h3>Cheaper fine-tuning</h3>
+<p>LoRA cuts the number of trainable parameters by orders of magnitude, which is why adapting a large model needs far less memory than training all of it. Knowing why it works (rank, outer products, truncated SVD) tells you what <em>r</em> trades off and when it will fall short.</p>
+
+<h3>Cheaper storage and search</h3>
+<p>Compressed embeddings mean smaller vector databases and faster similarity search. The singular value table is your measuring stick for how much accuracy that costs.</p>
+
+<h3>Seeing inside your data</h3>
+<p>PCA on embeddings shows whether a dataset really has a few dominant themes or is spread in every direction, and the share of variance per component tells you which. The eigenvalue mathematics here is also what you reach for when studying why training is stable or unstable.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>An <strong>eigenvector</strong> of A is a direction A only stretches: A<em>v</em> = <em>&lambda;v</em>. The eigenvalue <em>&lambda;</em> is the stretch factor. Find them by solving det(A &minus; <em>&lambda;</em>I) = 0.</li>
+  <li><strong>Rank</strong> counts independent directions. A rank-1 matrix is an outer product u v<sup>T</sup>.</li>
+  <li>The <strong>SVD</strong> A = U&Sigma;V<sup>T</sup> works on any matrix: rotate, stretch by the singular values, rotate. Bigger singular value, more important direction.</li>
+  <li><strong>Low-rank approximation</strong>: keep the top <em>k</em> singular values. Eckart&ndash;Young says it is the best rank-<em>k</em> approximation, with squared error equal to the discarded squared singular values.</li>
+  <li><strong>PCA</strong> = eigenvectors of the (centered) covariance matrix. Biggest eigenvalue = main axis of the cloud.</li>
+  <li><strong>LoRA</strong> replaces a <em>d</em>&times;<em>d</em> update with B (<em>d</em>&times;<em>r</em>) times A (<em>r</em>&times;<em>d</em>): for <em>d</em> = 4096, <em>r</em> = 8, that is 65,536 numbers instead of 16,777,216.</li>
+</ul>
+
+<p>The linear algebra half of the course ends here. <strong>Leads into M4</strong>: derivatives, the tool that tells you which way to nudge those matrices to make a model better.</p>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. A matrix A sends the vector (1, 1) to (3, 3) and the vector (1, &minus;1) to (1, &minus;1). What does that tell you?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Both vectors are rotated by 45 degrees</div>
+    <div class="quiz-opt">A has rank 3</div>
+    <div class="quiz-opt">Both are eigenvectors of A, with eigenvalues 3 and 1</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. A 3&times;2 matrix is the outer product of u = (1, 2, 3) and v = (4, 5). What is its rank?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">1, because every column is a multiple of u</div>
+    <div class="quiz-opt">2, because it has two columns</div>
+    <div class="quiz-opt">3, because it has three rows</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. A feature matrix has singular values 9, 4, 2, 1. Roughly what share of its squared size does the best rank-2 approximation keep?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">About 79%</div>
+    <div class="quiz-opt">About 95%</div>
+    <div class="quiz-opt">About 50%, since 2 of 4 values are kept</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. In PCA on centered data, the first principal component is:</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">The data point farthest from the mean</div>
+    <div class="quiz-opt">The eigenvector of the covariance matrix with the smallest eigenvalue</div>
+    <div class="quiz-opt">The eigenvector of the covariance matrix with the largest eigenvalue</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. LoRA adapts a 4096&times;4096 weight matrix with rank r = 8. How many numbers does it train for that matrix?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">65,536 (two matrices of 4096&times;8 each)</div>
+    <div class="quiz-opt">16,777,216 (the full 4096&times;4096)</div>
+    <div class="quiz-opt">32,768 (a single 4096&times;8 matrix)</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Eigenvalues_and_eigenvectors" target="_blank">Eigenvalues and eigenvectors &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Singular_value_decomposition" target="_blank">Singular value decomposition &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Principal_component_analysis" target="_blank">Principal component analysis &mdash; Wikipedia</a></li>
+    <li><a href="https://arxiv.org/abs/2106.09685" target="_blank">LoRA: Low-Rank Adaptation of Large Language Models &mdash; arXiv</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — re-think what an eigenvector, a singular value, and a rank-k truncation each tell you, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

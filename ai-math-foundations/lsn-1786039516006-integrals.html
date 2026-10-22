@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Integrals: Accumulation, Area &amp; the Continuous Side of Probability</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 7 of 7 &middot; Math for AI: Linear Algebra &amp; Calculus Essentials</span>
+<h1>Integrals: Accumulation, Area &amp; the Continuous Side of Probability</h1>
+<p class="subtitle">Derivatives tell you the rate of change at one instant. Integrals run the other way: they add up infinitely many tiny pieces. Every continuous probability, every expected value, and every softmax denominator is one.</p>
+
+<p>M4 was about derivatives: how an output moves when an input is nudged. This lesson is the reverse question. If you know the rate at every moment, how much has piled up? If you know how dense the probability is at every point, how likely is a whole range? The tool is the <strong>integral</strong>, and it is the one piece of calculus that the statistics course leans on without ever teaching you to compute. Here you meet it directly, then use it to finish the picture started in the statistics course, Lesson 12 ("Random Variables") and Lesson 13 ("Continuous Distributions").</p>
+
+<h2>1. The integral is a sum of thin slices</h2>
+
+<p>Suppose a team logs how fast tokens stream out of a model: 40 tokens per second for 2 seconds, then 60 tokens per second for 3 seconds. The total is just rate &times; time, added up: 40&times;2 + 60&times;3 = 80 + 180 = 260 tokens. On a graph of rate against time, each term is the area of a rectangle, and the total is the total area.</p>
+
+<p>Now let the rate change smoothly instead of in steps. You can still chop the time axis into slices, treat the rate as constant inside each slice, and add up rectangles. Thinner slices fit the curve better. The value the sums approach as the slices shrink to nothing is the <strong>definite integral</strong>, written</p>
+
+<div class="step-box">
+<div class="line">&int;<sub>a</sub><sup>b</sup> f(x) dx</div>
+</div>
+
+<p>Read it as: "add up f(x) &times; (a tiny width dx) for every x from a to b." The &int; sign is a stretched S for "sum", <em>f</em>(<em>x</em>) is the height of the curve, and <em>dx</em> is the width of a slice. The result is the signed area between the curve and the x-axis, with area below the axis counted as negative.</p>
+
+<p>Take the curve <em>f</em>(<em>x</em>) = <em>x</em>² on the interval from 0 to 3. Here are six left-edge rectangles, each 0.5 wide:</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 600 310" role="img" aria-label="The curve f(x)=x squared from 0 to 3 with six rectangles under it, each 0.5 wide, drawn from the left edge">
+  <line x1="60" y1="270" x2="560" y2="270" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="60" y1="270" x2="60" y2="30" stroke="#94a3b8" stroke-width="1.5"/>
+  <rect x="60" y="270.0" width="80" height="0.0" fill="rgba(108,143,255,0.25)" stroke="#6c8fff" stroke-width="1.2"/>
+  <rect x="140" y="263.8" width="80" height="6.2" fill="rgba(108,143,255,0.25)" stroke="#6c8fff" stroke-width="1.2"/>
+  <rect x="220" y="245.0" width="80" height="25.0" fill="rgba(108,143,255,0.25)" stroke="#6c8fff" stroke-width="1.2"/>
+  <rect x="300" y="213.8" width="80" height="56.2" fill="rgba(108,143,255,0.25)" stroke="#6c8fff" stroke-width="1.2"/>
+  <rect x="380" y="170.0" width="80" height="100.0" fill="rgba(108,143,255,0.25)" stroke="#6c8fff" stroke-width="1.2"/>
+  <rect x="460" y="113.8" width="80" height="156.2" fill="rgba(108,143,255,0.25)" stroke="#6c8fff" stroke-width="1.2"/>
+  <polyline fill="none" stroke="#a78bfa" stroke-width="2.5" points="60.0,270.0 84.0,269.4 108.0,267.8 132.0,264.9 156.0,261.0 180.0,255.9 204.0,249.8 228.0,242.4 252.0,234.0 276.0,224.4 300.0,213.8 324.0,201.9 348.0,189.0 372.0,174.9 396.0,159.8 420.0,143.4 444.0,126.0 468.0,107.4 492.0,87.7 516.0,66.9 540.0,45.0"/>
+  <g fill="#94a3b8" font-size="12" text-anchor="middle" font-family="sans-serif">
+    <text x="60" y="288">0</text><text x="140" y="288">0.5</text><text x="220" y="288">1</text><text x="300" y="288">1.5</text>
+    <text x="380" y="288">2</text><text x="460" y="288">2.5</text><text x="540" y="288">3</text>
+    <text x="310" y="305">x</text>
+  </g>
+  <g fill="#94a3b8" font-size="12" text-anchor="end" font-family="sans-serif">
+    <text x="52" y="274">0</text><text x="52" y="149">5</text><text x="52" y="49">9</text>
+  </g>
+  <text x="110" y="70" fill="#a78bfa" font-size="14" font-family="sans-serif">f(x) = x&#178;</text>
+  <text x="110" y="90" fill="#6c8fff" font-size="12" font-family="sans-serif">six rectangles: total area 6.875</text>
+  <text x="110" y="108" fill="#94a3b8" font-size="12" font-family="sans-serif">true area under the curve: 9</text>
+</svg>
+<p class="viz-caption">Each rectangle uses the curve's height at its left edge, so on a rising curve every one falls short. The gap is the sliver between the rectangle's top and the curve.</p>
+</div>
+
+<p>The arithmetic, with the heights read off <em>f</em>(<em>x</em>) = <em>x</em>² at <em>x</em> = 0, 0.5, 1, 1.5, 2, 2.5:</p>
+
+<div class="step-box">
+<div class="line">heights:  0 + 0.25 + 1 + 2.25 + 4 + 6.25 = 13.75</div>
+<div class="line">width:    0.5</div>
+<div class="line result">area &asymp; 13.75 &times; 0.5 = 6.875</div>
+</div>
+
+<p>That undershoots. Switch to the right edge of each slice and it overshoots. Use the midpoint and it lands very close. Shrink the slices and all three converge on the same number. This is a <strong>Riemann sum</strong>, and these values were computed in Python with <em>n</em> equal slices over [0, 3]:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Slices <em>n</em></th><th class="num">Left edges</th><th class="num">Right edges</th><th class="num">Midpoints</th></tr></thead>
+  <tbody>
+    <tr><td>6</td><td class="num">6.8750</td><td class="num">11.3750</td><td class="num">8.9375</td></tr>
+    <tr><td>12</td><td class="num">7.9062</td><td class="num">10.1562</td><td class="num">8.9844</td></tr>
+    <tr><td>100</td><td class="num">8.8654</td><td class="num">9.1354</td><td class="num">8.9998</td></tr>
+    <tr><td>1,000</td><td class="num">8.9865</td><td class="num">9.0135</td><td class="num">9.0000</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>All three columns squeeze toward <strong>9</strong>. That limit is &int;<sub>0</sub><sup>3</sup> <em>x</em>² <em>dx</em> = 9. The next section shows how to skip the sum when the function is simple.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  An integral is a continuous sum. Wherever a discrete method adds up values (a weighted average, the total of a probability table), the continuous version integrates. The shapes of the formulas match; the &Sigma; becomes a &int;.
+</div>
+
+<h2>2. Antiderivatives and the fundamental theorem of calculus</h2>
+
+<p>In M4 you took a function and found its derivative. An <strong>antiderivative</strong> of <em>f</em> is a function <em>F</em> whose derivative is <em>f</em>: <em>F</em>&prime;(<em>x</em>) = <em>f</em>(<em>x</em>). For <em>f</em>(<em>x</em>) = <em>x</em>², try <em>F</em>(<em>x</em>) = <em>x</em>³/3. Its derivative, by the power rule from M4, is 3<em>x</em>²/3 = <em>x</em>². It works. (Add any constant to <em>F</em> and the derivative is unchanged, which is why antiderivatives are only defined up to a constant. That constant cancels below.)</p>
+
+<p>The <strong>fundamental theorem of calculus</strong> connects the two ideas from this lesson: the area-sum and the antiderivative.</p>
+
+<div class="step-box">
+<div class="line">&int;<sub>a</sub><sup>b</sup> f(x) dx  =  F(b) &minus; F(a)      where F&prime; = f</div>
+</div>
+
+<p>Instead of adding a thousand rectangles, evaluate the antiderivative at the two ends and subtract. For the curve above:</p>
+
+<div class="step-box">
+<div class="line">F(x) = x&sup3; / 3</div>
+<div class="line">F(3) = 27 / 3 = 9</div>
+<div class="line">F(0) = 0</div>
+<div class="line result">&int;<sub>0</sub><sup>3</sup> x&sup2; dx = 9 &minus; 0 = 9</div>
+</div>
+
+<p>That matches the Riemann table. The theorem also says the two operations undo each other. Differentiate the running total of <em>f</em> and you get <em>f</em> back, and integrate a derivative and you get the net change. Derivative and integral are inverse operations, the way multiplication and division are.</p>
+
+<h2>3. The few integrals you actually need</h2>
+
+<p>You will rarely integrate by hand in AI work. When you do, it is one of three forms, each a derivative rule from M4 read backwards.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Integrand <em>f</em>(<em>x</em>)</th><th>Antiderivative <em>F</em>(<em>x</em>)</th><th>Because</th></tr></thead>
+  <tbody>
+    <tr><td><em>x</em><sup><em>n</em></sup> (for <em>n</em> &ne; &minus;1)</td><td><em>x</em><sup><em>n</em>+1</sup> / (<em>n</em>+1)</td><td>the power rule, reversed</td></tr>
+    <tr><td><em>e</em><sup><em>x</em></sup></td><td><em>e</em><sup><em>x</em></sup></td><td><em>e</em><sup><em>x</em></sup> is its own derivative</td></tr>
+    <tr><td>1/<em>x</em></td><td>ln(<em>x</em>), for <em>x</em> &gt; 0</td><td>d/dx ln(<em>x</em>) = 1/<em>x</em></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Three worked definite integrals, each checked against a numeric sum in Python:</p>
+
+<div class="step-box">
+<div class="line">Power rule:  &int;<sub>0</sub><sup>2</sup> 3x&sup2; dx = [x&sup3;]<sub>0</sub><sup>2</sup> = 8 &minus; 0 = 8</div>
+<div class="line">Exponential: &int;<sub>0</sub><sup>1</sup> e<sup>x</sup> dx = e&sup1; &minus; e&#8304; = 2.71828 &minus; 1 = 1.71828</div>
+<div class="line">1/x:         &int;<sub>1</sub><sup>2</sup> (1/x) dx = ln 2 &minus; ln 1 = 0.69315 &minus; 0 = 0.69315</div>
+</div>
+
+<p>One variation matters in this lesson: when the exponent has a constant inside, as in <em>e</em><sup>&minus;&lambda;<em>x</em></sup>, the antiderivative picks up a factor of 1/(&minus;&lambda;). Check by differentiating: d/dx [&minus;<em>e</em><sup>&minus;&lambda;<em>x</em></sup>/&lambda;] = &minus;(&minus;&lambda;)<em>e</em><sup>&minus;&lambda;<em>x</em></sup>/&lambda; = <em>e</em><sup>&minus;&lambda;<em>x</em></sup>. The chain rule is doing the work. Anything harder than this goes to a library or to a Monte Carlo estimate (section 7).</p>
+
+<h2>4. Probability densities: area is probability</h2>
+
+<p>The statistics course, Lesson 13 ("Continuous Distributions") introduced a quantity that can take any value in a range, such as the time between two requests arriving at a server. For a continuous quantity, the chance of landing on one exact value, like exactly 0.7312&hellip; seconds, is zero. There are infinitely many possible values. So instead you describe the <strong>probability density function</strong> (pdf) <em>f</em>(<em>x</em>), and probability lives in <em>areas</em>:</p>
+
+<div class="step-box">
+<div class="line">P(a &le; X &le; b) = &int;<sub>a</sub><sup>b</sup> f(x) dx</div>
+</div>
+
+<p>The density at a point can be bigger than 1; it is a height, not a probability. What must hold is that the total area is 1, because something has to happen: &int;<sub>&minus;&infin;</sub><sup>&infin;</sup> <em>f</em>(<em>x</em>) <em>dx</em> = 1. This is the continuous version of "the probabilities in the table sum to 1" from the statistics course, Lesson 3.</p>
+
+<h3>Worked example: request inter-arrival times</h3>
+
+<p>Say a team models the gap <em>T</em> (in seconds) between two requests hitting an inference endpoint with an exponential density at rate &lambda; = 2 requests per second:</p>
+
+<div class="step-box">
+<div class="line">f(t) = 2 e<sup>&minus;2t</sup>   for t &ge; 0</div>
+</div>
+
+<p>First, check it is a valid density. Its total area should be 1:</p>
+
+<div class="step-box">
+<div class="line">&int;<sub>0</sub><sup>&infin;</sup> 2e<sup>&minus;2t</sup> dt = [&minus;e<sup>&minus;2t</sup>]<sub>0</sub><sup>&infin;</sup></div>
+<div class="line">As t&rarr;&infin;, e<sup>&minus;2t</sup> &rarr; 0, so the upper end gives 0.</div>
+<div class="line">At t=0, &minus;e<sup>0</sup> = &minus;1.</div>
+<div class="line result">0 &minus; (&minus;1) = 1  &#10003;</div>
+</div>
+
+<p>Now integrate the density from 0 up to <em>t</em> to get the <strong>cumulative distribution function</strong> (CDF), the probability that the gap is at most <em>t</em>:</p>
+
+<div class="step-box">
+<div class="line">F(t) = &int;<sub>0</sub><sup>t</sup> 2e<sup>&minus;2s</sup> ds = [&minus;e<sup>&minus;2s</sup>]<sub>0</sub><sup>t</sup> = 1 &minus; e<sup>&minus;2t</sup></div>
+</div>
+
+<p>From the CDF, any range is a subtraction, just like the fundamental theorem says. The chance the next request arrives between 0.5 s and 1.5 s after the last:</p>
+
+<div class="step-box">
+<div class="line">P(0.5 &le; T &le; 1.5) = F(1.5) &minus; F(0.5)</div>
+<div class="line">  = (1 &minus; e<sup>&minus;3</sup>) &minus; (1 &minus; e<sup>&minus;1</sup>)</div>
+<div class="line">  = e<sup>&minus;1</sup> &minus; e<sup>&minus;3</sup></div>
+<div class="line">  = 0.36788 &minus; 0.04979</div>
+<div class="line result">  = 0.3181</div>
+</div>
+
+<p>A numeric Riemann sum of the density over [0.5, 1.5] in Python gives 0.31809, the same value to four decimals.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  The CDF is the integral of the density, and the density is the derivative of the CDF. That is the fundamental theorem again, and it is why the statistics course could move between "density" and "cumulative" without a new idea.
+</div>
+
+<h2>5. Expected value as an integral</h2>
+
+<p>In the statistics course, Lesson 12 ("Random Variables"), the expected value of a discrete random variable was a weighted average: each value times its probability, added up, E[<em>X</em>] = &Sigma; <em>x</em> &middot; P(<em>x</em>). For a continuous variable, the probabilities become a density and the sum becomes an integral:</p>
+
+<div class="step-box">
+<div class="line">E[X] = &int; x &middot; f(x) dx       (over the range where f is not zero)</div>
+</div>
+
+<p>Same idea: each possible value, weighted by how much probability sits near it, added up.</p>
+
+<h3>A uniform density</h3>
+<p>Say a job's start delay is equally likely to be anywhere from 0 to 4 seconds. The density is flat: <em>f</em>(<em>x</em>) = 1/4 on [0, 4]. First confirm the area: 4 &times; 1/4 = 1. Then:</p>
+
+<div class="step-box">
+<div class="line">E[X] = &int;<sub>0</sub><sup>4</sup> x &middot; (1/4) dx = (1/4) &middot; [x&sup2;/2]<sub>0</sub><sup>4</sup></div>
+<div class="line">     = (1/4) &middot; (16/2 &minus; 0) = (1/4) &middot; 8</div>
+<div class="line result">     = 2 seconds</div>
+</div>
+
+<p>The midpoint of the range, which is what your intuition says for a flat density.</p>
+
+<h3>The exponential density from section 4</h3>
+<p>The mean gap between requests is E[<em>T</em>] = &int;<sub>0</sub><sup>&infin;</sup> <em>t</em> &middot; 2<em>e</em><sup>&minus;2<em>t</em></sup> <em>dt</em>. This one needs a trick called integration by parts, which is the product rule for derivatives run backwards. The pieces:</p>
+
+<div class="step-box">
+<div class="line">&int; t &middot; &lambda;e<sup>&minus;&lambda;t</sup> dt = [&minus;t e<sup>&minus;&lambda;t</sup>] + &int; e<sup>&minus;&lambda;t</sup> dt</div>
+<div class="line">From 0 to &infin;: the bracket is 0 &minus; 0 = 0 (the exponential beats t).</div>
+<div class="line">&int;<sub>0</sub><sup>&infin;</sup> e<sup>&minus;&lambda;t</sup> dt = 1/&lambda;</div>
+<div class="line result">E[T] = 1/&lambda; = 1/2 = 0.5 seconds</div>
+</div>
+
+<p>This matches intuition: if requests arrive at 2 per second, the average gap is half a second. A numeric sum in Python returns 0.5000. For the uniform, it returns 2.0000.</p>
+
+<h2>6. Normalizing constants: why softmax has a denominator</h2>
+
+<p>Often you know how <em>relative</em> likelihoods compare before you know the actual probabilities. An unnormalized score or density is positive, but it does not add up (or integrate) to 1. The fix is always the same: divide by the total. That total is the <strong>normalizing constant</strong>.</p>
+
+<p>Discrete case: a model produces three raw scores (logits) for next-token candidates: 2, 1, 0. Exponentiate to make them positive, then divide by the sum:</p>
+
+<div class="step-box">
+<div class="line">e&sup2; = 7.3891    e&sup1; = 2.7183    e&#8304; = 1.0000</div>
+<div class="line">sum (the normalizing constant) = 11.1073</div>
+<div class="line">&nbsp;</div>
+<div class="line result">probabilities: 7.3891/11.1073 = 0.6652</div>
+<div class="line result">               2.7183/11.1073 = 0.2447</div>
+<div class="line result">               1.0000/11.1073 = 0.0900</div>
+</div>
+
+<p>Those add to 1 (to rounding). The denominator in softmax is exactly this normalizing constant, the same idea as the "evidence" term in Bayes' Theorem in the statistics course, Lesson 3.</p>
+
+<p>Continuous case: the bell-shaped function <em>e</em><sup>&minus;<em>x</em>²/2</sup> is positive but its area is not 1. Its total area is a famous result, the <strong>Gaussian integral</strong>, which is stated here, not derived:</p>
+
+<div class="step-box">
+<div class="line">&int;<sub>&minus;&infin;</sub><sup>&infin;</sup> e<sup>&minus;x&sup2;/2</sup> dx = &radic;(2&pi;) &asymp; 2.5066</div>
+</div>
+
+<p>Divide by 2.5066 and you get the standard normal density, with 1/&radic;(2&pi;) out front. That constant is the reason the Gaussian formula looks the way it does. A numeric sum in Python confirms 2.5066.</p>
+
+<h2>7. Monte Carlo integration: average random samples</h2>
+
+<p>When the antiderivative does not exist in closed form, or the integral has many dimensions, you can estimate it by randomness. The idea comes straight from the expected-value section: an integral over [0, 1] of <em>g</em>(<em>x</em>) is the same thing as E[<em>g</em>(<em>U</em>)] when <em>U</em> is uniform on [0, 1]. So draw <em>n</em> random points <em>u</em><sub>1</sub>, &hellip;, <em>u</em><sub><em>n</em></sub>, evaluate <em>g</em> at each, and average:</p>
+
+<div class="step-box">
+<div class="line">&int;<sub>0</sub><sup>1</sup> g(x) dx  &asymp;  (1/n) &middot; [ g(u<sub>1</sub>) + g(u<sub>2</sub>) + &hellip; + g(u<sub>n</sub>) ]</div>
+</div>
+
+<p>Test it on <em>g</em>(<em>x</em>) = <em>e</em><sup>&minus;<em>x</em>²</sup> over [0, 1], which has no elementary antiderivative. A fine numeric sum gives the reference value 0.746824. Here is a Monte Carlo run in pure Python with a fixed random seed:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Samples <em>n</em></th><th class="num">Estimate</th><th class="num">Error in this run</th><th class="num">Typical error, &sigma;/&radic;<em>n</em></th></tr></thead>
+  <tbody>
+    <tr><td>100</td><td class="num">0.72926</td><td class="num">0.01757</td><td class="num">0.0201</td></tr>
+    <tr><td>1,000</td><td class="num">0.73849</td><td class="num">0.00833</td><td class="num">0.0064</td></tr>
+    <tr><td>10,000</td><td class="num">0.74450</td><td class="num">0.00232</td><td class="num">0.0020</td></tr>
+    <tr><td>100,000</td><td class="num">0.74720</td><td class="num">0.00038</td><td class="num">0.00064</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The last column is the standard deviation of <em>g</em>(<em>U</em>), which is &sigma; &asymp; 0.2010 (also computed in Python), divided by &radic;<em>n</em>. Averaging the squared error over 200 repeated runs gave typical errors of 0.0195, 0.0060, 0.0020 and 0.00064 for the four sample sizes, close to the formula.</p>
+
+<p>The pattern is the central limit theorem at work. The estimate is a sample mean, so from the statistics course, Lesson 5 ("From Sample to Population: Estimation &amp; the Central Limit Theorem"), its spread shrinks like 1/&radic;<em>n</em>. To cut the error in half you need 4&times; the samples; for 10&times; better, 100&times;. The payoff is that this rate does not depend on how many dimensions the integral has, and that is why Monte Carlo is the standard tool when grid-based sums would be impossible.</p>
+
+<h2>8. Numerical integration in one paragraph</h2>
+
+<p>For a smooth integral in one or two dimensions, a grid method is faster than random sampling. The <strong>trapezoid rule</strong> connects neighbouring points with straight lines and adds up the trapezoids: h &times; (half the first height + all the middle heights + half the last height), where h is the slice width. On the same integral of <em>e</em><sup>&minus;<em>x</em>²</sup> over [0, 1], 4 slices give 0.74298 (error 0.0038) and 8 slices give 0.74587 (error 0.00096). Doubling the slices cut the error by about 4&times;, so it shrinks like 1/<em>n</em>², much faster than Monte Carlo's 1/&radic;<em>n</em> in one dimension. The trade flips as the number of dimensions grows, where grids need exponentially many points and random sampling does not.</p>
+
+<h2>9. Where integrals hide in machine learning</h2>
+
+<p>You rarely type an integral sign in ML code. They are in the background of ideas you already use.</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Marginalizing out a variable</h4>
+    <p>If a model has a hidden variable <em>z</em> you do not observe, the probability of what you do observe is P(<em>x</em>) = &int; P(<em>x</em> | <em>z</em>) P(<em>z</em>) <em>dz</em>: sum over every possible <em>z</em>. For many models this integral cannot be computed exactly.</p>
+  </div>
+  <div class="card">
+    <h4>KL divergence</h4>
+    <p>The statistics course, Lesson 7 covers it with sums. For continuous distributions it is an integral: KL(<em>p</em> &Vert; <em>q</em>) = &int; <em>p</em>(<em>x</em>) ln(<em>p</em>(<em>x</em>)/<em>q</em>(<em>x</em>)) <em>dx</em>.</p>
+  </div>
+  <div class="card">
+    <h4>The ELBO</h4>
+    <p>Variational methods work around the hard marginalization integral by optimizing a lower bound on its logarithm, called the ELBO, which is itself an expectation (an integral) that is estimated with Monte Carlo samples.</p>
+  </div>
+</div>
+
+<p>The honest summary: the mathematics is integrals, and the practice is almost always sampling and averaging, because the integrals are too hard to solve. If you understand sections 5 and 7, you understand what that code is approximating.</p>
+
+<h2>10. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Integrals are the bridge between the discrete probability you met first and the continuous models that dominate modern AI.
+</div>
+
+<h3>You can see why training uses sampling</h3>
+<p>A minibatch gradient is a Monte Carlo estimate of an expectation. Its noise follows the 1/&radic;<em>n</em> law from section 7, which is why bigger batches help with diminishing returns: 4&times; the batch for half the noise.</p>
+
+<h3>How the whole math course fits together</h3>
+<p>Seven lessons, one pipeline. Linear algebra (M1&ndash;M3) gives the objects: embeddings are vectors, layers are matrix multiplications. Calculus (M4&ndash;M7) gives the learning signal, derivatives and gradients flowing back through the layers, plus (this lesson) the expectations and normalizers on the probability side. These come together in the statistics course, Lesson 8 ("The Statistics Behind Training a Model"): embeddings go through layers, a loss measures the error, gradients flow back, and training updates the weights.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>A <strong>definite integral</strong> is the limit of Riemann sums: thin rectangles added up as they get thinner. For <em>x</em>² on [0, 3], the sums squeeze toward 9.</li>
+  <li>The <strong>fundamental theorem of calculus</strong>: &int;<sub>a</sub><sup>b</sup> <em>f</em> = <em>F</em>(<em>b</em>) &minus; <em>F</em>(<em>a</em>), where <em>F</em>&prime; = <em>f</em>. Integrals and derivatives are inverse operations.</li>
+  <li>The forms you need: <em>x</em><sup><em>n</em></sup> &rarr; <em>x</em><sup><em>n</em>+1</sup>/(<em>n</em>+1), <em>e</em><sup><em>x</em></sup> &rarr; <em>e</em><sup><em>x</em></sup>, 1/<em>x</em> &rarr; ln <em>x</em>.</li>
+  <li>A <strong>density</strong> integrates to 1, and P(<em>a</em> &le; <em>X</em> &le; <em>b</em>) is the area under it. The CDF is the running integral. For <em>f</em>(<em>t</em>) = 2<em>e</em><sup>&minus;2<em>t</em></sup>, P(0.5 &le; <em>T</em> &le; 1.5) = <em>e</em><sup>&minus;1</sup> &minus; <em>e</em><sup>&minus;3</sup> &asymp; 0.318.</li>
+  <li><strong>Expected value</strong> E[<em>X</em>] = &int; <em>x</em> <em>f</em>(<em>x</em>) <em>dx</em>: 2 for the uniform on [0, 4], and 1/&lambda; = 0.5 for the exponential with &lambda; = 2.</li>
+  <li>A <strong>normalizing constant</strong> divides unnormalized scores so they total 1: the softmax denominator, and &radic;(2&pi;) for the Gaussian.</li>
+  <li><strong>Monte Carlo</strong> estimates an integral by averaging random samples. Its error shrinks like 1/&radic;<em>n</em>: 4&times; the samples for half the error.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. What is &int;<sub>0</sub><sup>3</sup> <em>x</em>&sup2; <em>dx</em>, using the fundamental theorem of calculus?</p>
+  <div class="quiz-options" data-answer="2" data-hint="Find an antiderivative F with F' = x&sup2;, then compute F(3) &minus; F(0). The right-edge and left-edge sums bracket the answer but are not it.">
+    <div class="quiz-opt">6.875, the sum of the six left-edge rectangles</div>
+    <div class="quiz-opt">27, the value of <em>x</em>&sup3; at 3</div>
+    <div class="quiz-opt">9, because the antiderivative <em>x</em>&sup3;/3 gives 27/3 &minus; 0</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. A function <em>f</em>(<em>x</em>) is a valid probability density over all possible values. What must its total integral equal?</p>
+  <div class="quiz-options" data-answer="0" data-hint="Think about what the area under a density represents, and what the discrete table of probabilities had to add up to.">
+    <div class="quiz-opt">1, because the probability of all possible outcomes together is 1</div>
+    <div class="quiz-opt">The mean of the distribution</div>
+    <div class="quiz-opt">It depends on the units, and can be any positive number</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. For the density <em>f</em>(<em>t</em>) = 2<em>e</em><sup>&minus;2<em>t</em></sup>, the CDF is <em>F</em>(<em>t</em>) = 1 &minus; <em>e</em><sup>&minus;2<em>t</em></sup>. How do you get P(0.5 &le; <em>T</em> &le; 1.5)?</p>
+  <div class="quiz-options" data-answer="1" data-hint="A probability over a range is an area, so it is a difference of the CDF at the two ends, not a difference of heights of the density.">
+    <div class="quiz-opt"><em>f</em>(1.5) &minus; <em>f</em>(0.5), the difference in density heights</div>
+    <div class="quiz-opt"><em>F</em>(1.5) &minus; <em>F</em>(0.5) = <em>e</em><sup>&minus;1</sup> &minus; <em>e</em><sup>&minus;3</sup> &asymp; 0.318</div>
+    <div class="quiz-opt"><em>f</em>(1) = 2<em>e</em><sup>&minus;2</sup> &asymp; 0.271, the density at the midpoint</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A Monte Carlo estimate of an integral has a typical error of 0.02 with 100 samples. Roughly how many samples do you need to bring it to 0.01?</p>
+  <div class="quiz-options" data-answer="2" data-hint="Monte Carlo error falls like 1/&radic;n. Halving the error means the square root of n must double.">
+    <div class="quiz-opt">200, because the error falls in proportion to the samples</div>
+    <div class="quiz-opt">10,000, because the error falls like 1/<em>n</em>&sup2;</div>
+    <div class="quiz-opt">400, because the error falls like 1/&radic;<em>n</em>, so halving it takes 4&times; the samples</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. In softmax, what job does the denominator (the sum of the exponentiated scores) do?</p>
+  <div class="quiz-options" data-answer="0" data-hint="Think about the normalizing constant: what must be true of a set of probabilities, and what does dividing by the total guarantee?">
+    <div class="quiz-opt">It is a normalizing constant that rescales the positive scores so they add up to 1</div>
+    <div class="quiz-opt">It makes the largest score bigger so the model is more confident</div>
+    <div class="quiz-opt">It is the derivative of the numerator, used in backpropagation</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Integral" target="_blank">Integral — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Fundamental_theorem_of_calculus" target="_blank">Fundamental Theorem of Calculus — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Monte_Carlo_integration" target="_blank">Monte Carlo Integration — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Exponential_distribution" target="_blank">Exponential Distribution — Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        const h = document.createElement("div"); h.innerHTML = group.dataset.hint || "";
+        fb.textContent = "✗ Not quite — re-think this one: " + h.textContent;
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

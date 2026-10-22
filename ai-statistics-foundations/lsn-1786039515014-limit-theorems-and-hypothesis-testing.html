@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Limit Theorems &amp; Hypothesis Testing: When Is a Difference Real?</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 15 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Limit Theorems &amp; Hypothesis Testing: When Is a Difference Real?</h1>
+<p class="subtitle">Lesson 9 told you a 5-point gain can be noise. This lesson gives you the machinery that puts an exact number on that doubt, and the traps that machinery sets for you.</p>
+
+<p>Every eval you run produces a number from a finite sample. Lesson 5 showed that such numbers wobble, and Lesson 9 showed that a new prompt scoring higher might just be lucky. What you have not yet seen is the formal procedure that turns "might be lucky" into a calculation: the <strong>hypothesis test</strong>. This lesson covers the law that says averages settle, the test framework, two fully worked tests (one on pass rates, one on latency), and three ways testing misleads people who use it carelessly.</p>
+
+<h2>1. The law of large numbers: averages settle</h2>
+
+<p>The <strong>law of large numbers</strong> (LLN) says: if you average more and more independent draws that share the same true mean, the average converges to that mean. It is the guarantee that measuring works at all. An eval pass rate over 10,000 examples is a better estimate of a model's true pass rate than one over 25, and with enough examples it gets as close as you like.</p>
+
+<p>The LLN and the Central Limit Theorem (Lesson 5) are two answers to two different questions. The LLN says <em>where</em> the average ends up. The CLT says <em>how it is spread</em> around that destination for a given N: a bell curve whose width is the standard error. We don't re-teach the CLT here; we use its result, the standard error.</p>
+
+<p>Here is how fast an eval settles. Suppose a prompt's true pass rate is 0.80, so each graded example is a 0-or-1 draw with standard deviation &radic;(0.80 &times; 0.20) = 0.40. The standard error of the measured pass rate is 0.40 / &radic;N:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Eval examples (N)</th><th class="num">Standard error</th><th class="num">Typical range (&plusmn;2 SE)</th></tr></thead>
+  <tbody>
+    <tr><td>25</td><td class="num">0.080</td><td class="num">0.64 to 0.96</td></tr>
+    <tr><td>100</td><td class="num">0.040</td><td class="num">0.72 to 0.88</td></tr>
+    <tr><td>400</td><td class="num">0.020</td><td class="num">0.76 to 0.84</td></tr>
+    <tr><td>10,000</td><td class="num">0.004</td><td class="num">0.792 to 0.808</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The same law powers <strong>Monte Carlo estimates</strong>. If you want the expected length of a model's reply under sampling, or the chance a sampled answer passes a checker, you generate N replies and average. The estimate converges to the truth, with error shrinking like 1/&radic;N. So 100 times more samples buys only 10 times less error.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  The LLN converges to the mean of <em>whatever you sampled</em>. If the eval set is unrepresentative, or contains many near-duplicate items (so the draws are not independent), more examples settle on the wrong number with great confidence. The LLN fixes noise. It does not fix bias.
+</div>
+
+<h2>2. The hypothesis-testing framework</h2>
+
+<p>You have two prompts and an eval score for each. A hypothesis test is a fixed five-step routine for asking whether the gap is bigger than luck would produce.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Piece</th><th>What it is</th><th>Prompt A vs B example</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Null hypothesis</strong> H<sub>0</sub></td><td>The boring claim: no real difference. You assume it and see if the data contradicts it.</td><td>Both prompts have the same true pass rate.</td></tr>
+    <tr><td><strong>Alternative</strong> H<sub>1</sub></td><td>What you suspect instead.</td><td>The true pass rates differ (two-sided).</td></tr>
+    <tr><td><strong>Test statistic</strong></td><td>One number summarizing how far the data sits from H<sub>0</sub>, measured in standard errors.</td><td>z = (observed gap) / (standard error of the gap)</td></tr>
+    <tr><td><strong>p-value</strong></td><td>If H<sub>0</sub> were true, how often would the statistic land at least this far from zero, by luck of the draw alone?</td><td>Computed from the Normal curve (below).</td></tr>
+    <tr><td><strong>Significance level</strong> &alpha;</td><td>The cutoff you fix <em>before</em> looking. If p &lt; &alpha;, you reject H<sub>0</sub>. Usually 0.05.</td><td>&alpha; = 0.05, so reject when |z| &gt; 1.96.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The number 1.96 is the point on the standard Normal curve with 2.5% of the area beyond it on each side, so 5% in total. The CLT is why the Normal curve from Lesson 4 applies to an average or a gap of averages.</p>
+
+<h3>What a p-value is, and what it is not</h3>
+
+<p>The p-value is the probability of seeing a result <em>at least this extreme</em>, <strong>assuming H<sub>0</sub> is true</strong>. It is a statement about the data under a hypothesis, not a statement about the hypothesis.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">The common misreading</span>
+  A p-value of 0.03 does <strong>not</strong> mean "there is a 3% chance the prompts are equal," or "a 97% chance B is better," or "a 3% chance this result is a fluke." Those are probabilities of the hypothesis given the data, which is the direction Bayes' Theorem (Lesson 3) flips and Lesson 16 returns to. The p-value runs the other way: it is the chance of the data given H<sub>0</sub>. It also says nothing about how <em>big</em> or how <em>useful</em> the difference is.
+</div>
+
+<h3>Two ways to be wrong</h3>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th></th><th>H<sub>0</sub> actually true (no real difference)</th><th>H<sub>0</sub> actually false (real difference)</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Test rejects H<sub>0</sub></strong></td><td><strong>Type I error</strong> (false positive). Probability = &alpha;. You ship a prompt that is no better.</td><td>Correct. Probability = <strong>power</strong>.</td></tr>
+    <tr><td><strong>Test does not reject</strong></td><td>Correct.</td><td><strong>Type II error</strong> (false negative). Probability = &beta; = 1 &minus; power. You discard a prompt that really was better.</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>These mirror the false-positive and false-negative cells of Lesson 9's confusion matrix, applied to a claim instead of a single example. Setting &alpha; = 0.05 caps your Type I rate at 5% when H<sub>0</sub> is true. <strong>Power</strong> is the chance of catching a difference that really exists. It depends on three things: how big the true difference is, how noisy the data is, and N. Small eval sets have low power, which is the formal reason a 20-example eval cannot confirm much.</p>
+
+<h2>3. Worked example: a two-proportion z-test</h2>
+
+<p>A team compares two prompt variants on the same task, each run on its own 800 eval examples and graded pass/fail. Prompt A passes 600 (75.0%). Prompt B passes 640 (80.0%). Is B really better?</p>
+
+<p><strong>Setup.</strong> H<sub>0</sub>: p<sub>A</sub> = p<sub>B</sub>. H<sub>1</sub>: p<sub>A</sub> &ne; p<sub>B</sub>. &alpha; = 0.05, two-sided.</p>
+
+<p>Under H<sub>0</sub> the two prompts share one pass rate, so we estimate it by <strong>pooling</strong> both groups:</p>
+
+<div class="step-box">
+<div class="line">n_A = n_B = 800      successes: A = 600, B = 640</div>
+<div class="line">p_A = 600/800 = 0.750      p_B = 640/800 = 0.800</div>
+<div class="line">observed gap = 0.800 - 0.750 = 0.050</div>
+<div class="line"> </div>
+<div class="line">pooled proportion = (600 + 640) / (800 + 800) = 1240/1600 = 0.775</div>
+<div class="line"> </div>
+<div class="line">standard error = sqrt( p(1-p) * (1/n_A + 1/n_B) )</div>
+<div class="line">               = sqrt( 0.775 * 0.225 * (1/800 + 1/800) )</div>
+<div class="line">               = sqrt( 0.174375 * 0.0025 )</div>
+<div class="line">               = sqrt(0.00043594) = 0.02088</div>
+<div class="line"> </div>
+<div class="line">z = 0.050 / 0.02088</div>
+<div class="line result">z = 2.39</div>
+<div class="line"> </div>
+<div class="line">p-value (two-sided) = 2 * P(Z > 2.39) = 0.0166</div>
+</div>
+
+<p>Now the picture. The curve is the distribution of z if H<sub>0</sub> were true. The shaded tails are the rejection region: the 5% of outcomes most extreme under H<sub>0</sub>. Our z = 2.39 falls inside the right tail.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg" font-family="-apple-system, 'Segoe UI', sans-serif" role="img" aria-label="Standard Normal curve with rejection regions beyond plus and minus 1.96 and an observed statistic at 2.39">
+  <polygon points="20.0,240 20.0,239.9 27.0,239.9 34.0,239.9 41.0,239.8 48.0,239.7 55.0,239.6 62.0,239.4 69.0,239.2 76.0,238.9 83.0,238.5 90.0,238.0 97.0,237.3 104.0,236.4 111.0,235.3 118.0,233.9 125.0,232.1 132.0,229.9 139.0,227.2 146.0,224.0 153.0,220.2 160.0,215.6 162.8,213.6 162.8,240" fill="#f87171" opacity="0.45"/>
+  <polygon points="437.2,240 437.2,213.6 444.2,218.4 451.2,222.5 458.2,226.0 465.2,228.9 472.2,231.3 479.2,233.2 486.2,234.8 493.2,236.0 500.2,237.0 507.2,237.7 514.2,238.3 521.2,238.8 528.2,239.1 535.2,239.4 542.2,239.5 549.2,239.7 556.2,239.8 563.2,239.8 570.2,239.9 577.2,239.9 580.0,239.9 580.0,240" fill="#f87171" opacity="0.45"/>
+  <polyline points="20.0,239.9 27.0,239.9 34.0,239.9 41.0,239.8 48.0,239.7 55.0,239.6 62.0,239.4 69.0,239.2 76.0,238.9 83.0,238.5 90.0,238.0 97.0,237.3 104.0,236.4 111.0,235.3 118.0,233.9 125.0,232.1 132.0,229.9 139.0,227.2 146.0,224.0 153.0,220.2 160.0,215.6 167.0,210.4 174.0,204.4 181.0,197.6 188.0,190.0 195.0,181.6 202.0,172.4 209.0,162.7 216.0,152.4 223.0,141.7 230.0,130.8 237.0,119.9 244.0,109.3 251.0,99.1 258.0,89.7 265.0,81.2 272.0,73.8 279.0,67.9 286.0,63.6 293.0,60.9 300.0,60.0 307.0,60.9 314.0,63.6 321.0,67.9 328.0,73.8 335.0,81.2 342.0,89.7 349.0,99.1 356.0,109.3 363.0,119.9 370.0,130.8 377.0,141.7 384.0,152.4 391.0,162.7 398.0,172.4 405.0,181.6 412.0,190.0 419.0,197.6 426.0,204.4 433.0,210.4 440.0,215.6 447.0,220.2 454.0,224.0 461.0,227.2 468.0,229.9 475.0,232.1 482.0,233.9 489.0,235.3 496.0,236.4 503.0,237.3 510.0,238.0 517.0,238.5 524.0,238.9 531.0,239.2 538.0,239.4 545.0,239.6 552.0,239.7 559.0,239.8 566.0,239.9 573.0,239.9 580.0,239.9" fill="none" stroke="#6c8fff" stroke-width="2.5"/>
+  <line x1="20" y1="240" x2="580" y2="240" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="300" y1="55" x2="300" y2="244" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3,3"/>
+  <line x1="467.3" y1="70" x2="467.3" y2="244" stroke="#fbbf24" stroke-width="2"/>
+  <line x1="132.7" y1="70" x2="132.7" y2="244" stroke="#fbbf24" stroke-width="1.5" stroke-dasharray="4,3"/>
+  <g fill="#94a3b8" font-size="11" text-anchor="middle">
+    <text x="162.8" y="258">-1.96</text><text x="300" y="258">0</text><text x="437.2" y="258">+1.96</text>
+    <text x="132.7" y="258" fill="#fbbf24">-2.39</text><text x="467.3" y="258" fill="#fbbf24">+2.39</text>
+  </g>
+  <text x="300" y="46" text-anchor="middle" fill="#e2e8f0" font-size="13" font-weight="700">Distribution of z if the prompts are truly equal (H0)</text>
+  <text x="97.0" y="178" text-anchor="middle" fill="#f87171" font-size="11">reject H0</text>
+  <text x="503.0" y="178" text-anchor="middle" fill="#f87171" font-size="11">reject H0</text>
+  <text x="475.3" y="90" fill="#fbbf24" font-size="12" font-weight="700">observed</text>
+  <text x="475.3" y="105" fill="#fbbf24" font-size="12" font-weight="700">z = 2.39</text>
+  <text x="475.3" y="120" fill="#fbbf24" font-size="11">p = 0.0166</text>
+  <text x="300" y="282" text-anchor="middle" fill="#94a3b8" font-size="11" font-style="italic">Horizontal axis: test statistic z, in standard errors. Red area total = 0.05.</text>
+</svg>
+</div>
+<p class="viz-caption">Null distribution of the test statistic. Red tails: rejection region (|z| &gt; 1.96, area 0.05). Yellow: observed z = 2.39; the area beyond &plusmn;2.39 is the p-value.</p>
+
+<p><strong>Interpretation.</strong> Because 0.0166 &lt; 0.05, reject H<sub>0</sub>. If the prompts were truly equal, a gap of 5 points or more in either direction would appear in only about 1.7% of eval runs this size. That is decent evidence B is better. It is not proof, and it does not mean B is better with 98.3% probability.</p>
+
+<p>A 95% confidence interval for the gap tells you more than the verdict. Using the unpooled standard error &radic;(0.75&times;0.25/800 + 0.80&times;0.20/800) = 0.02084:</p>
+
+<div class="step-box">
+<div class="line">0.050 +/- 1.96 * 0.02084 = 0.050 +/- 0.041</div>
+<div class="line result">gap plausibly between +0.9 and +9.1 points</div>
+</div>
+
+<p>The interval excludes zero (that is what "significant at 0.05" means), but it is wide. The true gain could be under 1 point or nearly 9.</p>
+
+<h3>Same 5-point gap, three eval sizes</h3>
+
+<p>Lesson 9 compared 75% vs 80% at N = 20 and N = 500. Here is the full calculation at both sizes, plus the 800 above. At 500 the result is borderline:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>N per prompt</th><th class="num">Passes (A / B)</th><th class="num">Std. error</th><th class="num">z</th><th class="num">p-value</th><th>Verdict at 0.05</th></tr></thead>
+  <tbody>
+    <tr><td>20</td><td class="num">15 / 16</td><td class="num">0.1321</td><td class="num">0.38</td><td class="num">0.705</td><td>No evidence</td></tr>
+    <tr><td>500</td><td class="num">375 / 400</td><td class="num">0.0264</td><td class="num">1.89</td><td class="num">0.058</td><td>Just misses</td></tr>
+    <tr><td>800</td><td class="num">600 / 640</td><td class="num">0.0209</td><td class="num">2.39</td><td class="num">0.017</td><td>Significant</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Nothing changed except N. The standard error shrank, so the same gap became more standard errors from zero. Also, 0.058 versus 0.049 is no real distinction: 0.05 is a convention, not a cliff.</p>
+
+<h3>Power: would this test have caught a real 5-point gain?</h3>
+
+<p>Suppose the true gap really is 0.05. With 800 per prompt, the test statistic's typical size is 0.05 / 0.02084 = 2.40. It must beat 1.96, and luck moves it up or down by about one unit, so the chance it clears 1.96 is the Normal area below 2.40 &minus; 1.96 = 0.44, which is about 0.67.</p>
+
+<div class="step-box">
+<div class="line">power at N = 800 per arm &asymp; &Phi;(0.05 / 0.02084 &minus; 1.96) = &Phi;(0.44) &asymp; 0.67</div>
+<div class="line">Type II error rate &beta; &asymp; 1 &minus; 0.67 = 0.33</div>
+</div>
+
+<p>So even with 800 examples a real 5-point gain is missed one time in three. The usual target is 80% power. Solve for N per arm:</p>
+
+<div class="step-box">
+<div class="line">N = (z_alpha/2 + z_beta)^2 * (pA(1-pA) + pB(1-pB)) / gap^2</div>
+<div class="line">  = (1.96 + 0.84)^2 * (0.75*0.25 + 0.80*0.20) / 0.05^2</div>
+<div class="line">  = 7.84 * 0.3475 / 0.0025</div>
+<div class="line result">N is about 1,090 per prompt</div>
+</div>
+
+<p>Run this <em>before</em> building the eval set. It is the formal version of Lesson 9's rule of thumb.</p>
+
+<h2>4. Worked example: a t-test on a continuous metric</h2>
+
+<p>Pass rates are 0-or-1, so one proportion fixes the spread. A continuous metric like latency has its own spread, which you must estimate from the data. When you do that with a modest sample, the test statistic is called <strong>t</strong> instead of z, and its reference curve (the t-distribution) has slightly heavier tails than the Normal. With a few dozen or more observations per group, the two are very close.</p>
+
+<p>A team times two serving configurations, 40 requests each:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Config</th><th class="num">n</th><th class="num">Mean latency</th><th class="num">Std. dev.</th></tr></thead>
+  <tbody>
+    <tr><td>A (baseline)</td><td class="num">40</td><td class="num">212 ms</td><td class="num">38 ms</td></tr>
+    <tr><td>B (new batching)</td><td class="num">40</td><td class="num">198 ms</td><td class="num">34 ms</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>H<sub>0</sub>: the true mean latencies are equal. H<sub>1</sub>: they differ. &alpha; = 0.05, two-sided. This is the Welch version, which does not assume the two configs have equal spread:</p>
+
+<div class="step-box">
+<div class="line">gap = 212 - 198 = 14 ms</div>
+<div class="line"> </div>
+<div class="line">variance of each mean:  38^2/40 = 1444/40 = 36.10</div>
+<div class="line">                        34^2/40 = 1156/40 = 28.90</div>
+<div class="line"> </div>
+<div class="line">standard error of gap = sqrt(36.10 + 28.90) = sqrt(65.00) = 8.06 ms</div>
+<div class="line"> </div>
+<div class="line">t = 14 / 8.06</div>
+<div class="line result">t = 1.74</div>
+<div class="line"> </div>
+<div class="line">degrees of freedom (Welch) = 77.05</div>
+<div class="line">p-value (two-sided) = 0.086</div>
+</div>
+
+<p>The critical t for 77 degrees of freedom at &alpha; = 0.05 is about 1.99, and 1.74 does not reach it. <strong>Do not reject H<sub>0</sub>.</strong> The 95% interval for the gap is 14 &plusmn; 1.99 &times; 8.06 = &minus;2.1 to +30.1 ms, which includes zero.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  "Not significant" does not mean "no difference." It means this sample cannot separate a 14 ms gain from luck. Here the interval runs from slightly worse to 30 ms better. At 160 requests per config, the same means and spreads would give SE = 4.03 and t = 3.47, which is clearly significant. The difference didn't change; the information did.
+</div>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Lesson 2 showed latency is right-skewed, with a long tail from cold starts and retries. A t-test compares <em>means</em>, and a handful of extreme requests can dominate both the mean and the spread. If users feel the tail, test p95 with a bootstrap (resample your data many times and watch the statistic) instead.
+</div>
+
+<h2>5. Effect size vs. statistical significance</h2>
+
+<p>Significance asks "is the gap distinguishable from zero?" It does not ask "is the gap large?" The standard error shrinks as N grows, so with enough data <em>any</em> nonzero gap eventually becomes significant, however trivial.</p>
+
+<p>Take two models with true pass rates 0.800 and 0.802, each evaluated on 1,000,000 examples:</p>
+
+<div class="step-box">
+<div class="line">pooled = 0.801</div>
+<div class="line">standard error = sqrt( 0.801 * 0.199 * (2/1,000,000) ) = 0.000565</div>
+<div class="line">z = 0.002 / 0.000565</div>
+<div class="line result">z = 3.54,  p = 0.0004</div>
+<div class="line">95% interval for the gap: 0.09 to 0.31 points</div>
+</div>
+
+<p>The p-value is tiny and the result is "highly significant," yet the best case is a third of a point. Whether that matters is a product decision, not a statistical one. Compare the earlier latency test: not significant, but a plausible 14 ms gain worth chasing with more data. Report both numbers every time:</p>
+
+<ul>
+  <li><strong>Effect size</strong>: the gap in units you care about (points of pass rate, milliseconds), with its confidence interval. For continuous metrics, Cohen's d = gap / pooled std. dev. is a standard form; here d = 14 / 36.06 = 0.39.</li>
+  <li><strong>Significance</strong>: whether the interval clears zero.</li>
+</ul>
+
+<p>Decide in advance the smallest gap worth shipping and size the eval to detect it with good power, instead of testing until something crosses 0.05.</p>
+
+<h2>6. Multiple comparisons: test enough things and something will "win"</h2>
+
+<p>The 5% false-positive rate applies to <em>one</em> test. A team tries 20 prompt variants against the baseline, and suppose none is truly better. Each test has a 5% chance of a false positive:</p>
+
+<div class="step-box">
+<div class="line">expected false positives = 20 * 0.05 = 1.0</div>
+<div class="line">P(at least one false positive) = 1 - (1 - 0.05)^20 = 1 - 0.358</div>
+<div class="line result">P = 0.64</div>
+</div>
+
+<p>That is a 64% chance of declaring a winner when nothing works. This is how repeated prompt tweaking overfits an eval set (the held-out warning in Lesson 9's checklist), and why "we found a prompt that beats the baseline" claims fall apart on fresh data.</p>
+
+<p>The simplest repair is the <strong>Bonferroni correction</strong>: divide &alpha; by the number of tests. For 20 variants, each must clear 0.05 / 20 = 0.0025, which means |z| &gt; 3.02 instead of 1.96. The total chance of any false positive then stays near 5% (exactly 1 &minus; 0.9975<sup>20</sup> = 0.049). Our worked example's p = 0.0166 passes at 0.05 but would <em>not</em> survive 20 comparisons. The cost: Bonferroni is conservative and lowers power, so real gains become harder to confirm. Other methods (such as false discovery rate control) trade this off differently, but the habit is the same: count everything you tried, not just the one that worked.</p>
+
+<h2>7. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Most shipping decisions compare two noisy numbers: prompt vs prompt, model vs model, config vs config. Testing is how you decide without fooling yourself.
+</div>
+
+<ul>
+  <li><strong>Pick the eval size before the eval.</strong> Choose the smallest gap that would change your decision, then compute N for 80% power.</li>
+  <li><strong>Report a gap with its interval, not a verdict.</strong> "B is +5.0 points (95% interval +0.9 to +9.1)" carries the effect size and the uncertainty that "significant" hides.</li>
+  <li><strong>Budget your comparisons.</strong> Prompt searches and hyperparameter sweeps are multiple comparisons in disguise. Count them, correct for them, and confirm the winner on data you haven't touched.</li>
+</ul>
+
+<h2>Recap</h2>
+<ul>
+  <li>The <strong>law of large numbers</strong>: averages of independent draws converge to the true mean. Error shrinks like 1/&radic;N, and it fixes noise, not bias. The CLT describes the spread around that limit.</li>
+  <li>A hypothesis test assumes the <strong>null</strong> (no difference), computes a <strong>test statistic</strong> in standard-error units, and converts it to a <strong>p-value</strong>: the chance of a result this extreme if the null were true. It is not the probability the null is true.</li>
+  <li>&alpha; fixes the <strong>Type I</strong> (false positive) rate. <strong>Type II</strong> (missed real effect) has probability 1 &minus; <strong>power</strong>, and power rises with N, effect size, and cleaner data.</li>
+  <li>Worked: 600/800 vs 640/800 gives pooled p = 0.775, SE = 0.0209, z = 2.39, p = 0.017. Latency 212 vs 198 ms, SD 38 and 34, n = 40: t = 1.74, p = 0.086, not significant.</li>
+  <li>With enough data any gap is significant. Always report <strong>effect size</strong> and its interval.</li>
+  <li>With k tests, expect &alpha;&times;k false positives. <strong>Bonferroni</strong> tests each at &alpha;/k.</li>
+</ul>
+
+<h2>Leads into Lesson 16</h2>
+<p>A p-value tells you how surprising the data would be if the null were true. It never gives the probability you actually want: how likely is it that B is better, given what we saw? Answering that means flipping the condition with Bayes' Theorem (Lesson 3) and treating the unknown pass rate itself as something with a probability distribution. That is <strong>Bayesian inference</strong>, the subject of Lesson 16.</p>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. A prompt's true pass rate is 0.80. What does the law of large numbers promise about the measured pass rate on an eval set?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Any eval set of 100 or more examples will measure exactly 0.80</div>
+    <div class="quiz-opt">Measuring on more examples removes any bias in how the eval set was chosen</div>
+    <div class="quiz-opt">As independent examples accumulate, the measured rate tends toward 0.80, with typical error shrinking like 1/&radic;N</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. A comparison of two prompts returns p = 0.03. Which statement is correct?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">If the prompts were truly equal, a gap at least this large would appear in about 3% of eval runs</div>
+    <div class="quiz-opt">There is a 3% chance the two prompts are actually equal</div>
+    <div class="quiz-opt">There is a 97% chance the new prompt is better</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. Your 20-example eval fails to show a significant gain even though the new prompt really is better. What happened?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">A Type I error: you rejected a true null hypothesis</div>
+    <div class="quiz-opt">A Type II error: the test had too little power to detect a real difference</div>
+    <div class="quiz-opt">The p-value was computed incorrectly because N was below 30</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A 0.2-point accuracy gain is "highly significant" (p = 0.0004) on a 1,000,000-example test set. What should you conclude?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">The gain is large and clearly worth shipping</div>
+    <div class="quiz-opt">The test must be wrong, since such a small gap can never be significant</div>
+    <div class="quiz-opt">The gap is very likely nonzero, but its size is small; judge whether 0.2 points matters using the effect size and its interval</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. You test 20 prompt variants against a baseline at &alpha; = 0.05, and none is truly better. Roughly what do you expect, and what does Bonferroni do?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">No false positives, since none are truly better; Bonferroni is unnecessary</div>
+    <div class="quiz-opt">About 1 false positive on average; Bonferroni requires each test to reach p &lt; 0.0025</div>
+    <div class="quiz-opt">About 5 false positives; Bonferroni raises &alpha; to 0.25 so fewer are missed</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Law_of_large_numbers" target="_blank">Law of Large Numbers &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/P-value" target="_blank">P-value &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Student%27s_t-test" target="_blank">Student's t-test &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Multiple_comparisons_problem" target="_blank">Multiple Comparisons Problem &mdash; Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — re-think what the null hypothesis assumes and what a p-value conditions on, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

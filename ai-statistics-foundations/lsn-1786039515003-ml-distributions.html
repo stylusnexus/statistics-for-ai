@@ -123,7 +123,7 @@
 </head>
 <body>
 
-<span class="lesson-pill">Lesson 4 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<span class="lesson-pill">Lesson 4 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
 <h1>The Distributions That Run Machine Learning</h1>
 <p class="subtitle">Four named shapes of uncertainty — and the one that's quietly running every single token your LLM ever generates.</p>
 
@@ -476,7 +476,7 @@
 
 <script>
 document.querySelectorAll(".quiz-options").forEach(group => {
-  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const fb = group.nextElementSibling;
   const opts = group.querySelectorAll(".quiz-opt");
   let solved = false;
   opts.forEach((opt, i) => {

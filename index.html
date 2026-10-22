@@ -25,6 +25,7 @@
     padding: 4px 14px; font-size: 0.82em; color: var(--muted);
   }
   ol.lessons { list-style: none; counter-reset: lsn; padding: 0; margin: 0; }
+  h2.part { font-size: 0.95em; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 36px 0 14px; }
   ol.lessons li { counter-increment: lsn; margin-bottom: 12px; }
   a.card {
     display: block; text-decoration: none; color: inherit; position: relative;
@@ -50,6 +51,7 @@
   .aside p { margin: 0 0 10px; color: var(--muted); font-size: 0.92em; }
   .aside p:last-child { margin-bottom: 0; }
   .aside a { color: var(--accent2); }
+  footer a { color: var(--accent2); }
   footer { margin-top: 40px; color: var(--muted); font-size: 0.85em; border-top: 1px solid var(--border); padding-top: 20px; }
   @media (max-width: 480px) {
     body { padding: 32px 16px 60px; }
@@ -66,12 +68,13 @@
 <p class="lede">The statistics you actually need to build, evaluate, and reason about AI, generative models, and LLMs — grounded in AI examples throughout, not dice and coins.</p>
 
 <div class="meta">
-  <span class="chip">10 lessons</span>
+  <span class="chip">19 lessons</span>
   <span class="chip">Sequential — each builds on the last</span>
   <span class="chip">No prerequisites</span>
   <span class="chip">Quizzes included</span>
 </div>
 
+<h2 class="part">Part 1 — Statistics for AI</h2>
 <ol class="lessons">
   <li><a class="card" href="ai-statistics-foundations/lsn-1786039515000-why-statistics-powers-ai.html">
     <h2>Why Statistics Powers AI</h2>
@@ -124,10 +127,59 @@
   </a></li>
 </ol>
 
+<h2 class="part">Part 2 — Probability, inference &amp; modelling fundamentals</h2>
+<ol class="lessons" style="counter-reset: lsn 10">
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515010-counting-and-combinatorics.html">
+    <h2>Counting &amp; Combinatorics: How Big Is the Space of Possibilities?</h2>
+    <p>Before you can say how likely something is, you need to know how many things could happen. Why you can never brute-force an LLM's output space, and the binomial that turns "k correct out of n" into a probability.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515011-random-variables.html">
+    <h2>Random Variables: Expectation, Variance &amp; the Rules for Combining Them</h2>
+    <p>Token counts, latencies, and 0/1 scores as random variables: the mean and spread that describe them, and the rules for what happens when you scale, add, or average them.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515012-continuous-distributions.html">
+    <h2>Continuous Distributions: Density, the CDF, and the Shapes Beyond the Bell Curve</h2>
+    <p>Why a latency has probability zero at any exact value, how a density and a CDF turn that into areas and percentiles, and the uniform, exponential, gamma, and beta shapes that model init ranges, request gaps, batch waits, and uncertainty about a model's true accuracy.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515013-joint-distributions.html">
+    <h2>Joint Distributions: Several Variables at Once, Independence &amp; Covariance</h2>
+    <p>Describing several quantities at once — joint tables, independence, covariance — and the chain rule that lets an LLM assign a probability to a whole sentence.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515014-limit-theorems-and-hypothesis-testing.html">
+    <h2>Limit Theorems &amp; Hypothesis Testing: When Is a Difference Real?</h2>
+    <p>Averages settle, and a p-value puts a number on "is this gap luck?" Worked tests on pass rates and latency, why a huge test set makes tiny gaps significant, and why trying 20 prompts guarantees a false winner.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515015-bayesian-inference.html">
+    <h2>Bayesian Inference: Updating Beliefs About a Model, Not Just a Message</h2>
+    <p>Move Bayes' theorem from events to parameters: put a Beta prior on a model's true accuracy, update it with an eval, and read off a credible interval. See why a tiny eval stays near the prior, why L2 regularization is a Gaussian prior, and how to forecast the next prompt.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515016-study-design-and-confounding.html">
+    <h2>Study Design: Randomization, Confounding &amp; Data Leakage</h2>
+    <p>Statistical tests assume a fair comparison. Learn how convenience samples, confounders, Simpson's paradox, uneven A/B splits, and leaked test sets quietly bend an eval number, and get a checklist for reading any AI evaluation claim.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515017-resampling-bootstrap-and-cross-validation.html">
+    <h2>Resampling: The Bootstrap &amp; Cross-Validation</h2>
+    <p>Put an interval on any statistic by resampling your own data with replacement, compare two prompts on the same items with a paired bootstrap, and estimate out-of-sample performance with k-fold cross-validation. Includes the 63.2% fact, the leakage trap, and the test set you touch once.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-statistics-foundations/lsn-1786039515018-multiple-and-logistic-regression.html">
+    <h2>Beyond a Single Line: Multiple Regression, Logistic Regression &amp; ANOVA</h2>
+    <p>Several features at once, a yes/no outcome, and three prompts to compare. Worked multiple regression with collinearity, a logistic prediction read as an odds ratio, and a hand-computed ANOVA, ending with the sigmoid at the end of every neural network.</p>
+  </a></li>
+</ol>
+
 <div class="aside">
   <h3>Also in this repo</h3>
-  <p><strong>40 flashcards</strong> — four per lesson, written for active recall rather than definition-matching. Anki-importable, readable as plain Markdown either way.</p>
-  <p><strong>A memory map</strong> — a 54-node JSON Canvas laying out how the ten lessons connect. Renders in Obsidian.</p>
+  <p><strong>76 flashcards</strong> — four per lesson, written for active recall rather than definition-matching. Anki-importable, readable as plain Markdown either way.</p>
+  <p><strong>A memory map</strong> — a 99-node JSON Canvas laying out how the nineteen lessons connect. Renders in Obsidian.</p>
+  <p><strong>A companion course</strong> — <a href="math.html">Math for AI: Linear Algebra &amp; Calculus Essentials</a>, seven lessons on the vectors, matrices, derivatives and integrals underneath all of this.</p>
   <p>See the <a href="https://github.com/stylusnexus/statistics-for-ai#readme">README</a> for how to use each.</p>
 </div>
 

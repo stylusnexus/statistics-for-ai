@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Derivatives: Slope, Rate of Change &amp; the Functions ML Uses</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 4 of 7 &middot; Math for AI: Linear Algebra &amp; Calculus Essentials</span>
+<h1>Derivatives: Slope, Rate of Change &amp; the Functions ML Uses</h1>
+<p class="subtitle">Training a model comes down to one question asked millions of times: if I nudge this number, does the loss go up or down, and by how much? A derivative is the exact answer.</p>
+
+<p>The statistics course, Lesson 8 (The Statistics Behind Training a Model), described gradient descent as "feel the slope, step downhill" and skipped the calculus. This lesson supplies it, using only algebra. A function <em>f</em>(<em>x</em>) turns an input into an output, and its <strong>derivative</strong> says how fast the output changes when the input changes.</p>
+
+<h2>1. Slope: how fast is something changing?</h2>
+
+<p>A team logs the training loss of a model at the end of each epoch (one pass over the data). At epoch 2 the loss is 2.40. At epoch 5 it is 1.80. How fast is it falling? Divide the change in loss by the change in epochs:</p>
+
+<div class="step-box">
+<div class="line">slope = (change in output) / (change in input)</div>
+<div class="line">      = (1.80 − 2.40) / (5 − 2)</div>
+<div class="line">      = −0.60 / 3</div>
+<div class="line result">      = −0.20 loss per epoch</div>
+</div>
+
+<p>The negative sign means "going down." The size means "0.20 units of loss per epoch." That is the whole idea of a <strong>rate of change</strong>: output units per input unit. For a straight line the slope is the same everywhere, so two points are enough.</p>
+
+<p>Real loss curves are not straight: early epochs may drop 0.5 each, later ones 0.01. The slope above is only an <em>average</em>. Training needs the slope <em>at one exact spot</em>, because the next update happens at one spot. That is the derivative.</p>
+
+<h2>2. From average slope to exact slope: shrink the gap</h2>
+
+<p>Take a curve whose slope changes: <em>f</em>(<em>x</em>) = <em>x</em>². We want its slope at <em>x</em> = 3, where <em>f</em>(3) = 9. Pick a second point a small distance <em>h</em> to the right, at <em>x</em> = 3 + <em>h</em>, and compute the slope between the two points:</p>
+
+<div class="step-box">
+<div class="line">slope between the points = ( f(3 + h) − f(3) ) / h</div>
+</div>
+
+<p>Start with <em>h</em> = 1 and keep shrinking it. In Python: <code>for h in [1, 0.1, 0.01, 0.001, 1e-6]: print(h, (f(3+h) - f(3)) / h)</code> with <code>f = lambda x: x*x</code>.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th class="num">h</th><th class="num">f(3 + h)</th><th class="num">slope = (f(3 + h) − 9) / h</th></tr></thead>
+  <tbody>
+    <tr><td class="num">1</td><td class="num">16</td><td class="num">7.0</td></tr>
+    <tr><td class="num">0.1</td><td class="num">9.61</td><td class="num">6.1</td></tr>
+    <tr><td class="num">0.01</td><td class="num">9.0601</td><td class="num">6.01</td></tr>
+    <tr><td class="num">0.001</td><td class="num">9.006001</td><td class="num">6.001</td></tr>
+    <tr><td class="num">0.000001</td><td class="num">9.000006000001</td><td class="num">6.000001</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>(Python adds tiny rounding noise in the last digits; the table shows exact values.) The slopes march toward 6: 7, 6.1, 6.01, 6.001. You can see why with algebra. For any <em>h</em>:</p>
+
+<div class="step-box">
+<div class="line">(3 + h)² − 3² = 9 + 6h + h² − 9 = 6h + h²</div>
+<div class="line">divide by h:  6 + h</div>
+<div class="line result">as h shrinks toward 0, 6 + h gets as close to 6 as you like</div>
+</div>
+
+<p>"As close to 6 as you like by making <em>h</em> small enough" is exactly what a <strong>limit</strong> means. You never set <em>h</em> to 0 (that would be 0/0, which is undefined); you ask where the slope is heading. The <strong>derivative</strong> of <em>f</em> at <em>x</em> is that limit, written <em>f</em>′(<em>x</em>) (read "f prime of x") or d<em>f</em>/d<em>x</em>:</p>
+
+<div class="step-box">
+<div class="line">f′(x) = limit as h → 0 of  ( f(x + h) − f(x) ) / h</div>
+</div>
+
+<p>Doing the same algebra at a general <em>x</em> gives (<em>x</em> + <em>h</em>)² − <em>x</em>² = 2<em>xh</em> + <em>h</em>², so the slope is 2<em>x</em> + <em>h</em> and the derivative is <strong>2<em>x</em></strong>. At <em>x</em> = 3 that is 6, matching the table.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  A derivative is not a new kind of object. It is the ordinary slope from section 1, measured between two points that have been pushed so close together that the curve looks straight between them.
+</div>
+
+<h2>3. The tangent line: the best straight-line stand-in</h2>
+
+<p>Once you know the slope at a point, you can draw the straight line through that point with that slope. It is the <strong>tangent line</strong>. For <em>f</em>(<em>x</em>) = <em>x</em>² at <em>x</em> = 3 the point is (3, 9) and the slope is 6, so the tangent is <em>y</em> = 9 + 6(<em>x</em> − 3), which simplifies to <em>y</em> = 6<em>x</em> − 9.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 700 340" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="The curve y equals x squared with a secant line through x equals 3 and x equals 4 and the tangent line at x equals 3">
+  <!-- axes -->
+  <line x1="60" y1="300" x2="670" y2="300" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="60" y1="300" x2="60" y2="10" stroke="#94a3b8" stroke-width="1.5"/>
+  <!-- x ticks -->
+  <g stroke="#94a3b8" stroke-width="1">
+    <line x1="60" y1="300" x2="60" y2="306"/><line x1="193.3" y1="300" x2="193.3" y2="306"/>
+    <line x1="326.7" y1="300" x2="326.7" y2="306"/><line x1="460" y1="300" x2="460" y2="306"/>
+    <line x1="593.3" y1="300" x2="593.3" y2="306"/>
+  </g>
+  <g fill="#94a3b8" font-size="13" text-anchor="middle" font-family="sans-serif">
+    <text x="60" y="322">0</text><text x="193.3" y="322">1</text><text x="326.7" y="322">2</text>
+    <text x="460" y="322">3</text><text x="593.3" y="322">4</text>
+    <text x="665" y="322">x</text>
+  </g>
+  <g fill="#94a3b8" font-size="13" text-anchor="end" font-family="sans-serif">
+    <text x="52" y="304">0</text><text x="52" y="234">5</text><text x="52" y="164">10</text><text x="52" y="94">15</text><text x="52" y="24">20</text>
+  </g>
+  <!-- curve -->
+  <polyline fill="none" stroke="#6c8fff" stroke-width="3" points="60.0,300.0 120.0,297.2 180.0,288.7 240.0,274.5 300.0,254.6 360.0,229.1 420.0,197.9 480.0,161.1 540.0,118.6 600.0,70.4 660.0,16.5 660.0,16.5"/>
+  <!-- secant, slope 7 -->
+  <line x1="326.7" y1="272" x2="620" y2="56.4" stroke="#fbbf24" stroke-width="2" stroke-dasharray="7 5"/>
+  <!-- tangent, slope 6 -->
+  <line x1="260" y1="300" x2="660" y2="48" stroke="#34d399" stroke-width="2.5"/>
+  <!-- points -->
+  <circle cx="460" cy="174" r="6" fill="#34d399"/>
+  <circle cx="593.3" cy="76" r="5" fill="#fbbf24"/>
+  <!-- drop lines -->
+  <line x1="460" y1="174" x2="460" y2="300" stroke="#94a3b8" stroke-width="1" stroke-dasharray="3 4"/>
+  <!-- labels -->
+  <g font-family="sans-serif" font-size="13">
+    <text x="230" y="130" fill="#6c8fff">f(x) = x²</text>
+    <text x="478" y="190" fill="#34d399">(3, 9)  tangent, slope 6</text>
+    <text x="440" y="48" fill="#fbbf24" text-anchor="end">secant to (4, 16), slope 7</text>
+  </g>
+</svg>
+<p class="viz-caption">The blue curve is y = x². The dashed yellow line joins the points at x = 3 and x = 4 (average slope 7). Slide the second point toward x = 3 and that line rotates into the solid green tangent, slope 6, which is the derivative.</p>
+</div>
+
+<p>Near the touching point the tangent and the curve are almost the same, so you can use the tangent as a cheap replacement. This is the <strong>best local linear approximation</strong>: <em>f</em>(<em>x</em>) ≈ <em>f</em>(<em>a</em>) + <em>f</em>′(<em>a</em>)(<em>x</em> − <em>a</em>) for <em>x</em> close to <em>a</em>. Test it:</p>
+
+<div class="step-box">
+<div class="line">Tangent at a = 3:   y = 9 + 6(x − 3)</div>
+<div class="line"> </div>
+<div class="line">x = 3.1:  tangent = 9 + 6(0.1) = 9.6     true f = 3.1² = 9.61    error 0.01</div>
+<div class="line">x = 2.5:  tangent = 9 + 6(−0.5) = 6.0   true f = 2.5² = 6.25    error 0.25</div>
+<div class="line">x = 4:    tangent = 9 + 6(1) = 15        true f = 16               error 1</div>
+</div>
+
+<p>The error is exactly (<em>x</em> − 3)², so shrinking the distance by 10 shrinks the error by 100. This is why gradient descent takes <em>small</em> steps: the derivative describes the loss only near where you stand. The learning rate from the statistics course, Lesson 8, is how far you trust the straight-line picture.</p>
+
+<h2>4. The rules you actually need</h2>
+
+<p>You will almost never compute a derivative from the limit. A short list of rules covers nearly everything. Below, <em>c</em> is a fixed number, and <em>f</em> and <em>g</em> are functions of <em>x</em>.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Rule</th><th>Statement</th><th>Example</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Constant</strong></td><td>d/d<em>x</em> of <em>c</em> = 0</td><td>a bias offset of 7 never changes as <em>x</em> changes: slope 0</td></tr>
+    <tr><td><strong>Power</strong></td><td>d/d<em>x</em> of <em>x<sup>n</sup></em> = <em>n</em>·<em>x</em><sup><em>n</em>−1</sup></td><td><em>x</em>³ → 3<em>x</em>²; at <em>x</em> = 2 the slope is 12</td></tr>
+    <tr><td><strong>Constant multiple</strong></td><td>d/d<em>x</em> of <em>c</em>·<em>f</em> = <em>c</em>·<em>f</em>′</td><td>5<em>x</em>² → 5·2<em>x</em> = 10<em>x</em></td></tr>
+    <tr><td><strong>Sum</strong></td><td>(<em>f</em> + <em>g</em>)′ = <em>f</em>′ + <em>g</em>′</td><td><em>x</em>² − 6<em>x</em> + 10 → 2<em>x</em> − 6 + 0</td></tr>
+    <tr><td><strong>Product</strong></td><td>(<em>f</em>·<em>g</em>)′ = <em>f</em>′<em>g</em> + <em>f</em><em>g</em>′</td><td>see below</td></tr>
+    <tr><td><strong>Quotient</strong></td><td>(<em>f</em>/<em>g</em>)′ = (<em>f</em>′<em>g</em> − <em>f</em><em>g</em>′) / <em>g</em>²</td><td>see below</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Check the power rule against section 2: <em>x</em>² has <em>n</em> = 2, so the derivative is 2<em>x</em>. Subtraction works like the sum rule, and 6<em>x</em> is 6 times <em>x</em>¹, giving 6.</p>
+
+<p>The <strong>product</strong> and <strong>quotient</strong> rules each need both pieces. Two short examples (the symbol <em>e</em> and the function <em>e<sup>x</sup></em> are introduced in the next section; here just use that its derivative is itself):</p>
+
+<div class="step-box">
+<div class="line">Product:  h(x) = x² · e<sup>x</sup></div>
+<div class="line">          h′(x) = (2x)(e<sup>x</sup>) + (x²)(e<sup>x</sup>) = e<sup>x</sup>(2x + x²)</div>
+<div class="line">          at x = 1:  e · (2 + 1) = 3e ≈ 8.1548</div>
+<div class="line"> </div>
+<div class="line">Quotient: k(x) = x / (x + 1)</div>
+<div class="line">          k′(x) = ( (1)(x + 1) − (x)(1) ) / (x + 1)² = 1 / (x + 1)²</div>
+<div class="line">          at x = 1:  1 / 4 = 0.25</div>
+</div>
+
+<p>Both agree with the shrinking-<em>h</em> method: at <em>h</em> = 10⁻⁶ the product slope is 8.15486 and the quotient slope is 0.2499999.</p>
+
+<h2>5. The exponential and the natural log</h2>
+
+<p>Two functions show up in nearly every ML formula. The <strong>exponential</strong> <em>e<sup>x</sup></em>, where <em>e</em> ≈ 2.71828 is a fixed constant, has the unusual property that it is its own derivative: d/d<em>x</em> of <em>e<sup>x</sup></em> = <em>e<sup>x</sup></em>. Its slope at every point equals its height. Check at <em>x</em> = 0: the height is <em>e</em><sup>0</sup> = 1, and with <em>h</em> = 0.001 the slope is (<em>e</em><sup>0.001</sup> − 1)/0.001 = 1.0005, heading to 1.</p>
+
+<p>The <strong>natural logarithm</strong> ln(<em>x</em>) is the inverse: ln(<em>e<sup>x</sup></em>) = <em>x</em>. It is defined for <em>x</em> &gt; 0, and its derivative is d/d<em>x</em> of ln(<em>x</em>) = 1/<em>x</em>. At <em>x</em> = 2 the slope is 0.5; at <em>x</em> = 0.1 the slope is 10. The curve flattens as <em>x</em> grows and becomes very steep near 0. Remember that: it explains log loss in section 6.</p>
+
+<p>One extra rule is needed, in its simplest form. When a function is nested inside another, the <strong>chain rule</strong> says: multiply the outer function's derivative (evaluated at the inner function's value) by the inner function's derivative. Example: <em>e</em><sup>−<em>x</em></sup> has outer function <em>e<sup>u</sup></em> and inner function <em>u</em> = −<em>x</em>. The outer derivative is <em>e<sup>u</sup></em> = <em>e</em><sup>−<em>x</em></sup>, the inner derivative is −1, so d/d<em>x</em> of <em>e</em><sup>−<em>x</em></sup> = −<em>e</em><sup>−<em>x</em></sup>.</p>
+
+<h2>6. Derivatives of the functions that appear in ML</h2>
+
+<h3>6a. Squared error</h3>
+
+<p>A regression model predicts a number <em>ŷ</em> (read "y-hat") for a target value <em>y</em>. The squared error is <em>L</em>(<em>ŷ</em>) = (<em>y</em> − <em>ŷ</em>)². Treat <em>y</em> as a fixed number and ask how the loss changes as the prediction moves. Expand and use the rules:</p>
+
+<div class="step-box">
+<div class="line">L = (y − ŷ)² = y² − 2yŷ + ŷ²</div>
+<div class="line">dL/dŷ = 0 − 2y + 2ŷ = −2(y − ŷ)</div>
+</div>
+
+<p>A toy relevance-scoring model should output <em>y</em> = 1.0 but outputs <em>ŷ</em> = 0.4:</p>
+
+<div class="step-box">
+<div class="line">loss  = (1.0 − 0.4)² = 0.6² = 0.36</div>
+<div class="line">slope = −2(1.0 − 0.4) = −1.2</div>
+</div>
+
+<p>The slope is negative, so raising <em>ŷ</em> lowers the loss. At <em>ŷ</em> = 0.7 the loss is 0.09 and the slope is −0.6: as the prediction improves the slope shrinks toward 0, which is why training slows near a good solution without anyone programming it to.</p>
+
+<h3>6b. The sigmoid</h3>
+
+<p>The <strong>sigmoid</strong> σ(<em>x</em>) = 1 / (1 + <em>e</em><sup>−<em>x</em></sup>) squeezes any number into the range 0 to 1, so a classifier can read it as a probability (see the statistics course, Lesson 3, Probability Foundations &amp; Bayes' Theorem). Differentiate it with the quotient rule. The numerator is 1 (derivative 0). The denominator is <em>g</em> = 1 + <em>e</em><sup>−<em>x</em></sup>, with <em>g</em>′ = −<em>e</em><sup>−<em>x</em></sup> from the chain-rule example above.</p>
+
+<div class="step-box">
+<div class="line">σ′(x) = ( 0·g − 1·g′ ) / g² = e<sup>−x</sup> / (1 + e<sup>−x</sup>)²</div>
+<div class="line"> </div>
+<div class="line">Split into two fractions:</div>
+<div class="line">  [ 1 / (1 + e<sup>−x</sup>) ] · [ e<sup>−x</sup> / (1 + e<sup>−x</sup>) ]  =  σ(x) · (1 − σ(x))</div>
+<div class="line">because 1 − σ(x) = e<sup>−x</sup> / (1 + e<sup>−x</sup>)</div>
+</div>
+
+<p>So <strong>σ′ = σ(1 − σ)</strong>: once you have computed the sigmoid's output, its derivative costs one multiplication. Values:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th class="num">x</th><th class="num">σ(x)</th><th class="num">σ′(x) = σ(1 − σ)</th></tr></thead>
+  <tbody>
+    <tr><td class="num">−4</td><td class="num">0.0180</td><td class="num">0.0177</td></tr>
+    <tr><td class="num">−2</td><td class="num">0.1192</td><td class="num">0.1050</td></tr>
+    <tr><td class="num">0</td><td class="num">0.5000</td><td class="num">0.2500</td></tr>
+    <tr><td class="num">2</td><td class="num">0.8808</td><td class="num">0.1050</td></tr>
+    <tr><td class="num">4</td><td class="num">0.9820</td><td class="num">0.0177</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The slope peaks at 0.25 at <em>x</em> = 0 and is nearly flat in the tails, so a unit with a far-from-zero input passes almost no learning signal back ("saturation").</p>
+
+<h3>6c. ReLU and its sharp corner</h3>
+
+<p>The <strong>ReLU</strong> (rectified linear unit) is ReLU(<em>x</em>) = max(0, <em>x</em>): it returns 0 for negative inputs and the input itself for positive ones. For <em>x</em> &lt; 0 it is the flat line 0, so the slope is 0. For <em>x</em> &gt; 0 it is the line <em>y</em> = <em>x</em>, so the slope is 1.</p>
+
+<div class="step-box">
+<div class="line">ReLU(−2) = 0   slope 0</div>
+<div class="line">ReLU( 3) = 3   slope 1</div>
+<div class="line">ReLU( 0) = 0   slope: ???</div>
+</div>
+
+<p>At exactly <em>x</em> = 0 the curve has a corner. Approaching from the left the slope is 0; from the right it is 1. The shrinking-<em>h</em> slope (ReLU(0 + <em>h</em>) − ReLU(0)) / <em>h</em> equals 1 for positive <em>h</em> and 0 for negative <em>h</em>, so the two sides never agree on one limit. The derivative <strong>does not exist</strong> at 0, and ReLU is called <em>non-differentiable</em> there.</p>
+
+<p>Training code still needs a number, so deep-learning frameworks pick one: they typically define the gradient at exactly 0 to be 0 (a convention, not a theorem; check your framework's documentation). A floating-point input is almost never exactly 0, so a corner is not a crash, just one point with a fixed rule.</p>
+
+<h3>6d. Log loss: −log(<em>p</em>)</h3>
+
+<p>When a classifier says the true class has probability <em>p</em>, its penalty is <strong>log loss</strong> (cross-entropy for a single example), <em>L</em>(<em>p</em>) = −ln(<em>p</em>). It connects to the information measures in the statistics course, Lesson 7 (Information Theory). From section 5, d/d<em>p</em> of ln(<em>p</em>) = 1/<em>p</em>, so the constant multiple rule gives <em>L</em>′(<em>p</em>) = −1/<em>p</em>.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th class="num">p on the true class</th><th class="num">loss −ln(p)</th><th class="num">slope −1/p</th></tr></thead>
+  <tbody>
+    <tr><td class="num">0.9</td><td class="num">0.1054</td><td class="num">−1.11</td></tr>
+    <tr><td class="num">0.5</td><td class="num">0.6931</td><td class="num">−2</td></tr>
+    <tr><td class="num">0.1</td><td class="num">2.3026</td><td class="num">−10</td></tr>
+    <tr><td class="num">0.01</td><td class="num">4.6052</td><td class="num">−100</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Every slope is negative: more probability on the right answer lowers the loss. The slope blows up as <em>p</em> nears 0, so a confidently wrong prediction gets a huge corrective push.</p>
+
+<p>In a real classifier <em>p</em> comes from a sigmoid of a raw score <em>z</em> (called a logit): <em>p</em> = σ(<em>z</em>). Chain the two derivatives, outer first:</p>
+
+<div class="step-box">
+<div class="line">L(z) = −ln σ(z)</div>
+<div class="line">dL/dz = ( −1/σ ) · σ(1 − σ) = −(1 − σ) = σ(z) − 1</div>
+<div class="line"> </div>
+<div class="line">z = 2:   σ(2) = 0.8808   dL/dz = 0.8808 − 1 = −0.1192</div>
+<div class="line">z = −2:  σ(−2) = 0.1192  dL/dz = 0.1192 − 1 = −0.8808</div>
+</div>
+
+<p>The product collapses to "prediction minus target". A score of 2 is mostly right and gets a gentle −0.1192; a score of −2 is mostly wrong and gets −0.8808. The 1/σ from log loss cancels the sigmoid's flat tails, so a confident wrong answer is not starved of gradient.</p>
+
+<h2>7. Reading the sign: which way do I move?</h2>
+
+<p>The derivative of the loss with respect to a parameter tells you two things at once.</p>
+
+<ul>
+  <li><strong>Positive derivative:</strong> increasing the parameter raises the loss, so decrease the parameter.</li>
+  <li><strong>Negative derivative:</strong> increasing the parameter lowers the loss, so increase the parameter.</li>
+  <li><strong>Zero derivative:</strong> the tangent is flat. You are at a flat spot, which for a smooth bowl-shaped loss is the minimum.</li>
+</ul>
+
+<p>The update rule that combines these is <em>x</em> ← <em>x</em> − (learning rate) × <em>f</em>′(<em>x</em>). Subtracting the slope moves you against it, which is always downhill. Take the loss <em>f</em>(<em>x</em>) = (<em>x</em> − 3)² + 1 = <em>x</em>² − 6<em>x</em> + 10, whose derivative by the sum, power and constant rules is <em>f</em>′(<em>x</em>) = 2<em>x</em> − 6. Start at <em>x</em> = 0 with learning rate 0.1:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th class="num">step</th><th class="num">x</th><th class="num">f(x)</th><th class="num">f′(x) = 2x − 6</th><th>next x = x − 0.1·f′(x)</th></tr></thead>
+  <tbody>
+    <tr><td class="num">0</td><td class="num">0</td><td class="num">10</td><td class="num">−6</td><td>0 − 0.1(−6) = 0.6</td></tr>
+    <tr><td class="num">1</td><td class="num">0.6</td><td class="num">6.76</td><td class="num">−4.8</td><td>0.6 + 0.48 = 1.08</td></tr>
+    <tr><td class="num">2</td><td class="num">1.08</td><td class="num">4.6864</td><td class="num">−3.84</td><td>1.08 + 0.384 = 1.464</td></tr>
+    <tr><td class="num">3</td><td class="num">1.464</td><td class="num">3.3593</td><td class="num">−3.072</td><td>1.464 + 0.3072 = 1.7712</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The slope is negative the whole way, so <em>x</em> keeps moving right, the loss keeps dropping (10, 6.76, 4.69, 3.36), and the slope's magnitude shrinks each step, so the steps shrink too (the next x would be 1.7712). The minimum is where 2<em>x</em> − 6 = 0, that is <em>x</em> = 3, with loss 1. The same recipe, applied to millions of parameters at once, is training; M5 shows how.</p>
+
+<p><strong>Curvature, in one paragraph.</strong> The derivative of the derivative is the <strong>second derivative</strong> <em>f</em>″(<em>x</em>): how fast the slope itself changes. For <em>x</em>² − 6<em>x</em> + 10 it is the derivative of 2<em>x</em> − 6, which is 2: positive everywhere, so the curve bends upward like a bowl. Slope 0 with a positive second derivative is a minimum; with a negative one, a peak. A large second derivative means the slope changes fast, so a step that was safe can overshoot, which is the geometry behind "learning rate too big" in the statistics course, Lesson 8.</p>
+
+<h2>8. Debugging habit: check your derivative numerically</h2>
+
+<p>Hand-derived gradients are easy to get subtly wrong, and a wrong gradient often does not crash anything: the loss just trains badly. The cheap defense is a <strong>finite-difference check</strong>. Use the definition from section 2 to estimate the slope with a small <em>h</em>, and compare it to your formula. A slightly better estimate uses points on both sides of <em>x</em> (the <strong>central difference</strong>):</p>
+
+<div class="step-box">
+<div class="line">estimate = ( f(x + h) − f(x − h) ) / (2h)</div>
+</div>
+
+<p>Test the log-loss-through-sigmoid derivative from section 6d at <em>z</em> = 2, where the formula says −0.1192:</p>
+
+<div class="step-box">
+<div class="line">import math</div>
+<div class="line">s = lambda z: 1 / (1 + math.exp(-z))</div>
+<div class="line">L = lambda z: -math.log(s(z))</div>
+<div class="line">for h in [1e-2, 1e-5, 1e-8]:</div>
+<div class="line">    est = (L(2 + h) - L(2 - h)) / (2 * h)</div>
+<div class="line">    print(h, est, abs(est - (s(2) - 1)) / abs(s(2) - 1))</div>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th class="num">h</th><th class="num">central-difference estimate</th><th class="num">relative error vs. σ(2) − 1</th></tr></thead>
+  <tbody>
+    <tr><td class="num">10<sup>−2</sup></td><td class="num">−0.119204</td><td class="num">1.1 × 10<sup>−5</sup></td></tr>
+    <tr><td class="num">10<sup>−5</sup></td><td class="num">−0.1192029</td><td class="num">5 × 10<sup>−13</sup></td></tr>
+    <tr><td class="num">10<sup>−8</sup></td><td class="num">−0.1192029</td><td class="num">5 × 10<sup>−8</sup></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Smaller is not always better: at 10⁻⁸ rounding error dominates and the check gets worse again; around 10⁻⁵ is a good default. Now suppose someone wrote the derivative as just −σ(<em>z</em>), a plausible slip. Their formula gives −0.8808 at <em>z</em> = 2 while the estimate says −0.1192: relative error ≈ 6.4, a loud failure. A correct formula agrees to roughly 10⁻⁶ or better.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Finite differences are for checking, not training: each parameter needs an extra model evaluation, so a billion parameters means a billion extra runs per step. Check a tiny model or a few random parameters, then turn it off. Do not test exactly at a corner like ReLU at 0, where the true derivative does not exist.
+</div>
+
+<h2>9. Why this matters for building AI systems</h2>
+
+<p><strong>Vanishing signals have a concrete cause.</strong> The sigmoid's slope never exceeds 0.25 and is near 0 in its tails. Multiply several such slopes together, as happens when learning signals pass back through many layers, and the product collapses: 0.25 × 0.25 × 0.25 = 0.0156. When early layers barely learn, the table in section 6b is the first place to look.</p>
+
+<p><strong>Loss choices are derivative choices.</strong> Squared error has a gentle slope that fades as predictions improve; log loss has a slope of −1/<em>p</em> that is huge for confident mistakes. The derivative tells you which examples dominate training.</p>
+
+<p><strong>Numerical checks catch silent bugs.</strong> A finite-difference check on a custom layer or loss is a ten-line test that catches wrong signs and missing terms before they cost a training run.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>The <strong>derivative</strong> is the slope at one exact point: the limit of (<em>f</em>(<em>x</em>+<em>h</em>) − <em>f</em>(<em>x</em>))/<em>h</em> as <em>h</em> shrinks. For <em>x</em>² at 3 the table went 7, 6.1, 6.01, 6.001, heading to 6.</li>
+  <li>The <strong>tangent line</strong> is the best straight-line stand-in near a point; its error grows with distance, so gradient descent takes small steps.</li>
+  <li>Rules: constant, power, constant multiple, sum, product, quotient, plus (<em>e<sup>x</sup></em>)′ = <em>e<sup>x</sup></em>, (ln <em>x</em>)′ = 1/<em>x</em>, and the chain rule.</li>
+  <li>ML functions: squared error → −2(<em>y</em> − <em>ŷ</em>); sigmoid → σ(1 − σ), at most 0.25; ReLU → 0 or 1, undefined at 0 (frameworks pick 0); log loss → −1/<em>p</em>, and σ(<em>z</em>) − 1 through a sigmoid.</li>
+  <li>Positive derivative: decrease the parameter. Negative: increase it. Zero: flat spot. Positive second derivative: bowl-shaped.</li>
+  <li>Check hand-derived gradients with a central difference at <em>h</em> ≈ 10⁻⁵, on a small model only.</li>
+</ul>
+
+<h2>Leads into M5</h2>
+<p>Everything here involved one input at a time. A real model has millions of parameters, and the loss depends on all of them. M5 (Partial Derivatives &amp; Gradients) asks for the slope along each parameter separately, collects those slopes into a single vector called the gradient, and shows why that vector points uphill, which is what gradient descent walks against.</p>
+
+<div class="quiz">
+  <h3>✅ Check Yourself</h3>
+
+  <p class="quiz-q">1. For <em>f</em>(<em>x</em>) = <em>x</em>², the slope between <em>x</em> = 3 and <em>x</em> = 3 + <em>h</em> is 6 + <em>h</em>. What is the derivative at <em>x</em> = 3, and why?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">0, because setting <em>h</em> = 0 makes the numerator zero</div>
+    <div class="quiz-opt">7, because that is the slope for the first step you try</div>
+    <div class="quiz-opt">6, because 6 + <em>h</em> gets as close to 6 as you like when <em>h</em> shrinks toward 0</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. A loss is <em>L</em>(<em>w</em>) = 5<em>w</em>² − 20<em>w</em> + 7. What is its derivative, and where is its minimum?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">10<em>w</em> − 20, so the minimum is at <em>w</em> = 2</div>
+    <div class="quiz-opt">10<em>w</em> − 20 + 7, so the minimum is at <em>w</em> = 1.3</div>
+    <div class="quiz-opt">5<em>w</em> − 20, so the minimum is at <em>w</em> = 4</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. A sigmoid unit outputs σ(<em>x</em>) = 0.9 for some input. What is the sigmoid's slope at that input?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">0.9, because the slope equals the output</div>
+    <div class="quiz-opt">0.09, because σ′ = σ(1 − σ) = 0.9 × 0.1</div>
+    <div class="quiz-opt">0.25, because the sigmoid's slope is always 0.25</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A network's loss has a derivative of +3.5 with respect to one weight, and the learning rate is 0.1. What does a gradient descent update do to that weight?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Increases it by 0.35, because the slope is positive</div>
+    <div class="quiz-opt">Leaves it unchanged, because the slope is not zero</div>
+    <div class="quiz-opt">Decreases it by 0.35, because raising the weight would raise the loss</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. Your hand-written gradient for a custom loss gives −0.88 at a test point, but a central-difference estimate with <em>h</em> = 10<sup>−5</sup> gives −0.12. What should you conclude?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">The finite-difference estimate is probably wrong, because it is only approximate</div>
+    <div class="quiz-opt">Your formula almost certainly has a bug, since a correct one would agree to about 5 or more decimal places</div>
+    <div class="quiz-opt">Both are fine, because gradients only need to point in roughly the right direction</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Derivative" target="_blank">Derivative — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Sigmoid_function" target="_blank">Sigmoid function — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Rectifier_(neural_networks)" target="_blank">Rectifier (neural networks) — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Numerical_differentiation" target="_blank">Numerical differentiation — Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+const HINTS = [
+  "✗ Not quite — re-think what the derivative is: the value the slope between two points approaches as the gap h shrinks, never h = 0 itself.",
+  "✗ Not quite — re-think the rules: differentiate term by term with the power, constant multiple and constant rules, then set the derivative to 0.",
+  "✗ Not quite — re-think the sigmoid's derivative: it is built from its own output, σ(1 − σ), and changes with the input.",
+  "✗ Not quite — re-think the sign: a positive slope means uphill to the right, and the update subtracts learning rate times slope.",
+  "✗ Not quite — re-think gradient checking: a correct formula should match a central difference closely, so a large gap points to a bug."
+];
+document.querySelectorAll(".quiz-options").forEach((group, qi) => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = HINTS[qi];
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

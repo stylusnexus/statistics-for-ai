@@ -1,0 +1,95 @@
+{
+  "title": "Math for AI: Linear Algebra & Calculus Essentials",
+  "topic": "ai-math",
+  "icon": "🧮",
+  "description": "The linear algebra and calculus that AI and machine learning actually use: vectors, matrices, eigenvectors and SVD, derivatives, gradients, backpropagation and integrals.",
+  "tags": [
+    "ai",
+    "math"
+  ],
+  "colorScheme": "blue",
+  "starred": false,
+  "archived": false,
+  "createdAt": "2026-10-21",
+  "lessons": [
+    {
+      "id": "lsn-1786039516000",
+      "title": "Vectors: Embeddings, Dot Products & Measuring Similarity",
+      "file": "lsn-1786039516000-vectors-and-similarity.html",
+      "source": "skill"
+    },
+    {
+      "id": "lsn-1786039516001",
+      "title": "Matrices: Transformations, Layers & Why Shapes Matter",
+      "file": "lsn-1786039516001-matrices-and-transformations.html",
+      "source": "skill"
+    },
+    {
+      "id": "lsn-1786039516002",
+      "title": "Eigenvectors, SVD & Low-Rank Structure: PCA and LoRA",
+      "file": "lsn-1786039516002-eigen-svd-and-low-rank.html",
+      "source": "skill"
+    },
+    {
+      "id": "lsn-1786039516003",
+      "title": "Derivatives: Slope, Rate of Change & the Functions ML Uses",
+      "file": "lsn-1786039516003-derivatives.html",
+      "source": "skill"
+    },
+    {
+      "id": "lsn-1786039516004",
+      "title": "Partial Derivatives & Gradients: Which Way Is Downhill?",
+      "file": "lsn-1786039516004-gradients-and-descent.html",
+      "source": "skill"
+    },
+    {
+      "id": "lsn-1786039516005",
+      "title": "The Chain Rule & Backpropagation: How Gradients Flow Through a Network",
+      "file": "lsn-1786039516005-chain-rule-and-backpropagation.html",
+      "source": "skill"
+    },
+    {
+      "id": "lsn-1786039516006",
+      "title": "Integrals: Accumulation, Area & the Continuous Side of Probability",
+      "file": "lsn-1786039516006-integrals.html",
+      "source": "skill"
+    }
+  ],
+  "completion": {
+    "lsn-1786039516000": {
+      "viewed": false,
+      "completed": false,
+      "starred": false
+    },
+    "lsn-1786039516001": {
+      "viewed": false,
+      "completed": false,
+      "starred": false
+    },
+    "lsn-1786039516002": {
+      "viewed": false,
+      "completed": false,
+      "starred": false
+    },
+    "lsn-1786039516003": {
+      "viewed": false,
+      "completed": false,
+      "starred": false
+    },
+    "lsn-1786039516004": {
+      "viewed": false,
+      "completed": false,
+      "starred": false
+    },
+    "lsn-1786039516005": {
+      "viewed": false,
+      "completed": false,
+      "starred": false
+    },
+    "lsn-1786039516006": {
+      "viewed": false,
+      "completed": false,
+      "starred": false
+    }
+  }
+}

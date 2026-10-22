@@ -7,7 +7,7 @@
       "y": 0,
       "width": 340,
       "height": 300,
-      "text": "## Statistics for AI, GenAI & LLMs\nEvery stage of the AI pipeline — data, probability, training, evaluation, generation — is statistics wearing a product-UI costume. Ten lessons, each building on the last, ending at the exact mechanics running inside the LLM you talk to every day."
+      "text": "## Statistics for AI, GenAI & LLMs\nEvery stage of the AI pipeline — data, probability, training, evaluation, generation — is statistics wearing a product-UI costume. Lessons 1–10 run from describing data to the exact mechanics inside the LLM you talk to every day; lessons 11–19 add the probability, inference and modelling fundamentals underneath."
     },
     {
       "id": "g-l1",
@@ -421,7 +421,7 @@
       "y": 11520,
       "width": 300,
       "height": 380,
-      "text": "## Novelty — Same 5-Point Gap, Opposite Conclusions\nAt N=20, 75% vs. 80% is one flipped example — meaningless noise. At N=500, the same 5-point gap represents 25 more correct answers — solid evidence. Sample size, not the headline percentage, decides whether a 'win' is real."
+      "text": "## Novelty — Same 5-Point Gap, Opposite Conclusions\nAt N=20, 75% vs. 80% is one flipped example — meaningless noise. At N=500, the same 5-point gap represents 25 more correct answers — much stronger evidence (p ≈ 0.058, still borderline). Sample size, not the headline percentage, decides whether a 'win' is real."
     },
     {
       "id": "l9-assoc",
@@ -485,6 +485,411 @@
       "width": 300,
       "height": 200,
       "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515009-llm-statistics.html"
+    },
+    {
+      "id": "g-l11",
+      "type": "group",
+      "x": 0,
+      "y": 13840,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 11 — Counting & Combinatorics"
+    },
+    {
+      "id": "l11-core",
+      "type": "text",
+      "x": 80,
+      "y": 13920,
+      "width": 300,
+      "height": 380,
+      "text": "## L11 — Counting the possibility space\nThe multiplication rule gives V^n sequences, so LLM output space can't be enumerated. C(n,k) counts subsets when order does not matter; the binomial P(k)=C(n,k)p^k(1-p)^(n-k), with mean np and variance np(1-p), turns k correct out of n prompts into a probability."
+    },
+    {
+      "id": "l11-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 13920,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Counts before probabilities\nPrevious lessons assumed the outcomes were already listed. Here the list itself is the problem: eval subsets, k-fold assignments and hash collisions are all counting questions, and the birthday effect shows duplicates arrive near sqrt(N), much sooner than intuition says."
+    },
+    {
+      "id": "l11-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 14360,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 12\nThe binomial count of correct answers is the first example of a random variable. Lesson 12 treats counts, latencies and losses as random variables and defines their expectation."
+    },
+    {
+      "id": "l11-file",
+      "type": "file",
+      "x": 450,
+      "y": 14360,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515010-counting-and-combinatorics.html"
+    },
+    {
+      "id": "g-l12",
+      "type": "group",
+      "x": 0,
+      "y": 15040,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 12 — Random Variables"
+    },
+    {
+      "id": "l12-core",
+      "type": "text",
+      "x": 80,
+      "y": 15120,
+      "width": 300,
+      "height": 380,
+      "text": "## L12 — Random Variables: Mean and Spread\nA random variable attaches a number to each outcome (tokens, latency, 0/1 correct). Expected value is the probability-weighted average; variance is the expected squared distance from it. E[aX+b] = aE[X]+b and E[X+Y] = E[X]+E[Y] even when dependent; Var(aX+b) = a^2 Var(X), and variances add for independent variables."
+    },
+    {
+      "id": "l12-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 15120,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Averages Get Quieter\nThe average of n independent runs keeps the mean but its variance shrinks to sigma^2/n, so its SD shrinks as sigma/sqrt(n). Quadrupling an eval set only halves the noise. Bernoulli sums re-derive the binomial: mean np, variance np(1-p)."
+    },
+    {
+      "id": "l12-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 15560,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 13\nDiscrete variables list their values; continuous ones like latency and confidence scores cannot, so the PMF becomes a density and sums become areas. Expected value and variance keep their meaning and the same combining rules."
+    },
+    {
+      "id": "l12-file",
+      "type": "file",
+      "x": 450,
+      "y": 15560,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515011-random-variables.html"
+    },
+    {
+      "id": "g-l13",
+      "type": "group",
+      "x": 0,
+      "y": 16240,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 13 — Continuous Distributions"
+    },
+    {
+      "id": "l13-core",
+      "type": "text",
+      "x": 80,
+      "y": 16320,
+      "width": 300,
+      "height": 380,
+      "text": "## L13 — Continuous distributions\nA continuous variable has probability 0 at any exact value; probability is area under the density, and the CDF accumulates that area so percentiles like p95 are read backwards from it. Uniform is flat on [a, b], exponential models the gap between events (mean 1/lambda, memoryless), gamma the wait for the k-th event (mean k/lambda, variance k/lambda^2), and beta a distribution over a probability on [0, 1] with mean alpha/(alpha+beta)."
+    },
+    {
+      "id": "l13-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 16320,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Height is not probability\nA density can be taller than 1 because only the area under it has to be at most 1. Beta(9, 3) and Beta(30, 10) share the mean 0.75 yet carry very different certainty, which is what an eval score alone hides."
+    },
+    {
+      "id": "l13-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 16760,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 14\nEach distribution here describes one quantity. Lesson 14 describes several at once with joint distributions, so latency, output length, and cost can be modelled together and their dependence measured."
+    },
+    {
+      "id": "l13-file",
+      "type": "file",
+      "x": 450,
+      "y": 16760,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515012-continuous-distributions.html"
+    },
+    {
+      "id": "g-l14",
+      "type": "group",
+      "x": 0,
+      "y": 17440,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 14 — Joint Distributions & Covariance"
+    },
+    {
+      "id": "l14-core",
+      "type": "text",
+      "x": 80,
+      "y": 17520,
+      "width": 300,
+      "height": 380,
+      "text": "## L14 — Joint Distributions & Covariance\nA joint distribution gives a probability to each combination of values; marginals come from summing rows or columns and conditionals from dividing a cell by a marginal. Independence means every cell equals the product of its marginals. Covariance measures co-movement, and dividing by both standard deviations gives Lesson 6's correlation."
+    },
+    {
+      "id": "l14-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 17520,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Chain rule is how LLMs factorize text\nP(x1..xn) = product of P(xi | x<i) is an identity, not an assumption, and it is exactly how an autoregressive model scores a sequence: 0.20 x 0.05 x 0.30 = 0.003. Var(X+Y) also gains a 2Cov term, so correlated pipeline stages have wider total latency than independence predicts."
+    },
+    {
+      "id": "l14-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 17960,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 15\nOnce you can handle several variables and sums of correlated pieces, the next question is what happens when you add up many pieces and must decide something from the result. Lesson 15 covers the limit theorems and hypothesis testing."
+    },
+    {
+      "id": "l14-file",
+      "type": "file",
+      "x": 450,
+      "y": 17960,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515013-joint-distributions.html"
+    },
+    {
+      "id": "g-l15",
+      "type": "group",
+      "x": 0,
+      "y": 18640,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 15 — Limit Theorems & Testing"
+    },
+    {
+      "id": "l15-core",
+      "type": "text",
+      "x": 80,
+      "y": 18720,
+      "width": 300,
+      "height": 380,
+      "text": "## L15 — Is the Difference Real?\nThe law of large numbers says averages settle on the truth with error shrinking like 1/sqrt(N). A hypothesis test assumes no difference, measures the gap in standard errors, and reports a p-value. Worked: 600/800 vs 640/800 gives z = 2.39, p = 0.017; latency 212 vs 198 ms gives t = 1.74, p = 0.086."
+    },
+    {
+      "id": "l15-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 18720,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Significant Is Not Big, Not Safe\nA p-value is the chance of the data given no difference, not the chance there is no difference. Huge test sets make trivial gaps significant, and testing 20 prompts gives a 64% chance of a false winner. Report effect size with its interval and correct for every comparison you ran."
+    },
+    {
+      "id": "l15-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 19160,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 16\nA p-value never answers 'how likely is it that B is better, given what I saw?' Flipping the condition with Bayes' Theorem and treating the unknown pass rate as a distribution is Bayesian inference."
+    },
+    {
+      "id": "l15-file",
+      "type": "file",
+      "x": 450,
+      "y": 19160,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515014-limit-theorems-and-hypothesis-testing.html"
+    },
+    {
+      "id": "g-l16",
+      "type": "group",
+      "x": 0,
+      "y": 19840,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 16 — Bayesian Inference"
+    },
+    {
+      "id": "l16-core",
+      "type": "text",
+      "x": 80,
+      "y": 19920,
+      "width": 300,
+      "height": 380,
+      "text": "## L16 — Bayesian updating on a model's accuracy\nPosterior is proportional to likelihood times prior, now applied to a parameter. A Beta(a,b) prior plus k correct of n gives Beta(a+k, b+n-k); Beta(8,2) with 6 of 10 gives Beta(14,6), mean 0.70, 95% credible interval 0.488 to 0.874. Yesterday's posterior is today's prior, and the posterior predictive for the next prompt is the posterior mean."
+    },
+    {
+      "id": "l16-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 19920,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Priors are pseudo-counts, regularization is a prior\nThe prior is worth a+b imagined observations, so a 10-prompt eval stays near it and a 1000-prompt eval overwhelms it. MAP is MLE pulled toward the prior, and an L2 penalty is MAP with a zero-mean Gaussian prior (lambda = 1/(2 tau^2)). A credible interval is a probability statement about the parameter; a confidence interval is a statement about the procedure."
+    },
+    {
+      "id": "l16-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 20360,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 17\nEvery posterior, like every p-value, assumes the eval data was a fair sample. Cherry-picked prompts, confounded group assignment, or leaked test items break the number no matter how it is analysed; Lesson 17 covers study design, confounding, and data leakage."
+    },
+    {
+      "id": "l16-file",
+      "type": "file",
+      "x": 450,
+      "y": 20360,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515015-bayesian-inference.html"
+    },
+    {
+      "id": "g-l17",
+      "type": "group",
+      "x": 0,
+      "y": 21040,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 17 — Study Design & Leakage"
+    },
+    {
+      "id": "l17-core",
+      "type": "text",
+      "x": 80,
+      "y": 21120,
+      "width": 300,
+      "height": 380,
+      "text": "## L17 — Fair comparison before fancy statistics\nA significance test cannot tell you whether the comparison was fair. Random sampling, random assignment, and a clean train/test split are what make the number mean what you think it means. Simpson's paradox shows a model winning overall while losing in every segment when the groups have different mixes."
+    },
+    {
+      "id": "l17-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 21120,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Leakage and sample ratio mismatch\nThe same dataset can yield 81.2% or 74.0% depending on 300 duplicated items. An A/B split of 5,200 vs 4,800 has chi-square 16, which is a broken test, not a small imbalance. Check design problems before computing lift."
+    },
+    {
+      "id": "l17-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 21560,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 18\nOnce the design is sound you still have one dataset. Resampling (the bootstrap and cross-validation) estimates uncertainty and out-of-sample performance by reusing the data you have."
+    },
+    {
+      "id": "l17-file",
+      "type": "file",
+      "x": 450,
+      "y": 21560,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515016-study-design-and-confounding.html"
+    },
+    {
+      "id": "g-l18",
+      "type": "group",
+      "x": 0,
+      "y": 22240,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 18 — Bootstrap & Cross-Validation"
+    },
+    {
+      "id": "l18-core",
+      "type": "text",
+      "x": 80,
+      "y": 22320,
+      "width": 300,
+      "height": 380,
+      "text": "## L18 — Resample to measure uncertainty and generalization\nThe bootstrap resamples your data with replacement to put an interval on any statistic (median latency 232 ms gave 205 to 410 ms) and, done on paired items, to compare two prompts. K-fold cross-validation scores a model on data it never trained on: five folds of 0.80, 0.85, 0.75, 0.90, 0.80 give a mean of 0.82 and a standard deviation of 0.057."
+    },
+    {
+      "id": "l18-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 22320,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Your data is the population\nA bootstrap sample holds about 63.2% (1 - 1/e) of the distinct items, and the method breaks for tiny n, the max, heavy tails and dependent data. Preprocessing before splitting leaks validation information into training, so every learned step goes inside the fold."
+    },
+    {
+      "id": "l18-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 22760,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into Lesson 19\nYou now know how to validate a fitted model and attach uncertainty to its score. Lesson 19 builds the models themselves: multiple regression, logistic regression for yes/no outcomes, and ANOVA for comparing groups."
+    },
+    {
+      "id": "l18-file",
+      "type": "file",
+      "x": 450,
+      "y": 22760,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515017-resampling-bootstrap-and-cross-validation.html"
+    },
+    {
+      "id": "g-l19",
+      "type": "group",
+      "x": 0,
+      "y": 23440,
+      "width": 830,
+      "height": 980,
+      "label": "Lesson 19 — Multiple, Logistic & ANOVA"
+    },
+    {
+      "id": "l19-core",
+      "type": "text",
+      "x": 80,
+      "y": 23520,
+      "width": 300,
+      "height": 380,
+      "text": "## L19 — Beyond a Single Line\nMultiple regression fits y = Xβ and reads each coefficient as 'holding the others fixed'; adjusted R² and VIFs guard against junk and collinear features. Logistic regression is linear in the log-odds then a sigmoid, fit with cross-entropy, and is the final layer of a classifier. One-way ANOVA tests 'is any mean different' with F = MSB/MSW (worked: F = 11.82, p = 0.0015)."
+    },
+    {
+      "id": "l19-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 23520,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Coefficients Depend on Company\nPrompt length had slope +4.28 alone and -0.75 beside passages; collinear features flip coefficients and inflate SEs from 0.50 to 12.44 while R² stays high. A logistic coefficient is an odds ratio (e^-0.9 = 0.407), not a probability change, and its intercept is the base rate as log-odds. ANOVA says some group differs, never which."
+    },
+    {
+      "id": "l19-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 23960,
+      "width": 300,
+      "height": 380,
+      "text": "## Where The Course Leaves You\nThis is the last lesson. Take the toolkit to your own data: regress logged eval scores and check VIFs, fit a logistic gate with a cost-based threshold, run ANOVA on multi-arm prompt tests. Beyond the course: regularized and generalized linear models, mixed-effects models, and causal inference for what regression alone cannot settle."
+    },
+    {
+      "id": "l19-file",
+      "type": "file",
+      "x": 450,
+      "y": 23960,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515018-multiple-and-logistic-regression.html"
     }
   ],
   "edges": [
@@ -786,6 +1191,258 @@
       "id": "e-spine-g-l9-g-l10",
       "fromNode": "g-l9",
       "toNode": "g-l10",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l11-core-l11-novelty",
+      "fromNode": "l11-core",
+      "toNode": "l11-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l11-core-l11-assoc",
+      "fromNode": "l11-core",
+      "toNode": "l11-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l11-core-l11-file",
+      "fromNode": "l11-core",
+      "toNode": "l11-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l10-g-l11",
+      "fromNode": "g-l10",
+      "toNode": "g-l11",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l12-core-l12-novelty",
+      "fromNode": "l12-core",
+      "toNode": "l12-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l12-core-l12-assoc",
+      "fromNode": "l12-core",
+      "toNode": "l12-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l12-core-l12-file",
+      "fromNode": "l12-core",
+      "toNode": "l12-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l11-g-l12",
+      "fromNode": "g-l11",
+      "toNode": "g-l12",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l13-core-l13-novelty",
+      "fromNode": "l13-core",
+      "toNode": "l13-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l13-core-l13-assoc",
+      "fromNode": "l13-core",
+      "toNode": "l13-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l13-core-l13-file",
+      "fromNode": "l13-core",
+      "toNode": "l13-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l12-g-l13",
+      "fromNode": "g-l12",
+      "toNode": "g-l13",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l14-core-l14-novelty",
+      "fromNode": "l14-core",
+      "toNode": "l14-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l14-core-l14-assoc",
+      "fromNode": "l14-core",
+      "toNode": "l14-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l14-core-l14-file",
+      "fromNode": "l14-core",
+      "toNode": "l14-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l13-g-l14",
+      "fromNode": "g-l13",
+      "toNode": "g-l14",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l15-core-l15-novelty",
+      "fromNode": "l15-core",
+      "toNode": "l15-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l15-core-l15-assoc",
+      "fromNode": "l15-core",
+      "toNode": "l15-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l15-core-l15-file",
+      "fromNode": "l15-core",
+      "toNode": "l15-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l14-g-l15",
+      "fromNode": "g-l14",
+      "toNode": "g-l15",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l16-core-l16-novelty",
+      "fromNode": "l16-core",
+      "toNode": "l16-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l16-core-l16-assoc",
+      "fromNode": "l16-core",
+      "toNode": "l16-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l16-core-l16-file",
+      "fromNode": "l16-core",
+      "toNode": "l16-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l15-g-l16",
+      "fromNode": "g-l15",
+      "toNode": "g-l16",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l17-core-l17-novelty",
+      "fromNode": "l17-core",
+      "toNode": "l17-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l17-core-l17-assoc",
+      "fromNode": "l17-core",
+      "toNode": "l17-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l17-core-l17-file",
+      "fromNode": "l17-core",
+      "toNode": "l17-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l16-g-l17",
+      "fromNode": "g-l16",
+      "toNode": "g-l17",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l18-core-l18-novelty",
+      "fromNode": "l18-core",
+      "toNode": "l18-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l18-core-l18-assoc",
+      "fromNode": "l18-core",
+      "toNode": "l18-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l18-core-l18-file",
+      "fromNode": "l18-core",
+      "toNode": "l18-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l17-g-l18",
+      "fromNode": "g-l17",
+      "toNode": "g-l18",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l19-core-l19-novelty",
+      "fromNode": "l19-core",
+      "toNode": "l19-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-l19-core-l19-assoc",
+      "fromNode": "l19-core",
+      "toNode": "l19-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-l19-core-l19-file",
+      "fromNode": "l19-core",
+      "toNode": "l19-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-l18-g-l19",
+      "fromNode": "g-l18",
+      "toNode": "g-l19",
       "fromSide": "bottom",
       "toSide": "top"
     }

@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Random Variables: Expectation, Variance &amp; the Rules for Combining Them</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 12 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Random Variables: Expectation, Variance &amp; the Rules for Combining Them</h1>
+<p class="subtitle">Token counts, latencies, and right-or-wrong scores are all numbers that change from run to run. This lesson gives you the two summaries that matter for any such number, and the rules for what happens when you scale, add, or average them.</p>
+
+<p>In Lesson 2 you summarized a pile of numbers you already had. In Lessons 3 and 4 you assigned probabilities to outcomes you hadn't seen yet. Now you join the two: attach a number to each uncertain outcome, and ask what that number does <em>on average</em> and <em>how much it wobbles</em>. Once you can do that, questions like "what does a request cost us?", "how long does the whole agent take?", and "how noisy is this eval score?" become short calculations instead of guesses.</p>
+
+<h2>1. A random variable is a number attached to an outcome</h2>
+
+<p>An outcome by itself ("the model produced this particular response") isn't a number. A <strong>random variable</strong> is a rule that turns each outcome into one. You pick the rule based on what you want to know about the response:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>X = tokens in the response</h4>
+    <p>Whatever text the model writes, X counts its tokens. Takes whole-number values. A <em>discrete</em> variable.</p>
+  </div>
+  <div class="card">
+    <h4>C = 1 if the answer is correct, else 0</h4>
+    <p>The Bernoulli variable from Lesson 4. One response in, a 0 or 1 out.</p>
+  </div>
+  <div class="card">
+    <h4>T = seconds until the response arrives</h4>
+    <p>Can be any value on a continuous scale, so it is a <em>continuous</em> variable. Lesson 13 handles those; this lesson stays with discrete ones.</p>
+  </div>
+</div>
+
+<p>The word "random" only means the value isn't known until the outcome happens. Before the request runs, X is uncertain. After it runs, you have one observed value, an ordinary number from Lesson 2. The distribution is the rule that tells you, in advance, how likely each value is.</p>
+
+<h2>2. The PMF and the CDF</h2>
+
+<p>For a discrete variable, the <strong>probability mass function (PMF)</strong> lists each possible value and its probability. The probabilities must sum to 1, the same requirement as in Lesson 3. Say a team logs a month of traffic on a support assistant and groups response lengths into four sizes:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Response size</th><th class="num">X (tokens)</th><th class="num">P(X = x)</th><th class="num">P(X &le; x)</th></tr></thead>
+  <tbody>
+    <tr><td>Short answer</td><td class="num">100</td><td class="num">0.4</td><td class="num">0.4</td></tr>
+    <tr><td>Normal answer</td><td class="num">200</td><td class="num">0.3</td><td class="num">0.7</td></tr>
+    <tr><td>Long answer</td><td class="num">400</td><td class="num">0.2</td><td class="num">0.9</td></tr>
+    <tr><td>Very long answer</td><td class="num">800</td><td class="num">0.1</td><td class="num">1.0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="step-box">
+<div class="line">0.4 + 0.3 + 0.2 + 0.1 = 1.0</div>
+</div>
+
+<p>The last column is the <strong>cumulative distribution function (CDF)</strong>: F(x) = P(X &le; x), the running total of the PMF. It answers "what fraction of responses are at most this long?" For example, F(400) = 0.4 + 0.3 + 0.2 = 0.9, so 90% of responses are 400 tokens or fewer. Flip it around and you get tail questions for free: P(X &gt; 400) = 1 &minus; F(400) = 0.1, the share of responses that run very long. Percentiles from Lesson 2, like p90, are just the CDF read backward.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  The PMF tells you how likely each exact value is. The CDF tells you how likely a value is to be <em>at most</em> some threshold. Latency budgets, max-token limits, and context-window limits are all threshold questions, so the CDF is usually the one you use in practice.
+</div>
+
+<h2>3. Expected value: the probability-weighted average</h2>
+
+<p>The <strong>expected value</strong> E[X] is each possible value multiplied by its probability, then summed. It is the mean of the distribution, the number the long-run average of observed values settles toward.</p>
+
+<div class="step-box">
+<div class="line">E[X] = 100(0.4) + 200(0.3) + 400(0.2) + 800(0.1)</div>
+<div class="line">     = 40 + 60 + 80 + 80</div>
+<div class="line result">     = 260 tokens</div>
+</div>
+
+<p>Note that 260 is not one of the four possible sizes. No single response is 260 tokens long. Expected value is a balance point, not a prediction of the next draw. The chart below shows it: the long right tail (the 800-token bar, only 10% of traffic) pulls the balance point well above the most common size.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 760 320" role="img" aria-label="Bar chart of the response-length PMF: 100 tokens at 0.4, 200 at 0.3, 400 at 0.2, 800 at 0.1, with a dashed line at the mean of 260 tokens and a shaded band one standard deviation either side.">
+  <rect x="99.4" y="40" width="337.2" height="220" fill="#6c8fff" opacity="0.10"/>
+  <line x1="60" y1="260" x2="740" y2="260" stroke="#94a3b8" stroke-width="1.5"/>
+  <line x1="60" y1="260" x2="60" y2="40" stroke="#94a3b8" stroke-width="1.5"/>
+  <text x="50" y="264" text-anchor="end" fill="#94a3b8" font-size="12">0</text>
+  <text x="50" y="160" text-anchor="end" fill="#94a3b8" font-size="12">0.2</text>
+  <text x="50" y="56" text-anchor="end" fill="#94a3b8" font-size="12">0.4</text>
+  <line x1="56" y1="156" x2="60" y2="156" stroke="#94a3b8"/>
+  <line x1="56" y1="52" x2="60" y2="52" stroke="#94a3b8"/>
+  <text x="20" y="150" fill="#94a3b8" font-size="12" transform="rotate(-90 20 150)" text-anchor="middle">P(X = x)</text>
+
+  <rect x="118" y="52" width="44" height="208" fill="#6c8fff" rx="3"/>
+  <rect x="198" y="104" width="44" height="156" fill="#6c8fff" rx="3"/>
+  <rect x="358" y="156" width="44" height="104" fill="#6c8fff" rx="3"/>
+  <rect x="678" y="208" width="44" height="52" fill="#6c8fff" rx="3"/>
+  <text x="140" y="44" text-anchor="middle" fill="#e2e8f0" font-size="13">0.4</text>
+  <text x="220" y="96" text-anchor="middle" fill="#e2e8f0" font-size="13">0.3</text>
+  <text x="380" y="148" text-anchor="middle" fill="#e2e8f0" font-size="13">0.2</text>
+  <text x="700" y="200" text-anchor="middle" fill="#e2e8f0" font-size="13">0.1</text>
+  <text x="140" y="280" text-anchor="middle" fill="#94a3b8" font-size="13">100</text>
+  <text x="220" y="280" text-anchor="middle" fill="#94a3b8" font-size="13">200</text>
+  <text x="380" y="280" text-anchor="middle" fill="#94a3b8" font-size="13">400</text>
+  <text x="700" y="280" text-anchor="middle" fill="#94a3b8" font-size="13">800</text>
+  <text x="400" y="306" text-anchor="middle" fill="#94a3b8" font-size="13">tokens in response (x axis to scale)</text>
+
+  <line x1="268" y1="34" x2="268" y2="260" stroke="#fbbf24" stroke-width="2.5" stroke-dasharray="6 4"/>
+  <text x="276" y="30" fill="#fbbf24" font-size="14" font-weight="700">mean = 260</text>
+  <text x="276" y="232" fill="#a78bfa" font-size="12">&plusmn;1 SD (211)</text>
+  <line x1="99.4" y1="238" x2="436.6" y2="238" stroke="#a78bfa" stroke-width="1.5"/>
+</svg>
+<p class="viz-caption">PMF of response length. Dashed line: the mean, 260 tokens. Shaded band: one standard deviation (about 211) either side of the mean, from the calculation in section 4.</p>
+</div>
+
+<h3>Worked example: expected cost per request</h3>
+
+<p>A team prices a request in micro-dollars (&micro;$): a fixed 400 &micro;$ for processing the prompt, plus 2 &micro;$ for every output token. These prices are illustrative. The cost of a request is itself a random variable, <strong>Y = 2X + 400</strong>. To find E[Y] you could compute the cost of each size and weight it:</p>
+
+<div class="step-box">
+<div class="line">Cost of each size:  100 &rarr; 600,  200 &rarr; 800,  400 &rarr; 1,200,  800 &rarr; 2,000</div>
+<div class="line">E[Y] = 600(0.4) + 800(0.3) + 1,200(0.2) + 2,000(0.1)</div>
+<div class="line">     = 240 + 240 + 240 + 200</div>
+<div class="line result">     = 920 &micro;$</div>
+</div>
+
+<p>The linearity rule in section 5 gets the same answer without the table: 2(260) + 400 = 920. At 1,000,000 requests a month, the expected bill is 920,000,000 &micro;$, which is $920. Expected value is how you turn a per-request distribution into a budget.</p>
+
+<h2>4. Variance and standard deviation of a random variable</h2>
+
+<p>Lesson 2 defined variance as the average squared distance from the mean, computed over a dataset you hold. The definition for a random variable is the same idea with probabilities as the weights:</p>
+
+<div class="step-box">
+<div class="line">Var(X) = E[(X &minus; &mu;)&sup2;]    where &mu; = E[X]</div>
+</div>
+
+<p>For the response-length variable, with &mu; = 260:</p>
+
+<div class="step-box">
+<div class="line">x     x &minus; 260    (x &minus; 260)&sup2;    &times; P(x)</div>
+<div class="line">100    &minus;160       25,600      &times; 0.4 = 10,240</div>
+<div class="line">200     &minus;60        3,600      &times; 0.3 =  1,080</div>
+<div class="line">400    +140       19,600      &times; 0.2 =  3,920</div>
+<div class="line">800    +540      291,600      &times; 0.1 = 29,160</div>
+<div class="line"> </div>
+<div class="line">Var(X) = 10,240 + 1,080 + 3,920 + 29,160 = 44,400 tokens&sup2;</div>
+<div class="line result">SD(X) = &radic;44,400 &asymp; 210.7 tokens</div>
+</div>
+
+<p>The 800-token bar carries 29,160 of the 44,400, two thirds of the total, from just 10% of traffic. The squaring from Lesson 2 does what it always does: rare large deviations dominate. A handy equivalent form is Var(X) = E[X&sup2;] &minus; (E[X])&sup2;. Check: E[X&sup2;] = 10,000(0.4) + 40,000(0.3) + 160,000(0.2) + 640,000(0.1) = 4,000 + 12,000 + 32,000 + 64,000 = 112,000, and 112,000 &minus; 260&sup2; = 112,000 &minus; 67,600 = 44,400. Same result.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Population quantity vs. sample statistic</span>
+  The 44,400 above is a property of the <em>distribution</em>, computed from known probabilities. It is a fixed number, not something you measure with error. In practice you never know the true probabilities. You log, say, 5,000 requests and compute a variance from those, which is a <strong>sample statistic</strong>: an estimate of the distribution's variance that changes each time you draw a new sample. That is the gap Lesson 5 is about. (When you estimate variance from a sample, the standard recipe divides by n &minus; 1 instead of n. The sample-versus-population difference is why.)
+</div>
+
+<h2>5. Linearity of expectation</h2>
+
+<p>You already used this rule above. For any constants a and b, and any random variables X and Y:</p>
+
+<div class="step-box">
+<div class="line">E[aX + b] = a&middot;E[X] + b</div>
+<div class="line">E[X + Y]  = E[X] + E[Y]</div>
+</div>
+
+<p>The cost example is the first rule: E[2X + 400] = 2(260) + 400 = 920, matching the table calculation. Scaling the variable scales its mean; adding a constant shifts it.</p>
+
+<p>The second rule is the surprising one: <strong>it holds even when X and Y are dependent.</strong> No independence assumption is needed. Suppose an agent writes a reply, then a follow-up whose length always matches the first (an extreme dependence: knowing X tells you Y exactly). The total is X + X:</p>
+
+<div class="step-box">
+<div class="line">E[X + X] = E[X] + E[X] = 260 + 260</div>
+<div class="line result">         = 520 tokens</div>
+</div>
+
+<p>Direct check: the total is 200, 400, 800, or 1,600 with probabilities 0.4, 0.3, 0.2, 0.1, so E = 80 + 120 + 160 + 160 = 520. It works because expectation is just a weighted sum, and sums of weighted sums rearrange freely. This is why you can budget a multi-step workflow by adding up the expected cost of each step without first untangling how the steps influence each other.</p>
+
+<h2>6. How scaling and shifting change variance</h2>
+
+<p>Variance does not follow the same rules as the mean:</p>
+
+<div class="step-box">
+<div class="line">Var(aX + b) = a&sup2; &middot; Var(X)</div>
+</div>
+
+<p>Two things happen. Adding a constant b slides every value by the same amount, so the spread doesn't change: b drops out. Multiplying by a stretches every distance from the mean by a, and variance squares distances, so it grows by a&sup2;. Apply it to the cost variable Y = 2X + 400:</p>
+
+<div class="step-box">
+<div class="line">Var(Y) = 2&sup2; &times; 44,400 = 4 &times; 44,400 = 177,600 &micro;$&sup2;</div>
+<div class="line result">SD(Y) = &radic;177,600 &asymp; 421.4 &micro;$   (= 2 &times; 210.7)</div>
+</div>
+
+<p>The standard deviation scales by |a| and ignores b. The fixed prompt cost of 400 &micro;$ raises the average bill but adds nothing to its unpredictability. Only the part that varies, the output tokens, contributes spread.</p>
+
+<h2>7. Sums of independent variables: variances add</h2>
+
+<p>Now the sum of <em>different</em> variables. If X and Y are <strong>independent</strong> (the idea from Lesson 3: knowing one tells you nothing about the other):</p>
+
+<div class="step-box">
+<div class="line">Var(X + Y) = Var(X) + Var(Y)        (if independent)</div>
+</div>
+
+<p>Take a three-step agent: retrieve documents, call the LLM, then run a tool. Suppose a team measures each step and finds the following, treating the three as independent:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Step</th><th class="num">Mean (ms)</th><th class="num">SD (ms)</th><th class="num">Variance (ms&sup2;)</th></tr></thead>
+  <tbody>
+    <tr><td>Retrieval</td><td class="num">120</td><td class="num">30</td><td class="num">900</td></tr>
+    <tr><td>LLM call</td><td class="num">800</td><td class="num">200</td><td class="num">40,000</td></tr>
+    <tr><td>Tool call</td><td class="num">80</td><td class="num">40</td><td class="num">1,600</td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="step-box">
+<div class="line">Mean total = 120 + 800 + 80                     = 1,000 ms</div>
+<div class="line">Var total  = 900 + 40,000 + 1,600               = 42,500 ms&sup2;</div>
+<div class="line result">SD total   = &radic;42,500 &asymp; 206 ms</div>
+<div class="line"> </div>
+<div class="line">Not: 30 + 200 + 40 = 270 ms   (standard deviations do not add)</div>
+</div>
+
+<p>Add the means, add the variances, then take the square root. The total SD of 206 ms is barely above the LLM step's own 200 ms: the LLM call accounts for 40,000 of the 42,500 units of variance. If you wanted to make the whole pipeline more predictable, tuning retrieval from 30 ms SD to 10 ms SD would change the total variance from 42,500 to 41,700. Almost nothing. The variance table tells you where effort pays off.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  The variance-adds rule needs independence; the mean-adds rule doesn't. Return to the fully dependent two-reply example: the total is X + X = 2X, so Var(2X) = 4 &times; 44,400 = 177,600. If the two replies had been independent, you'd get 44,400 + 44,400 = 88,800. Dependence doubled the variance. In real pipelines, steps often share a cause (a slow network, a loaded GPU, a long user question that inflates every step), so adding variances can <em>underestimate</em> the true spread of the total. The mean of the total stays correct either way.
+</div>
+
+<h2>8. Building the binomial from Bernoulli variables</h2>
+
+<p>These rules let you re-derive the mean and variance from Lesson 11's binomial without any counting. One eval question scored 1 if the model is right and 0 otherwise is a Bernoulli variable C with success probability p:</p>
+
+<div class="step-box">
+<div class="line">E[C]   = 1(p) + 0(1 &minus; p) = p</div>
+<div class="line">E[C&sup2;]  = 1&sup2;(p) + 0&sup2;(1 &minus; p) = p        (0 and 1 square to themselves)</div>
+<div class="line result">Var(C) = p &minus; p&sup2; = p(1 &minus; p)</div>
+</div>
+
+<p>Score n independent questions and count the correct ones: the count is C&#8321; + C&#8322; + &hellip; + C&#8345;. Linearity gives the mean by adding n copies of p, and independence lets the variances add:</p>
+
+<div class="step-box">
+<div class="line">E[count]   = n &middot; p</div>
+<div class="line">Var(count) = n &middot; p(1 &minus; p)</div>
+<div class="line"> </div>
+<div class="line">n = 50, p = 0.8:  mean = 40,  variance = 50 &times; 0.16 = 8,  SD = &radic;8 &asymp; 2.83</div>
+</div>
+
+<p>So a model that is truly right 80% of the time scores 40 out of 50 on average, but a typical run lands within about 3 questions of that on either side. The formulas are the ones from Lesson 11; this is where they come from.</p>
+
+<h2>9. Averages of many independent runs are less variable</h2>
+
+<p>Now divide a sum by n to get an average. The average of n independent copies of a variable with mean &mu; and variance &sigma;&sup2; is (1/n) times the sum, so the rules above give:</p>
+
+<div class="step-box">
+<div class="line">E[average]   = (1/n) &middot; n&mu;       = &mu;</div>
+<div class="line">Var(average) = (1/n)&sup2; &middot; n&sigma;&sup2;  = &sigma;&sup2; / n</div>
+<div class="line">SD(average)  = &sigma; / &radic;n</div>
+</div>
+
+<p>The average keeps the same mean but its spread shrinks with the square root of n. Using the LLM step from the pipeline (SD 200 ms), averaging more runs of the same call gives:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th class="num">Runs averaged (n)</th><th class="num">SD of the average</th></tr></thead>
+  <tbody>
+    <tr><td class="num">1</td><td class="num">200 / &radic;1 = 200 ms</td></tr>
+    <tr><td class="num">4</td><td class="num">200 / 2 = 100 ms</td></tr>
+    <tr><td class="num">25</td><td class="num">200 / 5 = 40 ms</td></tr>
+    <tr><td class="num">100</td><td class="num">200 / 10 = 20 ms</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The same applies to eval scores. A single question has SD &radic;(0.8 &times; 0.2) = 0.4 around its mean of 0.8. Averaged over 100 independent questions, the accuracy has SD 0.4 / &radic;100 = 0.04. That is the 4 percentage points of noise you should expect between two runs of the same model on two fresh 100-question sets. Over 400 questions it drops to 0.4 / 20 = 0.02. Quadrupling the data only halves the noise, which is why chasing small accuracy differences gets expensive fast.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  The mean of an average stays put; its variance falls as 1/n. That is the reason repeated measurement works at all: independent errors partly cancel. It is also the shrinking spread behind Lesson 5's sampling error, and it sets up the next question: not just how wide the average's spread is, but what shape it takes as n grows.
+</div>
+
+<h2>10. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Almost every number you track in an AI system is a random variable, and every decision about cost, latency, and quality is a statement about its mean and its spread.
+</div>
+
+<h3>Budgeting with expectation, planning with variance</h3>
+<p>Linearity means cost and token budgets for multi-step workflows are sums of per-step expectations, no matter how the steps interact. But a budget built on the mean alone hides the tail: in the example, 10% of requests cost 2,000 &micro;$, more than double the 920 &micro;$ average. Check the CDF as well as the mean.</p>
+
+<h3>Latency: find the step that owns the variance</h3>
+<p>Because independent variances add, you can decompose a pipeline's unpredictability step by step, as in the three-step table. Work on the step with the largest variance, and be suspicious of the independence assumption when steps share infrastructure.</p>
+
+<h3>Eval noise: know your error bar before you compare models</h3>
+<p>An accuracy from n questions has SD around &radic;(p(1 &minus; p) / n). If two models differ by less than a couple of those SDs, you may be looking at noise. Lesson 9 turns this into a proper comparison; here you have the quantity it is built on.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>A <strong>random variable</strong> attaches a number to each outcome (tokens, latency, correct/incorrect). The <strong>PMF</strong> gives each value's probability; the <strong>CDF</strong> gives P(X &le; x).</li>
+  <li><strong>E[X]</strong> is the probability-weighted average. In the example it is 260 tokens, a balance point that is not itself a possible value.</li>
+  <li><strong>Var(X) = E[(X &minus; &mu;)&sup2;]</strong> is a fixed property of the distribution, not the noisy sample variance you compute from logged data.</li>
+  <li><strong>Linearity:</strong> E[aX + b] = aE[X] + b, and E[X + Y] = E[X] + E[Y] even if X and Y are dependent.</li>
+  <li><strong>Variance:</strong> Var(aX + b) = a&sup2;Var(X); for <em>independent</em> variables, variances add (standard deviations don't). Dependence breaks the variance rule but not the mean rule.</li>
+  <li>The average of n independent runs has the same mean and variance &sigma;&sup2;/n, so its SD shrinks as &sigma;/&radic;n.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. A response-length variable has P(100 tokens) = 0.4, P(200) = 0.3, P(400) = 0.2, P(800) = 0.1. What is the CDF value F(400)?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">0.9 &mdash; the probability the response is at most 400 tokens</div>
+    <div class="quiz-opt">0.2 &mdash; the probability of exactly 400 tokens</div>
+    <div class="quiz-opt">0.1 &mdash; the probability the response is longer than 400 tokens</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. For that distribution E[X] = 260 tokens. A new pricing charges 3 &micro;$ per token plus a fixed 50 &micro;$, so cost = 3X + 50. What is the expected cost?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">780 &micro;$</div>
+    <div class="quiz-opt">260 &micro;$</div>
+    <div class="quiz-opt">830 &micro;$</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. Var(X) = 44,400. What is Var(3X + 50)?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">133,250</div>
+    <div class="quiz-opt">399,600</div>
+    <div class="quiz-opt">133,200</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A pipeline has three independent steps with SDs of 30 ms, 200 ms, and 40 ms. What is the SD of the total time?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">270 ms &mdash; add the standard deviations</div>
+    <div class="quiz-opt">42,500 ms &mdash; add the variances and stop</div>
+    <div class="quiz-opt">About 206 ms &mdash; add the variances, then take the square root</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. One eval question has SD 0.4 (a 0/1 score with p = 0.8). If you average the scores of 100 independent questions, what is the SD of the average?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">0.04, because SD shrinks by &radic;100 = 10</div>
+    <div class="quiz-opt">0.004, because SD shrinks by 100</div>
+    <div class="quiz-opt">0.4, because averaging changes the mean but not the spread</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<h2>Leads into Lesson 13</h2>
+<p>Everything here used discrete variables: a short list of values, each with its own probability. Latency, a model's confidence score, and a gradient's size can take any value in a range, and there the "probability of exactly this value" is effectively zero. Lesson 13 replaces the PMF with a density and the sums with areas. Expected value and variance carry over unchanged in meaning, and so do all the rules above.</p>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Random_variable" target="_blank">Random variable &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Expected_value" target="_blank">Expected value &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Variance" target="_blank">Variance &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Cumulative_distribution_function" target="_blank">Cumulative distribution function &mdash; Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — re-think what each rule does to the mean, the variance, and independence, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

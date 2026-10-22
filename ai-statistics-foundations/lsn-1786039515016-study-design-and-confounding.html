@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Study Design: Randomization, Confounding &amp; Data Leakage</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 17 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Study Design: Randomization, Confounding &amp; Data Leakage</h1>
+<p class="subtitle">Every test and interval in Lessons 9, 15 and 16 assumes the data was collected fairly. This lesson is about how it gets collected, and the three ways an AI evaluation quietly produces a number that means less than it looks like.</p>
+
+<p>Lesson 15 gave you the machinery for asking whether a difference is bigger than noise. That machinery answers one question: <em>if the data came from a fair comparison, is the gap real?</em> It cannot tell you whether the comparison was fair. A significance test run on a biased sample, a confounded comparison, or a leaked test set returns a small p-value with total confidence, and it is wrong. <strong>Study design</strong> is the work you do before the test so that the number you compute answers the question you asked.</p>
+
+<h2>1. Random sampling vs. a convenience sample</h2>
+
+<p>Lesson 5 showed that a random sample's error shrinks as it grows. That promise only holds if the sample is <strong>random</strong>: every item in the population had a known chance of being picked. A <strong>convenience sample</strong> is whatever was easiest to grab, and a bigger one does not fix it. You just get a more precise estimate of the wrong quantity. The gap between what you measured and what you wanted is <strong>selection bias</strong>.</p>
+
+<p>Say a support team wants to know how often a new ticket-answering model resolves a ticket correctly. Ticket volume splits 55% easy (password resets, billing lookups) and 45% hard (multi-step bugs). In truth the model is right 92% of the time on easy tickets and 64% on hard ones. An engineer builds the eval set from tickets that already have a clean, short, agent-approved reply, because those are the ones with an obvious reference answer. That set is almost all easy tickets.</p>
+
+<div class="step-box">
+<div class="line">True accuracy over all tickets:</div>
+<div class="line">  0.55 &times; 0.92 + 0.45 &times; 0.64 = 0.506 + 0.288</div>
+<div class="line result">  = 0.794  →  79.4%</div>
+<div class="line"> </div>
+<div class="line">Accuracy on the convenience set (easy tickets only):</div>
+<div class="line result">  0.92  →  92.0%</div>
+</div>
+
+<p>The eval reports 92% for a system that is right about 79% of the time in production, a 12.6-point overstatement. Collecting 100,000 convenience tickets instead of 1,000 would not change it. A random draw from the live ticket stream would have: each ticket, easy or hard, shows up in proportion to how often it occurs.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Eval sets built from "prompts we already have good answers for," "prompts the team wrote," or "conversations users rated" are convenience samples. Each is filtered by something related to difficulty or satisfaction, so it will not look like production traffic.
+</div>
+
+<h2>2. Observational study vs. randomized experiment</h2>
+
+<p>Lesson 6 warned that correlation is not causation. Study design says what to do about it. In an <strong>observational study</strong> you watch what happened and compare groups that formed on their own: tickets that went to the new model versus tickets that went to the old one. In a <strong>randomized experiment</strong> you decide the group for each unit by a random mechanism, such as a coin flip, so nothing about the unit can influence which group it lands in.</p>
+
+<p>Only the experiment supports a causal claim, and the reason is mechanical. If a coin decides which model handles a ticket, then on average the two groups hold the same mix of easy and hard tickets, the same users, the same times of day, and the same things nobody thought to measure. The only systematic difference left is the model. In an observational comparison the groups differ in the model <em>and</em> in whatever caused them to be assigned differently, and the data cannot separate the two.</p>
+
+<h2>3. Confounding</h2>
+
+<p>A <strong>confounder</strong> is a variable that influences both the treatment (which model, which prompt) and the outcome (resolved correctly, user satisfied). When it does, the raw comparison mixes the treatment's effect with the confounder's. Lesson 6's emoji-and-toxicity example was the same shape, with casual register as the confounder.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 760 300" role="img" aria-label="Two causal diagrams. Left, observational: ticket difficulty points to model assignment and to resolution, so the model-to-resolution link is confounded. Right, randomized: a coin flip alone decides the model, ticket difficulty points only to resolution, and the model-to-resolution link is clean.">
+  <defs>
+    <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#94a3b8"/></marker>
+    <marker id="arR" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#f87171"/></marker>
+    <marker id="arG" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0,0 L10,5 L0,10 z" fill="#34d399"/></marker>
+  </defs>
+  <text x="190" y="24" fill="#f87171" font-size="15" font-weight="700" text-anchor="middle" font-family="sans-serif">Observational: confounded</text>
+  <text x="570" y="24" fill="#34d399" font-size="15" font-weight="700" text-anchor="middle" font-family="sans-serif">Randomized: coin flip assigns</text>
+
+  <!-- left panel -->
+  <rect x="115" y="44" width="150" height="46" rx="8" fill="#242736" stroke="#fbbf24" stroke-width="2"/>
+  <text x="190" y="64" fill="#e2e8f0" font-size="13" font-weight="700" text-anchor="middle" font-family="sans-serif">Ticket difficulty</text>
+  <text x="190" y="80" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="sans-serif">confounder</text>
+
+  <rect x="20" y="200" width="150" height="46" rx="8" fill="#242736" stroke="#6c8fff" stroke-width="2"/>
+  <text x="95" y="220" fill="#e2e8f0" font-size="13" font-weight="700" text-anchor="middle" font-family="sans-serif">Model version</text>
+  <text x="95" y="236" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="sans-serif">treatment</text>
+
+  <rect x="215" y="200" width="150" height="46" rx="8" fill="#242736" stroke="#a78bfa" stroke-width="2"/>
+  <text x="290" y="220" fill="#e2e8f0" font-size="13" font-weight="700" text-anchor="middle" font-family="sans-serif">Resolved?</text>
+  <text x="290" y="236" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="sans-serif">outcome</text>
+
+  <line x1="160" y1="92" x2="110" y2="196" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="220" y1="92" x2="275" y2="196" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="172" y1="223" x2="211" y2="223" stroke="#f87171" stroke-width="2.5" stroke-dasharray="5 4" marker-end="url(#arR)"/>
+  <text x="60" y="140" fill="#94a3b8" font-size="11" font-family="sans-serif">easy tickets</text>
+  <text x="60" y="154" fill="#94a3b8" font-size="11" font-family="sans-serif">go to new model</text>
+  <text x="262" y="140" fill="#94a3b8" font-size="11" font-family="sans-serif">easy tickets</text>
+  <text x="262" y="154" fill="#94a3b8" font-size="11" font-family="sans-serif">resolve more</text>
+  <text x="190" y="274" fill="#f87171" font-size="12" text-anchor="middle" font-family="sans-serif">dashed link: real effect, or just difficulty?</text>
+
+  <!-- right panel -->
+  <rect x="495" y="44" width="150" height="46" rx="8" fill="#242736" stroke="#fbbf24" stroke-width="2"/>
+  <text x="570" y="64" fill="#e2e8f0" font-size="13" font-weight="700" text-anchor="middle" font-family="sans-serif">Ticket difficulty</text>
+  <text x="570" y="80" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="sans-serif">still varies, but is balanced</text>
+
+  <rect x="400" y="200" width="150" height="46" rx="8" fill="#242736" stroke="#6c8fff" stroke-width="2"/>
+  <text x="475" y="220" fill="#e2e8f0" font-size="13" font-weight="700" text-anchor="middle" font-family="sans-serif">Model version</text>
+  <text x="475" y="236" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="sans-serif">treatment</text>
+
+  <rect x="595" y="200" width="150" height="46" rx="8" fill="#242736" stroke="#a78bfa" stroke-width="2"/>
+  <text x="670" y="220" fill="#e2e8f0" font-size="13" font-weight="700" text-anchor="middle" font-family="sans-serif">Resolved?</text>
+  <text x="670" y="236" fill="#94a3b8" font-size="11" text-anchor="middle" font-family="sans-serif">outcome</text>
+
+  <rect x="400" y="110" width="100" height="34" rx="17" fill="#242736" stroke="#34d399" stroke-width="2"/>
+  <text x="450" y="132" fill="#e2e8f0" font-size="12" font-weight="700" text-anchor="middle" font-family="sans-serif">coin flip</text>
+
+  <line x1="450" y1="146" x2="465" y2="196" stroke="#34d399" stroke-width="2" marker-end="url(#arG)"/>
+  <line x1="600" y1="92" x2="655" y2="196" stroke="#94a3b8" stroke-width="2" marker-end="url(#ar)"/>
+  <line x1="552" y1="223" x2="591" y2="223" stroke="#34d399" stroke-width="2.5" marker-end="url(#arG)"/>
+  <line x1="540" y1="92" x2="500" y2="130" stroke="#94a3b8" stroke-width="2" stroke-dasharray="3 4" opacity="0.5"/>
+  <text x="528" y="122" fill="#f87171" font-size="20" font-weight="700" font-family="sans-serif">&#215;</text>
+  <text x="570" y="274" fill="#34d399" font-size="12" text-anchor="middle" font-family="sans-serif">difficulty no longer decides who gets which model</text>
+</svg>
+<p class="viz-caption">Randomization cuts the arrow from the confounder into the treatment. What is left of the model-to-outcome link can be read as the model's effect.</p>
+</div>
+
+<p>Confounders are not always bad data. Here, routing easy tickets to the cheaper new model was a sensible product decision. It just makes the two groups incomparable.</p>
+
+<h2>4. Simpson's paradox: a model that wins overall and loses everywhere</h2>
+
+<p>A team rolls out a new ticket model. It handles 350 tickets and the old model handles 350. Both groups are the same size, but the new model was routed mostly easy tickets and the old model kept the hard ones. Here are the resolved-correctly counts, with each rate checked as correct divided by tickets:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Segment</th><th class="num">Old model</th><th class="num">New model</th><th>Winner</th></tr></thead>
+  <tbody>
+    <tr><td>Easy tickets</td><td class="num">81 / 87 = 93.1%</td><td class="num">234 / 270 = 86.7%</td><td>Old</td></tr>
+    <tr><td>Hard tickets</td><td class="num">192 / 263 = 73.0%</td><td class="num">55 / 80 = 68.8%</td><td>Old</td></tr>
+    <tr><td><strong>All tickets</strong></td><td class="num">273 / 350 = 78.0%</td><td class="num">289 / 350 = 82.6%</td><td><strong>New</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="step-box">
+<div class="line">Old total: 81 + 192 = 273 correct of 87 + 263 = 350</div>
+<div class="line">New total: 234 + 55 = 289 correct of 270 + 80 = 350</div>
+<div class="line"> </div>
+<div class="line">Share of each group that was easy:</div>
+<div class="line">  Old: 87 / 350  = 24.9%     New: 270 / 350 = 77.1%</div>
+<div class="line result">The new model's overall rate is built mostly from the easy segment.</div>
+</div>
+
+<p>This is <strong>Simpson's paradox</strong>: the old model wins in every segment and the new one wins overall. Nothing is miscalculated. The overall rate is a weighted average of the segment rates, and the weights differ between the two groups. The new model's 82.6% is mostly easy-ticket performance (77.1% weight on a segment where everyone scores well). The old model's 78.0% is dragged down by carrying 75.1% hard tickets.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  When groups were formed by something related to the outcome, the aggregate tells you about the mix as much as about the treatment. The fix is not "always split by segment." You also need to know which variable is the confounder. Splitting by a variable that sits <em>downstream</em> of the treatment can create the paradox instead of removing it. A causal diagram, as in the figure above, is how you decide which comparison to trust.
+</div>
+
+<h2>5. Randomizing an A/B test of prompts or models</h2>
+
+<p>The clean way out is to run the comparison as an experiment. Say you are testing prompt variant A against variant B on live traffic. Design choices decide whether the result is trustworthy:</p>
+
+<h3>Choose the unit of randomization</h3>
+<p>If you assign <strong>by request</strong>, the same user can see both variants. That is fine when requests are independent and the user will not notice, but it breaks if one variant's behavior shapes the next request (a user who got a bad answer retries, and the retry is counted as a fresh request). If you assign <strong>by user</strong>, each user sees one variant for the whole test, which avoids that carry-over and is the usual choice for chat products. The cost is fewer independent units: 4,000 users with 20 requests each give you about 4,000 independent observations, not 80,000, because requests from one user are correlated. Analyze at the unit you randomized.</p>
+
+<h3>Stratify and block</h3>
+<p>Pure coin-flipping balances groups only on average, and in a small test chance can put too many heavy users in one arm. <strong>Stratified</strong> randomization splits the population by a variable you know matters (language, plan tier, ticket difficulty) and randomizes inside each stratum. <strong>Blocking</strong> is the same idea applied to assignment order: within each stratum, assign in small shuffled blocks so the arms stay equal in size throughout. With 1,000 users, 700 English and 300 other languages, stratifying gives 350 and 350 English users and 150 and 150 others, so language cannot tilt either arm.</p>
+
+<h3>Check the split before you read the result: sample ratio mismatch</h3>
+<p>If you designed a 50/50 split, the assignment counts should be close to 50/50. If they are not, something upstream is broken: a variant crashes for some clients, a cache serves one arm preferentially, a bot filter removes more of one arm. That is a <strong>sample ratio mismatch (SRM)</strong>, and it means the groups are no longer comparable, whatever the metric says. A test with 10,000 users shows 5,200 in A and 4,800 in B. Compare the counts to the 5,000 expected in each arm with a chi-square goodness-of-fit test (the same idea as the z-test in Lesson 15: how far is the observed from the expected, in units of chance variation?):</p>
+
+<div class="step-box">
+<div class="line">&chi;&sup2; = (5200 &minus; 5000)&sup2;/5000 + (4800 &minus; 5000)&sup2;/5000</div>
+<div class="line">   = 40,000/5000 + 40,000/5000 = 8 + 8</div>
+<div class="line result">   = 16   (1 degree of freedom, p &asymp; 0.00006)</div>
+</div>
+
+<p>A 52/48 split looks harmless, but a gap this large arising by chance has a probability around 6 in 100,000. Treat the test as invalid until you find the cause. Check this first, before computing any lift.</p>
+
+<h2>6. Train/test contamination and data leakage</h2>
+
+<p>An eval set is only useful if the model has never seen it. <strong>Data leakage</strong> is any path by which information from the test set, or from the future, reaches the model during training or selection. The reported score then measures memory, not ability. Three common routes:</p>
+
+<div class="grid-2">
+  <div class="card">
+    <h4>Duplicates across splits</h4>
+    <p>The same or near-identical item sits in both train and test: repeated support tickets, copied forum threads, an eval prompt published online and scraped into pretraining data. The model recalls instead of generalizing.</p>
+  </div>
+  <div class="card">
+    <h4>Time leakage</h4>
+    <p>A random split of data that has a time order lets the model train on March and be tested on February. In production it only ever predicts forward, so split by date: train on the past, test on the future.</p>
+  </div>
+  <div class="card">
+    <h4>Target leakage</h4>
+    <p>A feature contains the answer, or a proxy for it. A churn model that sees "account closed flag" or a refund-processed field is not predicting; it is reading the label from another column.</p>
+  </div>
+</div>
+
+<p>Here is how much duplicates alone can inflate a score. A team's test set has 1,000 items. Unknown to them, 300 are exact copies of training items. The model recalls those 98% of the time. On the 700 genuinely unseen items it is right 74% of the time.</p>
+
+<div class="step-box">
+<div class="line">Reported accuracy = 0.30 &times; 0.98 + 0.70 &times; 0.74</div>
+<div class="line">                  = 0.294 + 0.518</div>
+<div class="line result">                  = 0.812  →  81.2%</div>
+<div class="line"> </div>
+<div class="line">True accuracy on unseen data: 74.0%</div>
+<div class="line result">Inflation: 81.2% &minus; 74.0% = 7.2 points</div>
+</div>
+
+<p>That 7-point gap is larger than most differences teams ship on. It is also easy to miss: nothing errors, the score simply looks good. Remove the duplicates by exact match and by near-match (normalized text, embedding similarity above a threshold) before trusting a score, and keep the test set out of every choice you make, including prompt tuning and checkpoint selection. Lesson 8 covered overfitting to the training set; repeatedly tuning against one test set overfits to that set in the same way.</p>
+
+<h2>7. Survivorship and label-noise bias</h2>
+
+<p><strong>Survivorship bias</strong> means you only see the cases that made it through some filter. Suppose a model is asked 1,000 questions, refuses or times out on 200, and the report scores only the 800 it answered. At 90% on those, the headline says 90%. But 0.90 &times; 800 = 720 correct answers out of 1,000 asked is 72% of what users actually experienced. Count the dropped cases as failures, or report their rate next to the score.</p>
+
+<p><strong>Label noise</strong> is wrongness in the answer key. Say a model is truly correct on 90% of items, and 8% of the labels are wrong at random on a yes/no task. A correct prediction scores as right only when the label is right (0.92), and a wrong prediction scores as right when the label is also wrong (0.08):</p>
+
+<div class="step-box">
+<div class="line">Measured accuracy = 0.90 &times; 0.92 + 0.10 &times; 0.08 = 0.828 + 0.008</div>
+<div class="line result">                  = 0.836  →  83.6%   (true: 90.0%)</div>
+</div>
+
+<p>Noise pulls the measured score toward 50% and compresses gaps between models, so a real improvement looks smaller. When two strong models disagree with the key on the same items, audit those labels before ranking the models.</p>
+
+<h2>8. A checklist for reading any AI evaluation claim</h2>
+
+<ol>
+  <li><strong>How was the eval sample chosen?</strong> Random from production, or convenient? Does it match the traffic the system will see?</li>
+  <li><strong>Was assignment randomized?</strong> If the comparison is observational, name the likely confounders and check the result within segments (Simpson's paradox).</li>
+  <li><strong>Is the split what the design says it is?</strong> Check the group sizes against the plan before reading any metric (sample ratio mismatch).</li>
+  <li><strong>What is the unit?</strong> Users, sessions, or requests, and was the analysis done at that unit?</li>
+  <li><strong>Could the test set have leaked?</strong> Duplicates, time order, target-revealing features, public benchmarks scraped into training data.</li>
+  <li><strong>What got dropped?</strong> Refusals, timeouts, filtered rows, users who left. Are they counted?</li>
+  <li><strong>How trustworthy are the labels?</strong> Who wrote them, and what is the measured disagreement rate?</li>
+  <li><strong>Only then, is the gap bigger than noise?</strong> Lessons 9 and 15 cover the interval and the test.</li>
+</ol>
+
+<h2>9. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Most large errors in AI evaluation come from the design of the comparison, not from the statistics applied afterwards. Better inference on a bad design does not repair it.
+</div>
+
+<h3>Decisions get made on these numbers</h3>
+<p>A model swap, a prompt rollout, or a safety sign-off usually rests on one headline number. A convenience sample, an unbalanced rollout, or a leaked test set can move that number by 7 to 13 points, more than the differences teams usually act on.</p>
+
+<h3>Randomize when you can, adjust when you cannot</h3>
+<p>For anything you can control (prompt variants, model versions, retrieval settings), a randomized test is cheap and removes whole classes of confounding. For things you cannot randomize (which users adopt a feature), say so, list the confounders, and describe the claim as an association.</p>
+
+<h3>Treat leakage as the default suspicion</h3>
+<p>The more data a model trains on, the harder it is to be sure a given test item was not in it. Deduplicate, split by time where order matters, and keep a held-out set you have never tuned against.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>A <strong>random sample</strong> represents the population; a <strong>convenience sample</strong> does not, however large. Testing only on easy tickets reported 92% for a system that is right 79.4% of the time.</li>
+  <li>Only a <strong>randomized experiment</strong> supports causal claims, because random assignment balances every other factor, measured or not, on average.</li>
+  <li>A <strong>confounder</strong> influences both treatment and outcome. <strong>Simpson's paradox</strong> is the extreme case: the old model won both segments (93.1% vs. 86.7%, 73.0% vs. 68.8%) yet lost overall (78.0% vs. 82.6%) because the new model got mostly easy tickets.</li>
+  <li>In an A/B test, choose the randomization unit, stratify on known drivers, and check the arm sizes for <strong>sample ratio mismatch</strong> (5,200 vs. 4,800 gives &chi;&sup2; = 16) before reading results.</li>
+  <li><strong>Leakage</strong> through duplicates, time, or target-revealing features inflates scores: 300 duplicates in 1,000 items lifted 74.0% to 81.2%. Dropped cases and noisy labels also bend the number.</li>
+</ul>
+
+<div class="callout insight">
+  <span class="callout-label">Leads into Lesson 18</span>
+  Once the design is sound, you still have one dataset and need to know how much to trust a number computed from it. Lesson 18 covers resampling: the bootstrap, which estimates uncertainty by re-drawing from your own data, and cross-validation, which gives a more honest estimate of performance on unseen data without burning a separate test set.
+</div>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. A team builds its eval set only from tickets that already have an approved reference reply. Most of those tickets are easy. What is the main problem?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">The set is too small, so adding more of the same tickets will fix it</div>
+    <div class="quiz-opt">The set is random, but random sets cannot be used to measure accuracy</div>
+    <div class="quiz-opt">It is a convenience sample, so accuracy is overstated and a larger set of the same kind would not fix that</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. Why can a randomized experiment support a causal claim when an observational comparison cannot?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">Random assignment makes the groups alike on average in everything else, including factors nobody measured</div>
+    <div class="quiz-opt">Randomized experiments always have bigger samples</div>
+    <div class="quiz-opt">Randomized experiments never need a significance test</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. The old model scores higher than the new model on easy tickets and on hard tickets, yet the new model scores higher overall. Which explanation fits?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">At least one of the segment tables must have an arithmetic error</div>
+    <div class="quiz-opt">The groups have different segment mixes (the new model got mostly easy tickets), so the overall rates are weighted differently</div>
+    <div class="quiz-opt">The new model is secretly better in both segments</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. An A/B test planned as 50/50 ends with 5,200 users in A and 4,800 in B (&chi;&sup2; = 16). What should you do first?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Ignore it, because 52/48 is close enough to 50/50</div>
+    <div class="quiz-opt">Report the lift and mention the split in a footnote</div>
+    <div class="quiz-opt">Treat the test as suspect and find why assignment or logging was uneven before trusting any metric</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. A random split of timestamped user data puts later messages in training and earlier ones in the test set, and the test score is surprisingly high. What is the likely cause, and the fix?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Label noise; collect more labels from the same source</div>
+    <div class="quiz-opt">Time leakage; split by date so the model trains on the past and is tested on the future</div>
+    <div class="quiz-opt">Survivorship bias; remove the refusals from the test set</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Simpson%27s_paradox" target="_blank">Simpson's Paradox — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Confounding" target="_blank">Confounding — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Randomized_controlled_trial" target="_blank">Randomized Controlled Trial — Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Data_leakage" target="_blank">Data Leakage — Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — re-think who or what decided the assignment, and whether anything could leak across the split, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

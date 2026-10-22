@@ -1,0 +1,551 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Partial Derivatives &amp; Gradients: Which Way Is Downhill?</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 5 of 7 &middot; Math for AI: Linear Algebra &amp; Calculus Essentials</span>
+<h1>Partial Derivatives &amp; Gradients: Which Way Is Downhill?</h1>
+<p class="subtitle">A model has millions of weights, and training means nudging all of them at once so the loss drops. This lesson builds the one tool that tells you which nudge to make: the gradient.</p>
+
+<p>In M4 you took the derivative of a function with one input and read it as a slope. A real loss has one input per weight, so one slope is not enough: you need a slope for every weight and a rule for combining them into one move. That rule is <strong>gradient descent</strong>. The statistics course, Lesson 8 (The Statistics Behind Training a Model), describes how it behaves in practice. This lesson shows where the update comes from, computes it by hand, and explains why it works, using the dot product from M1 and the matrix idea from M2.</p>
+
+<h2>1. A loss with two weights is a landscape</h2>
+
+<p>A <strong>loss</strong> is one number that says how badly a model is doing on its training data. It depends on the model's weights. To draw it, shrink the model to two weights, called <em>w</em><sub>1</sub> and <em>w</em><sub>2</sub>. The loss is now a function of two inputs, written <em>L</em>(<em>w</em><sub>1</sub>, <em>w</em><sub>2</sub>).</p>
+
+<p>Say a team fits a tiny model with two weights and finds that its loss works out to:</p>
+
+<div class="step-box">
+<div class="line">L(w<sub>1</sub>, w<sub>2</sub>) = (w<sub>1</sub> &minus; 3)&sup2; + 4 (w<sub>2</sub> &minus; 1)&sup2;</div>
+</div>
+
+<p>Both terms are squares, so the loss is never negative. It is exactly 0 only when <em>w</em><sub>1</sub> = 3 and <em>w</em><sub>2</sub> = 1. That point is the best pair of weights. The factor 4 means that a miss in <em>w</em><sub>2</sub> costs four times as much as an equal miss in <em>w</em><sub>1</sub>.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>(<em>w</em><sub>1</sub>, <em>w</em><sub>2</sub>)</th><th>Calculation</th><th class="num"><em>L</em></th></tr></thead>
+  <tbody>
+    <tr><td>(0, 3)</td><td>(0&minus;3)&sup2; + 4(3&minus;1)&sup2; = 9 + 16</td><td class="num">25</td></tr>
+    <tr><td>(3, 3)</td><td>(3&minus;3)&sup2; + 4(3&minus;1)&sup2; = 0 + 16</td><td class="num">16</td></tr>
+    <tr><td>(0, 1)</td><td>(0&minus;3)&sup2; + 4(1&minus;1)&sup2; = 9 + 0</td><td class="num">9</td></tr>
+    <tr><td>(1, 1)</td><td>(1&minus;3)&sup2; + 4(1&minus;1)&sup2; = 4 + 0</td><td class="num">4</td></tr>
+    <tr><td>(3, 1)</td><td>0 + 0</td><td class="num">0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Think of the loss as height. Each pair of weights is a spot on the ground, and <em>L</em> is the altitude there. The set of all spots forms a <strong>loss surface</strong>, a landscape with hills and valleys. Training is a walk: start somewhere (weights are usually initialized randomly), and move toward lower ground. For this loss the landscape is a single bowl. Real networks have the same structure with millions or billions of horizontal directions instead of two, which nobody can draw but the math carries over unchanged.</p>
+
+<h2>2. Partial derivatives: change one weight, freeze the rest</h2>
+
+<p>A <strong>partial derivative</strong> is an ordinary derivative taken with respect to one input while every other input is held fixed. The symbol &part;<em>L</em>/&part;<em>w</em><sub>1</sub> reads "the partial derivative of <em>L</em> with respect to <em>w</em><sub>1</sub>." The curly &part; (instead of a straight <em>d</em>) is the reminder that other inputs exist and are being held still.</p>
+
+<p>To compute &part;<em>L</em>/&part;<em>w</em><sub>1</sub>, treat <em>w</em><sub>2</sub> as a constant. Then 4(<em>w</em><sub>2</sub> &minus; 1)&sup2; is just a number that does not change with <em>w</em><sub>1</sub>, so its derivative is 0. The first term follows the power rule from M4:</p>
+
+<div class="step-box">
+<div class="line">&part;L/&part;w<sub>1</sub> = 2 (w<sub>1</sub> &minus; 3)          (the 4(w<sub>2</sub>&minus;1)&sup2; term is constant here, so it drops out)</div>
+<div class="line">&part;L/&part;w<sub>2</sub> = 8 (w<sub>2</sub> &minus; 1)          (4 &times; 2 = 8; the (w<sub>1</sub>&minus;3)&sup2; term is constant here)</div>
+</div>
+
+<p>Evaluate both at the starting point (<em>w</em><sub>1</sub>, <em>w</em><sub>2</sub>) = (0, 3):</p>
+
+<div class="step-box">
+<div class="line">&part;L/&part;w<sub>1</sub> = 2 (0 &minus; 3)  = &minus;6</div>
+<div class="line">&part;L/&part;w<sub>2</sub> = 8 (3 &minus; 1)  = 16</div>
+</div>
+
+<p>Read these as slopes. A partial of &minus;6 for <em>w</em><sub>1</sub> says: raising <em>w</em><sub>1</sub> a little lowers the loss, at about 6 units of loss per unit of weight. A partial of +16 for <em>w</em><sub>2</sub> says: raising <em>w</em><sub>2</sub> raises the loss, fast. You can check this with an actual small nudge of 0.01:</p>
+
+<div class="step-box">
+<div class="line">L(0.01, 3) = (0.01&minus;3)&sup2; + 4(2)&sup2; = 8.9401 + 16 = 24.9401   change = &minus;0.0599   &rarr; &minus;0.0599 / 0.01 = &minus;5.99</div>
+<div class="line">L(0, 3.01) = (0&minus;3)&sup2; + 4(2.01)&sup2; = 9 + 16.1604 = 25.1604   change = +0.1604   &rarr; +0.1604 / 0.01 = +16.04</div>
+</div>
+
+<p>The measured slopes (&minus;5.99 and +16.04) match the formulas (&minus;6 and 16) up to the small error from using a nudge of 0.01 instead of an infinitely small one.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Each partial derivative answers a question about one weight in isolation: "if only this weight moved, which way would the loss go, and how fast?" A network with a billion weights has a billion of these answers at any moment, and they are all computed at the same current setting of the weights.
+</div>
+
+<h2>3. The gradient: all the partials in one vector</h2>
+
+<p>Collect the partials into a vector. That vector is the <strong>gradient</strong>, written &nabla;<em>L</em> (read "del L" or "grad L"):</p>
+
+<div class="step-box">
+<div class="line">&nabla;L = ( &part;L/&part;w<sub>1</sub> , &part;L/&part;w<sub>2</sub> )          at (0, 3):   &nabla;L = (&minus;6, 16)</div>
+</div>
+
+<p>Two facts make the gradient the central object of training:</p>
+
+<ul>
+  <li><strong>Direction:</strong> &nabla;<em>L</em> points <em>uphill</em>, the direction in which the loss increases fastest from where you stand.</li>
+  <li><strong>Length:</strong> the length of &nabla;<em>L</em> is the steepness of that climb. Length uses the formula from M1: the square root of the sum of squares.</li>
+</ul>
+
+<div class="step-box">
+<div class="line">|&nabla;L| = &radic;( (&minus;6)&sup2; + 16&sup2; ) = &radic;(36 + 256) = &radic;292 &asymp; 17.09</div>
+</div>
+
+<p>At the minimum (3, 1), both partials are 0: &part;<em>L</em>/&part;<em>w</em><sub>1</sub> = 2(3&minus;3) = 0 and &part;<em>L</em>/&part;<em>w</em><sub>2</sub> = 8(1&minus;1) = 0. The gradient is the zero vector, its length is 0, and there is no uphill direction because the ground is level. A gradient of length near 0 is the usual sign that training has settled somewhere.</p>
+
+<h2>4. Why the opposite of the gradient is the steepest way down</h2>
+
+<p>Training wants the fastest drop, so the natural move is "go against the gradient." Here is the reason that it is correct, using the dot product from M1.</p>
+
+<p>Suppose you take a tiny step in some direction given by a unit vector <strong>u</strong> (a vector of length 1). The rate at which the loss changes along that step is the <strong>directional derivative</strong>, and it equals the dot product of the gradient with <strong>u</strong>:</p>
+
+<div class="step-box">
+<div class="line">rate of change of L along u  =  &nabla;L &middot; u  =  |&nabla;L| &times; |u| &times; cos &theta;  =  |&nabla;L| cos &theta;</div>
+<div class="line">(&theta; is the angle between &nabla;L and u; |u| = 1)</div>
+</div>
+
+<p>This equality is the one-variable slope rule applied along a straight line through the point; the multi-variable version is a standard result, and this lesson states it without proof. Given that, the question is easy. |&nabla;<em>L</em>| is fixed by where you stand, so the only thing you control is cos &theta;:</p>
+
+<ul>
+  <li>cos &theta; = 1 (u points along the gradient): the loss rises as fast as possible.</li>
+  <li>cos &theta; = 0 (u at a right angle to the gradient): the loss does not change to first order. You are walking along a contour line.</li>
+  <li>cos &theta; = &minus;1 (u points exactly opposite): the loss falls as fast as possible, at rate &minus;|&nabla;<em>L</em>|.</li>
+</ul>
+
+<p>Check it with numbers at (0, 3), where &nabla;<em>L</em> = (&minus;6, 16):</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Direction of step</th><th>Unit vector <strong>u</strong></th><th>&nabla;<em>L</em> &middot; <strong>u</strong></th><th>Meaning</th></tr></thead>
+  <tbody>
+    <tr><td>Increase <em>w</em><sub>1</sub> only</td><td>(1, 0)</td><td class="num">(&minus;6)(1) + 16(0) = &minus;6</td><td>drops, slowly</td></tr>
+    <tr><td>Decrease <em>w</em><sub>2</sub> only</td><td>(0, &minus;1)</td><td class="num">(&minus;6)(0) + 16(&minus;1) = &minus;16</td><td>drops, fast</td></tr>
+    <tr><td>Exactly &minus;&nabla;<em>L</em></td><td>(6, &minus;16) / 17.09 = (0.351, &minus;0.936)</td><td class="num">&minus;2.107 &minus; 14.981 = &minus;17.09</td><td><strong>steepest drop</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>No direction beats &minus;17.09, because &minus;|&nabla;<em>L</em>| is the smallest value the dot product can reach. A caveat: this is a statement about a very short step. The gradient describes the slope exactly where you stand, and the slope can change as you move. For a step of length 0.1 along &minus;&nabla;<em>L</em>, the true change in <em>L</em> is &minus;1.67, a bit less than the straight-line prediction of 0.1 &times; (&minus;17.09) = &minus;1.71, because the bowl curves.</p>
+
+<h2>5. The update rule, worked for three full steps</h2>
+
+<p>Gradient descent repeats one move. Take the current weight vector <strong>w</strong>, compute &nabla;<em>L</em> there, and step against it by a scaled amount:</p>
+
+<div class="step-box">
+<div class="line result">w  &larr;  w &minus; &eta; &nabla;L(w)</div>
+</div>
+
+<p>The Greek letter &eta; (eta) is the <strong>learning rate</strong>, a positive number that scales the step. The arrow &larr; means "replace the old value with the right-hand side." Written per weight, this is <em>w</em><sub>1</sub> &larr; <em>w</em><sub>1</sub> &minus; &eta; &part;<em>L</em>/&part;<em>w</em><sub>1</sub> and the same for <em>w</em><sub>2</sub>. Both weights update together, using the gradient computed before either one moved.</p>
+
+<p>Use &eta; = 0.1, starting at (0, 3) where <em>L</em> = 25. Every number below was checked in Python.</p>
+
+<div class="step-box">
+<div class="line">STEP 1   w = (0, 3)        L = 25</div>
+<div class="line">  &nabla;L = (2(0&minus;3), 8(3&minus;1)) = (&minus;6, 16)</div>
+<div class="line">  w<sub>1</sub> &larr; 0 &minus; 0.1(&minus;6) = 0.6        w<sub>2</sub> &larr; 3 &minus; 0.1(16) = 1.4</div>
+<div class="line">  L(0.6, 1.4) = (0.6&minus;3)&sup2; + 4(1.4&minus;1)&sup2; = 5.76 + 0.64 = 6.4</div>
+<div class="line"> </div>
+<div class="line">STEP 2   w = (0.6, 1.4)    L = 6.4</div>
+<div class="line">  &nabla;L = (2(0.6&minus;3), 8(1.4&minus;1)) = (&minus;4.8, 3.2)</div>
+<div class="line">  w<sub>1</sub> &larr; 0.6 &minus; 0.1(&minus;4.8) = 1.08      w<sub>2</sub> &larr; 1.4 &minus; 0.1(3.2) = 1.08</div>
+<div class="line">  L(1.08, 1.08) = (&minus;1.92)&sup2; + 4(0.08)&sup2; = 3.6864 + 0.0256 = 3.712</div>
+<div class="line"> </div>
+<div class="line">STEP 3   w = (1.08, 1.08)  L = 3.712</div>
+<div class="line">  &nabla;L = (2(1.08&minus;3), 8(1.08&minus;1)) = (&minus;3.84, 0.64)</div>
+<div class="line">  w<sub>1</sub> &larr; 1.08 &minus; 0.1(&minus;3.84) = 1.464   w<sub>2</sub> &larr; 1.08 &minus; 0.1(0.64) = 1.016</div>
+<div class="line result">  L(1.464, 1.016) = (&minus;1.536)&sup2; + 4(0.016)&sup2; = 2.359296 + 0.001024 = 2.36032</div>
+</div>
+
+<p>Look at what happened. The loss fell from 25 to about 2.4 in three steps. The steep weight <em>w</em><sub>2</sub> was almost solved by step 2 (it is 1.08, target 1), while the shallow weight <em>w</em><sub>1</sub> is still crawling toward 3 (it is 1.464). The reason is in the gradient: it was large along <em>w</em><sub>2</sub> early on and shrinks as the weight approaches the minimum, so the steps shrink on their own. Left to run, the same rule reaches <em>L</em> &asymp; 0.104 after 10 steps and about 0.0000138 after 30.</p>
+
+<h2>6. The learning rate &eta;: too small, too large, and why you have to choose it</h2>
+
+<p>Same loss, same start (0, 3), three different values of &eta;.</p>
+
+<h3>Too small: &eta; = 0.01</h3>
+<p>Step 1 gives (0 &minus; 0.01&times;(&minus;6), 3 &minus; 0.01&times;16) = (0.06, 2.84), with <em>L</em> = 22.19. The direction is right but the step is tiny. After 30 steps the weights are at about (1.36, 1.16) and <em>L</em> is still 2.79, a loss that &eta; = 0.1 reached in 3 steps. Nothing breaks. It is just slow, and on a real model "slow" means paying for more GPU hours.</p>
+
+<h3>Too large: &eta; = 0.3</h3>
+
+<div class="step-box">
+<div class="line">STEP 1   &nabla;L = (&minus;6, 16)         w &larr; (0 + 1.8, 3 &minus; 4.8) = (1.8, &minus;1.8)       L = 32.8</div>
+<div class="line">STEP 2   &nabla;L = (&minus;2.4, &minus;22.4)      w &larr; (1.8 + 0.72, &minus;1.8 + 6.72) = (2.52, 4.92)     L = 61.696</div>
+<div class="line">STEP 3   &nabla;L = (&minus;0.96, 31.36)     w &larr; (2.52 + 0.288, 4.92 &minus; 9.408) = (2.808, &minus;4.488)  L = 120.509</div>
+</div>
+
+<p>The loss started at 25 and is now 120 and growing. Each step overshoots the valley floor in the <em>w</em><sub>2</sub> direction and lands higher on the other wall. The distance of <em>w</em><sub>2</sub> from its best value (1) goes 2, then &minus;2.8, then 3.92, then &minus;5.488: it flips sign and multiplies by 1.4 each step, because the update is <em>w</em><sub>2</sub> &minus; 1 &larr; (1 &minus; 0.3 &times; 8)(<em>w</em><sub>2</sub> &minus; 1) = &minus;1.4 (<em>w</em><sub>2</sub> &minus; 1). After 8 steps, <em>L</em> is about 3,485. This is <strong>divergence</strong>. In a real training run it shows up as a loss curve that shoots up or turns into <code>NaN</code>.</p>
+
+<p>The boundary sits between the cases: with &eta; = 0.25 the factor is 1 &minus; 0.25 &times; 8 = &minus;1, and <em>w</em><sub>2</sub> bounces between 3 and &minus;1 forever without improving, while <em>w</em><sub>1</sub> settles at 3 and <em>L</em> stays near 16.</p>
+
+<h3>Why it is a hyperparameter</h3>
+<p>The weights <em>w</em> are learned by the gradient steps. &eta; is not: no gradient step adjusts it, and nothing in the data names the best value. You pick it before training starts, which makes it a <strong>hyperparameter</strong>. The safe range depends on the loss surface: here the steep direction (factor 8) rules out &eta; above 0.25, and the shallow direction (factor 2) would have tolerated up to 1. In practice a team tries a few values, runs short experiments, and compares the validation loss, the same discipline the statistics course, Lesson 8, applies to every training choice. Many setups also lower &eta; over the course of training.</p>
+
+<h2>7. Contour plots: the landscape seen from above</h2>
+
+<p>Drawing a 3-D surface on a page is awkward. A <strong>contour plot</strong> is the map version: look down on the (<em>w</em><sub>1</sub>, <em>w</em><sub>2</sub>) plane and draw a closed curve through every point that has the same loss, like the elevation lines on a hiking map. The five rings below have <em>L</em> = 1, 4, 9, 16 and 25. They are ellipses because the loss is stretched four times as hard along <em>w</em><sub>2</sub> as along <em>w</em><sub>1</sub>.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 560 300" role="img" aria-label="Contour plot of the loss with the three-step gradient descent path">
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0,0 L10,5 L0,10 z" fill="#fbbf24"/>
+    </marker>
+  </defs>
+  <rect x="50" y="20" width="490" height="240" fill="none" stroke="#2e3248"/>
+  <g fill="none" stroke="#6c8fff" stroke-width="1.4">
+    <path d="M344 140 L343 136 L342 133 L339 129 L335 126 L330 123 L324 121 L317 119 L310 117 L303 116 L295 116 L287 116 L280 117 L273 119 L266 121 L260 123 L255 126 L251 129 L248 133 L247 136 L246 140 L247 144 L248 147 L251 151 L255 154 L260 157 L266 159 L273 161 L280 163 L287 164 L295 164 L303 164 L310 163 L317 161 L324 159 L330 157 L335 154 L339 151 L342 147 L343 144Z" stroke-opacity="0.95"/>
+    <path d="M393 140 L392 132 L388 125 L382 118 L374 112 L364 106 L353 101 L339 97 L325 94 L310 93 L295 92 L280 93 L265 94 L251 97 L237 101 L226 106 L216 112 L208 118 L202 125 L198 132 L197 140 L198 148 L202 155 L208 162 L216 168 L226 174 L237 179 L251 183 L265 186 L280 187 L295 188 L310 187 L325 186 L339 183 L353 179 L364 174 L374 168 L382 162 L388 155 L392 148Z" stroke-opacity="0.8"/>
+    <path d="M442 140 L440 129 L435 118 L426 107 L414 98 L399 89 L381 82 L362 76 L340 72 L318 69 L295 68 L272 69 L250 72 L228 76 L209 82 L191 89 L176 98 L164 107 L155 118 L150 129 L148 140 L150 151 L155 162 L164 173 L176 182 L191 191 L209 198 L228 204 L250 208 L272 211 L295 212 L318 211 L340 208 L362 204 L381 198 L399 191 L414 182 L426 173 L435 162 L440 151Z" stroke-opacity="0.65"/>
+    <path d="M491 140 L489 125 L481 110 L470 96 L454 84 L434 72 L410 62 L384 54 L356 49 L326 45 L295 44 L264 45 L234 49 L206 54 L180 62 L156 72 L136 84 L120 96 L109 110 L101 125 L99 140 L101 155 L109 170 L120 184 L136 196 L156 208 L180 218 L206 226 L234 231 L264 235 L295 236 L326 235 L356 231 L384 226 L410 218 L434 208 L454 196 L470 184 L481 170 L489 155Z" stroke-opacity="0.5"/>
+    <path d="M540 140 L537 121 L528 103 L513 86 L493 69 L468 55 L439 43 L406 33 L371 26 L333 21 L295 20 L257 21 L219 26 L184 33 L151 43 L122 55 L97 69 L77 86 L62 103 L53 121 L50 140 L53 159 L62 177 L77 194 L97 211 L122 225 L151 237 L184 247 L219 254 L257 259 L295 260 L333 259 L371 254 L406 247 L439 237 L468 225 L493 211 L513 194 L528 177 L537 159Z" stroke-opacity="0.4"/>
+  </g>
+  <g fill="#94a3b8" font-size="11" font-family="Consolas, monospace">
+    <text x="346" y="136">1</text>
+    <text x="395" y="136">4</text>
+    <text x="444" y="136">9</text>
+    <text x="493" y="136">16</text>
+    <text x="528" y="136">25</text>
+  </g>
+  <!-- path -->
+  <polyline points="148,44 177.4,120.8 200.9,136.2 219.7,139.2" fill="none" stroke="#fbbf24" stroke-width="2" marker-end="url(#arr)"/>
+  <g fill="#fbbf24">
+    <circle cx="148" cy="44" r="4.5"/>
+    <circle cx="177.4" cy="120.8" r="4"/>
+    <circle cx="200.9" cy="136.2" r="4"/>
+    <circle cx="219.7" cy="139.2" r="4"/>
+  </g>
+  <g fill="#e2e8f0" font-size="11" font-family="Consolas, monospace">
+    <text x="158" y="40">start (0, 3)  L=25</text>
+    <text x="186" y="112">1: (0.6, 1.4)</text>
+    <text x="196" y="158" text-anchor="end">2: (1.08, 1.08)</text>
+    <text x="214" y="176" fill="#fbbf24">3: (1.464, 1.016)</text>
+  </g>
+  <circle cx="295" cy="140" r="5" fill="#34d399"/>
+  <text x="302" y="160" fill="#34d399" font-size="11" font-family="Consolas, monospace">minimum (3, 1)</text>
+  <!-- axes labels and ticks -->
+  <g fill="#94a3b8" font-size="11" font-family="Consolas, monospace" text-anchor="middle">
+    <text x="148" y="276">0</text><text x="246" y="276">2</text><text x="344" y="276">4</text><text x="442" y="276">6</text>
+    <text x="295" y="294">w&#8321;</text>
+  </g>
+  <g fill="#94a3b8" font-size="11" font-family="Consolas, monospace" text-anchor="end">
+    <text x="44" y="240">&#8722;1</text><text x="44" y="192">0</text><text x="44" y="144">1</text><text x="44" y="96">2</text><text x="44" y="48">3</text>
+    <text x="14" y="146" transform="rotate(-90 14 146)" text-anchor="middle">w&#8322;</text>
+  </g>
+</svg>
+<div class="viz-caption">Contours of <em>L</em> = (<em>w</em><sub>1</sub>&minus;3)&sup2; + 4(<em>w</em><sub>2</sub>&minus;1)&sup2;. The yellow path is the three steps from section 5 (&eta; = 0.1). The first step is long and mostly vertical; later steps shorten and turn right, along the shallow floor of the valley.</div>
+</div>
+
+<p>Two facts to carry around. The gradient at any point is perpendicular to the contour through it and points toward the next-higher ring; walking along a ring changes nothing (cos &theta; = 0 from section 4). And rings packed close together mean steep ground and a long gradient. Here the rings are tightly packed vertically, which is why the first step moves so far vertically and why a large &eta; overshoots there.</p>
+
+<h2>8. Local minima, saddle points and flat regions</h2>
+
+<p>The bowl above has one low point. Gradient descent stops making progress wherever &nabla;<em>L</em> = 0, and on a harder landscape that can happen in places that are not the global minimum. Points where the gradient is zero come in several kinds:</p>
+
+<ul>
+  <li><strong>Local minimum:</strong> the ground curves up in every direction, but lower ground exists elsewhere. Descent can settle here.</li>
+  <li><strong>Saddle point:</strong> curves up in some directions and down in others, like a mountain pass. The gradient is zero, but it is not a bottom.</li>
+  <li><strong>Flat region (plateau):</strong> the gradient is tiny over a wide area, so steps are tiny and training crawls.</li>
+</ul>
+
+<p>Here is a saddle you can check by hand. Take <em>L</em>(<em>w</em><sub>1</sub>, <em>w</em><sub>2</sub>) = <em>w</em><sub>1</sub>&sup2; &minus; <em>w</em><sub>2</sub>&sup2;. Its gradient is (2<em>w</em><sub>1</sub>, &minus;2<em>w</em><sub>2</sub>), which is (0, 0) at the origin. But <em>L</em>(0.1, 0) = 0.01 is higher than <em>L</em>(0, 0) = 0, while <em>L</em>(0, 0.1) = &minus;0.01 is lower. Sliding along <em>w</em><sub>1</sub> goes up, sliding along <em>w</em><sub>2</sub> goes down. The origin is a pass, not a floor, and a gradient of exactly zero there tells you nothing about which way is down.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">What is and is not known about deep nets</span>
+  The picture above is for two weights. For networks with millions of weights, the following are <em>not</em> settled facts: that training reliably finds a global minimum (it does not come with a guarantee), or that local minima never matter. What practitioners and researchers have reported is that large networks trained with gradient methods usually reach low training loss anyway, that saddle points and plateaus are common features of high-dimensional landscapes, and that the quality of the final solution depends on the initialization, the learning rate and the data order. Theory covers simplified networks and special cases, not the general case. Treat "gradient descent finds good solutions in practice" as an observation that holds often, not as a theorem.
+</div>
+
+<h2>9. The Hessian: how fast the slope itself changes</h2>
+
+<p>The gradient collects first derivatives. The second derivatives tell you about curvature: how quickly the slope changes as you move. For several weights there are many of them, one for each pair of weights, and they are arranged in a matrix (M2) called the <strong>Hessian</strong>, written <strong>H</strong>. Entry (<em>i</em>, <em>j</em>) is the second partial derivative &part;&sup2;<em>L</em>/&part;<em>w</em><sub>i</sub>&part;<em>w</em><sub>j</sub>: differentiate with respect to <em>w</em><sub>j</sub>, then differentiate that result with respect to <em>w</em><sub>i</sub>.</p>
+
+<p>For our loss, the first partials were 2(<em>w</em><sub>1</sub> &minus; 3) and 8(<em>w</em><sub>2</sub> &minus; 1). Differentiating them again:</p>
+
+<div class="step-box">
+<div class="line">&part;&sup2;L/&part;w<sub>1</sub>&sup2; = 2      &part;&sup2;L/&part;w<sub>1</sub>&part;w<sub>2</sub> = 0</div>
+<div class="line">&part;&sup2;L/&part;w<sub>2</sub>&part;w<sub>1</sub> = 0      &part;&sup2;L/&part;w<sub>2</sub>&sup2; = 8</div>
+<div class="line result">H = [ 2  0 ]</div>
+<div class="line result">    [ 0  8 ]</div>
+</div>
+
+<p>The big diagonal entry 8 says the ground curves sharply in the <em>w</em><sub>2</sub> direction; the 2 says it curves gently in the <em>w</em><sub>1</sub> direction. That is the same stretching the contour plot showed, and it is why the safe learning rate was limited by the 8 (section 6). For the saddle <em>w</em><sub>1</sub>&sup2; &minus; <em>w</em><sub>2</sub>&sup2;, the Hessian is diag(2, &minus;2): the negative entry marks the direction in which the surface curves downward.</p>
+
+<p>That is all you need from the Hessian here. A model with <em>n</em> weights has an <em>n</em> &times; <em>n</em> Hessian, which for a billion weights is 10<sup>18</sup> entries, far too many to store, so large-model training mostly uses the gradient alone plus cheaper curvature approximations.</p>
+
+<h2>10. Mini-batches: the gradient you compute is a noisy estimate</h2>
+
+<p>The loss for a real model is an average over the training set: the average of one loss per example. Because the derivative of a sum is the sum of the derivatives, the gradient of an average is the average of the per-example gradients. Computing that over every example, millions or billions of them, for every single step is too expensive. So training uses a <strong>mini-batch</strong>: a small random sample of the examples, with the gradient averaged over just those.</p>
+
+<p>Here is a toy version. A team has 6 training examples. For the weight <em>w</em><sub>1</sub>, the per-example gradients are:</p>
+
+<div class="step-box">
+<div class="line">per-example gradient:   &minus;8,  &minus;2,  &minus;6,  &minus;4,  &minus;10,  0</div>
+<div class="line">true (full-data) gradient = (&minus;8 &minus; 2 &minus; 6 &minus; 4 &minus; 10 + 0) / 6 = &minus;30 / 6 = &minus;5</div>
+<div class="line"> </div>
+<div class="line">batch of 2, examples {1,2}:  (&minus;8 &minus; 2) / 2   = &minus;5     (lucky: equals the truth)</div>
+<div class="line">batch of 2, examples {3,5}:  (&minus;6 &minus; 10) / 2  = &minus;8</div>
+<div class="line">batch of 2, examples {4,6}:  (&minus;4 + 0) / 2   = &minus;2</div>
+</div>
+
+<p>Every batch has the right sign (negative), but the size of the estimate swings from &minus;2 to &minus;8 around a true value of &minus;5. Across all 15 possible batches of 2 from these 6 examples, the estimate ranges from &minus;9 to &minus;1. Across all 15 possible batches of 4, it ranges only from &minus;7 to &minus;3. Bigger batches give estimates that cluster closer to the truth.</p>
+
+<p>This is the same idea as sampling in the statistics course, Lesson 5 (From Sample to Population: Estimation &amp; the Central Limit Theorem): a sample mean is an unbiased but noisy estimate of the population mean, and its noise shrinks roughly like 1/&radic;<em>n</em> as the sample size <em>n</em> grows. Here the "population" is the full training set, the "sample" is the mini-batch, and the quantity being estimated is the gradient. Unbiased means that averaged over many random batches, the estimate lands on the true gradient. Noisy means any single step points slightly off from the true downhill direction. The statistics course, Lesson 8, covers how this noise shows up in training curves.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Batch size is a trade: larger batches give a more accurate direction per step but cost more per step. Because accuracy improves only like 1/&radic;<em>n</em>, quadrupling the batch size only halves the noise. That is why very large batches stop paying for themselves.
+</div>
+
+<h2>11. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Every neural network you will use or fine-tune was trained by some variant of the update <em>w</em> &larr; <em>w</em> &minus; &eta;&nabla;<em>L</em>. The pieces from this lesson explain failures you will actually see.
+</div>
+
+<ul>
+  <li><strong>Loss shoots up or becomes <code>NaN</code>:</strong> the divergence of section 6, a learning rate too large for the steepest direction. Lower &eta; first.</li>
+  <li><strong>Loss falls but crawls:</strong> a rate that is too small, or a plateau (section 8). Test a larger &eta; on a short run, or use a schedule.</li>
+  <li><strong>Fine-tuning:</strong> learning rate and batch size are the two settings most likely to decide whether a run works. A rate suited to training from scratch can overshoot and wreck weights that were already good.</li>
+  <li><strong>What is still missing:</strong> everything above assumed you could write &part;<em>L</em>/&part;<em>w</em> by hand. A network is a long chain of layers, each feeding the next, so its loss is a function of a function of a function. Computing every partial of that chain for billions of weights is the chain rule applied systematically. That is M6.</li>
+</ul>
+
+<h2>Recap</h2>
+<ul>
+  <li>A loss with several weights is a landscape. A <strong>partial derivative</strong> is the slope along one weight with all the others held fixed. At (0, 3) our loss has partials &minus;6 and 16.</li>
+  <li>The <strong>gradient</strong> &nabla;<em>L</em> stacks all the partials into a vector. It points uphill, and its length is the steepness: &radic;292 &asymp; 17.09 at (0, 3).</li>
+  <li>The rate of change along a unit direction <strong>u</strong> is &nabla;<em>L</em>&middot;<strong>u</strong> = |&nabla;<em>L</em>| cos &theta;. It is most negative when <strong>u</strong> points opposite the gradient, which is why <strong>w</strong> &larr; <strong>w</strong> &minus; &eta;&nabla;<em>L</em> is the steepest way down for a small step.</li>
+  <li>Three steps at &eta; = 0.1 took the loss from 25 to 6.4, 3.712 and 2.36032. &eta; = 0.01 was slow; &eta; = 0.3 diverged because the update multiplied the <em>w</em><sub>2</sub> error by &minus;1.4 each step. &eta; is a <strong>hyperparameter</strong>: you choose it, training does not learn it.</li>
+  <li>Zero gradient means local minimum, saddle point or plateau. For deep nets, good solutions are common in practice, but there is no general guarantee.</li>
+  <li>The <strong>Hessian</strong> is the matrix of second derivatives; it measures curvature. A mini-batch gradient is an unbiased but noisy estimate of the full gradient, and the noise shrinks like 1/&radic;<em>n</em>.</li>
+</ul>
+
+<p><strong>Leads into M6:</strong> you can now use a gradient but not yet compute one for a deep network. M6 covers the chain rule and backpropagation, the method that produces every partial derivative in a single backward pass.</p>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. For a loss L(w<sub>1</sub>, w<sub>2</sub>), what does the partial derivative &part;L/&part;w<sub>1</sub> measure?</p>
+  <div class="quiz-options" data-answer="2" data-hint="re-think what &quot;partial&quot; holds fixed in section 2">
+    <div class="quiz-opt">How much the loss changes when both weights move by the same amount</div>
+    <div class="quiz-opt">The total loss summed over all training examples</div>
+    <div class="quiz-opt">The slope of the loss along w<sub>1</sub> while w<sub>2</sub> is held fixed</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. At weights (1, 1) the gradient is &nabla;L = (3, &minus;4). With learning rate &eta; = 0.5, what are the weights after one gradient descent step?</p>
+  <div class="quiz-options" data-answer="0" data-hint="re-think the update rule w &larr; w &minus; &eta;&nabla;L and its signs from section 5">
+    <div class="quiz-opt">(&minus;0.5, 3)</div>
+    <div class="quiz-opt">(2.5, &minus;1)</div>
+    <div class="quiz-opt">(&minus;0.5, &minus;1)</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. Why is &minus;&nabla;L the direction of steepest descent?</p>
+  <div class="quiz-options" data-answer="1" data-hint="re-think the dot-product argument &nabla;L&middot;u = |&nabla;L| cos &theta; from section 4">
+    <div class="quiz-opt">Because the gradient is always zero at the starting point, so the opposite sign is needed</div>
+    <div class="quiz-opt">Because the loss changes at rate |&nabla;L| cos &theta; along a unit direction, and cos &theta; is smallest (&minus;1) when the direction is opposite the gradient</div>
+    <div class="quiz-opt">Because every direction at a point has the same rate of change, so any step works</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A team raises the learning rate and the loss goes 25, 33, 62, 121, ... What is the most likely cause?</p>
+  <div class="quiz-options" data-answer="2" data-hint="re-think what happens when &eta; is too large for the steepest direction (section 6)">
+    <div class="quiz-opt">The learning rate is too small, so the model is not learning</div>
+    <div class="quiz-opt">The mini-batch is too large</div>
+    <div class="quiz-opt">The steps overshoot the valley floor, so the learning rate is too large for the steepest direction</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. How does a mini-batch gradient relate to the gradient over the full training set?</p>
+  <div class="quiz-options" data-answer="0" data-hint="re-think unbiased versus noisy, and how noise shrinks with batch size (section 10)">
+    <div class="quiz-opt">It is a noisy estimate that is correct on average, and the noise shrinks as the batch grows</div>
+    <div class="quiz-opt">It always equals the full gradient exactly</div>
+    <div class="quiz-opt">It is biased toward zero, so training with mini-batches cannot work</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Gradient_descent" target="_blank">Gradient descent &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Gradient" target="_blank">Gradient &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Hessian_matrix" target="_blank">Hessian matrix &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Stochastic_gradient_descent" target="_blank">Stochastic gradient descent &mdash; Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — " + (group.dataset.hint || "re-think partial derivatives, the gradient and the update rule") + ", then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

@@ -129,7 +129,7 @@
 </head>
 <body>
 
-  <span class="pill">Lesson 1 of 10</span>
+  <span class="pill">Lesson 1 of 19</span>
   <h1>Why Statistics Powers AI</h1>
   <p class="subtitle">The tour before the road trip: where statistics actually shows up when you build, train, and evaluate AI systems — no math yet, just the map.</p>
 
@@ -424,7 +424,7 @@
 
 <script>
 document.querySelectorAll(".quiz-options").forEach(group => {
-  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const fb = group.nextElementSibling;
   const opts = group.querySelectorAll(".quiz-opt");
   let solved = false;
   opts.forEach((opt, i) => {

@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bayesian Inference: Updating Beliefs About a Model</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+
+  .cmp td:first-child { font-weight: 600; color: var(--text); white-space: nowrap; }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 16 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Bayesian Inference: Updating Beliefs About a Model, Not Just a Message</h1>
+<p class="subtitle">Lesson 3 used Bayes' theorem to update the probability of one event. The same move works on a number you can never observe directly, like a model's true accuracy.</p>
+
+<p>In Lesson 3 the hypothesis was a yes/no event: "this response is a hallucination." You had a base rate, a detector's flag, and one update. This lesson changes the hypothesis. It becomes a <strong>parameter</strong>: the true accuracy &theta; of a model, the true win rate of a prompt, the weight of a network. A parameter can take any value in a range, so your belief about it is a whole distribution, not a single probability. Lesson 13 introduced the Beta distribution for exactly this kind of quantity, a number between 0 and 1. Here you put it to work.</p>
+
+<h2>1. From events to parameters</h2>
+
+<p>The theorem has not changed. Only the thing on the left has:</p>
+
+<div class="step-box">
+<div class="line">P(&theta; | data)  &prop;  P(data | &theta;)  &times;  P(&theta;)</div>
+<div class="line">posterior       likelihood      prior</div>
+</div>
+
+<p>&prop; means "proportional to." The denominator from Lesson 3, P(evidence), only rescales the curve to total 1, so you can drop it while finding the shape.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Piece</th><th>Lesson 3 (an event)</th><th>This lesson (a parameter)</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Prior</strong></td><td>2% of responses hallucinate</td><td>A distribution over &theta; before the eval: "accuracy is probably around 0.8"</td></tr>
+    <tr><td><strong>Likelihood</strong></td><td>Detector flags 90% of real hallucinations</td><td>How probable "6 correct out of 10" is for each possible &theta;</td></tr>
+    <tr><td><strong>Posterior</strong></td><td>27% that a flagged response is real</td><td>A new distribution over &theta; after the eval</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>Lesson 5 returned one number (the maximum likelihood estimate, the observed proportion) plus a confidence interval. The Bayesian answer is a full curve of how plausible each &theta; is, given the prior and the data.</p>
+
+<h2>2. The Beta prior is a count of imagined prior evaluations</h2>
+
+<p>A team is evaluating a new model version on a yes/no task: each prompt is answered correctly or not. Call the unknown true probability of a correct answer &theta;. Before running anything, the team has a view. The previous version scored around 80%, and they expect the new one to be similar. They encode that as a <strong>Beta(8, 2)</strong> prior (Lesson 13: the mean of Beta(&alpha;, &beta;) is &alpha;/(&alpha;+&beta;)).</p>
+
+<div class="step-box">
+<div class="line">prior mean = &alpha; / (&alpha; + &beta;) = 8 / (8 + 2) = 0.80</div>
+<div class="line">prior 95% credible interval = 0.518 to 0.972</div>
+</div>
+
+<p>The useful way to read &alpha; and &beta; is as <strong>pseudo-counts</strong>: Beta(8, 2) behaves as if the team had already seen 8 correct and 2 wrong answers, 10 imagined prompts in total. That is a real opinion, but still wide: the prior alone allows anything from about 52% to 97%.</p>
+
+<p>A prior is a modelling choice, not a fact: state where it came from, and check how far the answer moves if you change it.</p>
+
+<h2>3. The conjugate update, worked in full</h2>
+
+<p>The team runs a small eval: <strong>n = 10</strong> prompts, <strong>k = 6</strong> answered correctly. Given a value &theta;, the probability of that result is proportional to &theta;<sup>k</sup>(1&minus;&theta;)<sup>n&minus;k</sup>. Multiply by the prior, which has the same form with exponents &alpha;&minus;1 and &beta;&minus;1, and exponents on the same base add:</p>
+
+<div class="step-box">
+<div class="line">likelihood &prop; &theta;^k (1&minus;&theta;)^(n&minus;k)</div>
+<div class="line">prior      &prop; &theta;^(&alpha;&minus;1) (1&minus;&theta;)^(&beta;&minus;1)</div>
+<div class="line">posterior  &prop; &theta;^(&alpha;+k&minus;1) (1&minus;&theta;)^(&beta;+n&minus;k&minus;1)   =   Beta(&alpha;+k, &beta;+n&minus;k)</div>
+</div>
+
+<p>The posterior is another Beta. A prior that stays in its own family after the update is called <strong>conjugate</strong>. The update is just addition: add the correct answers to &alpha; and the wrong answers to &beta;.</p>
+
+<div class="step-box">
+<div class="line">prior                Beta(8, 2)</div>
+<div class="line">data                 k = 6 correct, n &minus; k = 4 wrong</div>
+<div class="line">posterior            Beta(8 + 6, 2 + 4) = Beta(14, 6)</div>
+<div class="line"> </div>
+<div class="line">prior mean           8 / 10  = 0.800</div>
+<div class="line">MLE (Lesson 5)       6 / 10  = 0.600</div>
+<div class="line result">posterior mean       14 / 20 = 0.700</div>
+<div class="line result">95% credible interval  0.488 to 0.874</div>
+</div>
+
+<p>The posterior mean 0.70 sits exactly halfway between the prior mean 0.80 and the observed 0.60. The next section shows why.</p>
+
+<div class="callout insight">
+  <span class="callout-label">How the interval was computed</span>
+  The interval comes from the Beta distribution directly, computed three ways. (1) Integrate the density numerically (Simpson's rule) and invert the cumulative distribution by bisection at 0.025 and 0.975. (2) For whole-number &alpha; and &beta;, the Beta cumulative distribution equals a binomial tail sum, which is exact. (3) Draw 400,000 random Beta samples and read the 2.5th and 97.5th percentiles. All three agree to three decimals (0.488 to 0.874); the simulation lands within about 0.001 of the other two, as expected from sampling noise.
+</div>
+
+<h2>4. Small eval sets stay near the prior, large ones overwhelm it</h2>
+
+<p>Rewrite the posterior mean as a weighted average of the prior mean and the observed proportion. With a prior worth &alpha;+&beta; = 10 pseudo-prompts and n real ones:</p>
+
+<div class="step-box">
+<div class="line">posterior mean = (&alpha;+k) / (&alpha;+&beta;+n)</div>
+<div class="line">              = w &times; prior mean + (1 &minus; w) &times; k/n,     w = (&alpha;+&beta;) / (&alpha;+&beta;+n)</div>
+<div class="line"> </div>
+<div class="line">n = 10:    w = 10 / 20   = 0.50  &rarr;  0.50 &times; 0.80 + 0.50 &times; 0.60 = 0.700</div>
+<div class="line">n = 1000:  w = 10 / 1010 = 0.0099 &rarr;  0.0099 &times; 0.80 + 0.9901 &times; 0.60 = 0.602</div>
+</div>
+
+<p>Now run a much larger eval with the same 60% hit rate: n = 1000, k = 600. The posterior is Beta(8 + 600, 2 + 400) = Beta(608, 402).</p>
+
+<div class="table-wrap">
+<table class="cmp">
+  <thead><tr><th>Eval</th><th>Posterior</th><th class="num">Mean</th><th>95% credible interval</th><th class="num">P(&theta; &gt; 0.8)</th></tr></thead>
+  <tbody>
+    <tr><td>No data (prior)</td><td>Beta(8, 2)</td><td class="num">0.800</td><td>0.518 to 0.972</td><td class="num">0.564</td></tr>
+    <tr><td>6 of 10</td><td>Beta(14, 6)</td><td class="num">0.700</td><td>0.488 to 0.874</td><td class="num">0.163</td></tr>
+    <tr><td>600 of 1000</td><td>Beta(608, 402)</td><td class="num">0.602</td><td>0.572 to 0.632</td><td class="num">about 0</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The last column is something a Bayesian posterior hands you for free: a direct probability for a claim. After 10 prompts, there is still a 16% chance the new model is above 80%, because the prior keeps that door open. After 1000 prompts, the claim is dead. (The interval width falls from 0.386 to 0.060, the square-root tax from Lesson 5.)</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 770 330" role="img" aria-label="Prior Beta(8,2) against posterior Beta(14,6) after 10 prompts, and against a narrow posterior Beta(608,402) after 1000 prompts.">
+<line x1="50" y1="230" x2="350" y2="230" stroke="#2e3248"/><line x1="420" y1="230" x2="720" y2="230" stroke="#2e3248"/>
+<line x1="50" y1="230" x2="50" y2="235" stroke="#94a3b8"/><text x="50" y="250" fill="#94a3b8" font-size="12" text-anchor="middle">0</text><line x1="200.0" y1="230" x2="200.0" y2="235" stroke="#94a3b8"/><text x="200.0" y="250" fill="#94a3b8" font-size="12" text-anchor="middle">0.5</text><line x1="350" y1="230" x2="350" y2="235" stroke="#94a3b8"/><text x="350" y="250" fill="#94a3b8" font-size="12" text-anchor="middle">1</text><line x1="420" y1="230" x2="420" y2="235" stroke="#94a3b8"/><text x="420" y="250" fill="#94a3b8" font-size="12" text-anchor="middle">0</text><line x1="570.0" y1="230" x2="570.0" y2="235" stroke="#94a3b8"/><text x="570.0" y="250" fill="#94a3b8" font-size="12" text-anchor="middle">0.5</text><line x1="720" y1="230" x2="720" y2="235" stroke="#94a3b8"/><text x="720" y="250" fill="#94a3b8" font-size="12" text-anchor="middle">1</text>
+<text x="200.0" y="22" fill="#e2e8f0" font-size="14" font-weight="700" text-anchor="middle">n = 10, k = 6: the prior still matters</text>
+<text x="570.0" y="22" fill="#e2e8f0" font-size="14" font-weight="700" text-anchor="middle">n = 1000, k = 600: the data decides</text>
+<path d="M54,230 L58,230 L61,230 L65,230 L69,230 L72,230 L76,230 L80,230 L84,230 L88,230 L91,230 L95,230 L99,230 L102,230 L106,230 L110,230 L114,230 L118,230 L121,230 L125,230 L129,230 L132,230 L136,230 L140,230 L144,229 L148,229 L151,229 L155,229 L159,228 L162,228 L166,228 L170,227 L174,226 L178,226 L181,225 L185,224 L189,223 L192,221 L196,220 L200,218 L204,216 L208,214 L211,212 L215,209 L219,206 L222,203 L226,200 L230,196 L234,192 L238,188 L241,183 L245,178 L249,173 L252,167 L256,161 L260,155 L264,149 L268,142 L271,135 L275,129 L279,122 L282,115 L286,109 L290,102 L294,97 L298,92 L301,87 L305,84 L309,82 L312,81 L316,82 L320,85 L324,90 L328,98 L331,109 L335,124 L339,143 L342,166 L346,195" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="6 4"/>
+<path d="M54,230 L58,230 L61,230 L65,230 L69,230 L72,230 L76,230 L80,230 L84,230 L88,230 L91,230 L95,230 L99,230 L102,230 L106,230 L110,230 L114,230 L118,230 L121,230 L125,230 L129,230 L132,230 L136,230 L140,230 L144,230 L148,230 L151,229 L155,229 L159,229 L162,228 L166,227 L170,226 L174,225 L178,224 L181,222 L185,219 L189,216 L192,213 L196,209 L200,204 L204,198 L208,192 L211,185 L215,177 L219,168 L222,158 L226,148 L230,138 L234,127 L238,117 L241,106 L245,97 L249,87 L252,79 L256,73 L260,68 L264,65 L268,65 L271,66 L275,71 L279,77 L282,86 L286,97 L290,109 L294,123 L298,137 L301,152 L305,167 L309,181 L312,193 L316,204 L320,213 L324,219 L328,224 L331,227 L335,229 L339,230 L342,230 L346,230" fill="none" stroke="#34d399" stroke-width="2.5"/>
+<path d="M424,230 L428,230 L431,230 L435,230 L439,230 L442,230 L446,230 L450,230 L454,230 L458,230 L461,230 L465,230 L469,230 L472,230 L476,230 L480,230 L484,230 L488,230 L491,230 L495,230 L499,230 L502,230 L506,230 L510,230 L514,230 L518,230 L521,230 L525,230 L529,230 L532,230 L536,230 L540,230 L544,229 L548,229 L551,229 L555,229 L559,229 L562,229 L566,228 L570,228 L574,228 L578,227 L581,227 L585,227 L589,226 L592,226 L596,225 L600,225 L604,224 L608,223 L611,222 L615,222 L619,221 L622,220 L626,219 L630,218 L634,217 L638,216 L641,215 L645,214 L649,213 L652,212 L656,210 L660,210 L664,209 L668,208 L671,207 L675,207 L679,206 L682,206 L686,206 L690,207 L694,207 L698,209 L701,211 L705,213 L709,216 L712,220 L716,224" fill="none" stroke="#a78bfa" stroke-width="2.5" stroke-dasharray="6 4"/>
+<path d="M424,230 L428,230 L431,230 L435,230 L439,230 L442,230 L446,230 L450,230 L454,230 L458,230 L461,230 L465,230 L469,230 L472,230 L476,230 L480,230 L484,230 L488,230 L491,230 L495,230 L499,230 L502,230 L506,230 L510,230 L514,230 L518,230 L521,230 L525,230 L529,230 L532,230 L536,230 L540,230 L544,230 L548,230 L551,230 L555,230 L559,230 L562,230 L566,230 L570,230 L574,230 L578,230 L581,230 L585,229 L589,223 L592,192 L596,118 L600,56 L604,90 L608,172 L611,218 L615,229 L619,230 L622,230 L626,230 L630,230 L634,230 L638,230 L641,230 L645,230 L649,230 L652,230 L656,230 L660,230 L664,230 L668,230 L671,230 L675,230 L679,230 L682,230 L686,230 L690,230 L694,230 L698,230 L701,230 L705,230 L709,230 L712,230 L716,230" fill="none" stroke="#34d399" stroke-width="2.5"/>
+<line x1="196.4" y1="266" x2="312.2" y2="266" stroke="#34d399" stroke-width="4" stroke-linecap="round"/><line x1="591.5" y1="266" x2="609.6" y2="266" stroke="#34d399" stroke-width="4" stroke-linecap="round"/>
+<text x="200.0" y="288" fill="#34d399" font-size="12" text-anchor="middle">95% credible interval 0.488 to 0.874</text>
+<text x="570.0" y="288" fill="#34d399" font-size="12" text-anchor="middle">95% credible interval 0.572 to 0.632</text>
+<text x="236" y="62" fill="#a78bfa" font-size="12">prior Beta(8,2)</text>
+<text x="120" y="110" fill="#34d399" font-size="12">posterior</text><text x="120" y="125" fill="#34d399" font-size="12">Beta(14,6)</text>
+<text x="636" y="62" fill="#34d399" font-size="12">posterior</text><text x="636" y="77" fill="#34d399" font-size="12">Beta(608,402)</text>
+<text x="426" y="212" fill="#a78bfa" font-size="12">prior Beta(8,2)</text>
+<text x="200.0" y="312" fill="#94a3b8" font-size="12" text-anchor="middle">true accuracy &#952;</text><text x="570.0" y="312" fill="#94a3b8" font-size="12" text-anchor="middle">true accuracy &#952; (note the taller vertical scale)</text>
+</svg>
+<p class="viz-caption">Dashed purple is the Beta(8,2) prior. Left: 10 prompts drag it only part of the way toward 0.60, and it stays wide. Right: 1000 prompts leave a narrow spike on 0.60 (vertical scale about six times taller).</p>
+</div>
+
+<p><strong>The prior is worth &alpha;+&beta; imagined observations and the eval is worth n real ones; whichever is bigger wins.</strong> Ten prompts really do carry little information, so the posterior stays cautious.</p>
+
+<h2>5. Sequential updating: yesterday's posterior is today's prior</h2>
+
+<p>Evals rarely arrive in one batch. Because the update is addition, you can do it in pieces. Start with the Beta(14, 6) posterior from the first 10 prompts and treat it as the prior for the next batch: 40 new prompts, 30 correct.</p>
+
+<div class="step-box">
+<div class="line">day 1 posterior (becomes day 2 prior)   Beta(14, 6)</div>
+<div class="line">day 2 data                              k = 30, n &minus; k = 10</div>
+<div class="line">day 2 posterior                         Beta(14 + 30, 6 + 10) = Beta(44, 16)</div>
+<div class="line"> </div>
+<div class="line">pooled in one go: 36 correct of 50, from Beta(8, 2)</div>
+<div class="line">                  Beta(8 + 36, 2 + 14) = Beta(44, 16)      same answer</div>
+<div class="line result">mean = 44 / 60 = 0.733,  95% credible interval 0.616 to 0.836</div>
+</div>
+
+<p>Batch by batch or all at once, the result is identical, so you never need to keep raw data around to keep a running belief: two numbers, &alpha; and &beta;, summarise everything seen so far.</p>
+
+<h2>6. MAP vs. MLE, and why L2 regularization is a prior</h2>
+
+<p>Lesson 5's maximum likelihood estimate picks the &theta; that makes the data most probable. The Bayesian counterpart picks the &theta; at the <strong>peak of the posterior</strong>, called the <strong>maximum a posteriori</strong> estimate, or MAP.</p>
+
+<div class="step-box">
+<div class="line">MLE  = argmax  P(data | &theta;)                  = k / n             = 6/10 = 0.600</div>
+<div class="line">MAP  = argmax  P(data | &theta;) &times; P(&theta;)         = (&alpha;+k&minus;1)/(&alpha;+&beta;+n&minus;2)</div>
+<div class="line result">                                                  = 13 / 18 = 0.722</div>
+</div>
+
+<p>The MAP is the MLE pulled toward the prior. Two limits are worth noticing. With a flat prior, Beta(1, 1), the MAP formula gives k/n, so MAP equals MLE. With lots of data, the prior's pull vanishes, as in the table above. MAP keeps only the peak, not the curve's width, so it says nothing about how sure to be.</p>
+
+<h3>The Lesson 8 connection, in one line</h3>
+
+<p>Lesson 8 introduced weight penalties (L2) as a way to hold a model back from overfitting. They are exactly a Gaussian prior on the weights. Take logs of the posterior, then negate to get a loss you minimise:</p>
+
+<div class="step-box">
+<div class="line">&minus;log P(w | data) = &minus;log P(data | w) &minus; log P(w) + constant</div>
+<div class="line">                    = (loss on the data)  +  &minus;log P(w) + constant</div>
+<div class="line"> </div>
+<div class="line">prior w ~ Normal(0, &tau;&sup2;):   &minus;log P(w) = ||w||&sup2; / (2&tau;&sup2;) + constant</div>
+<div class="line result">MAP loss = data loss + &lambda; &middot; ||w||&sup2;,   with &lambda; = 1 / (2&tau;&sup2;)</div>
+</div>
+
+<p>The first term is the data's negative log-likelihood, summed over examples: the cross-entropy loss from Lesson 7, or, for regression with Gaussian noise of variance &sigma;&sup2;, the squared-error loss from Lesson 6 divided by 2&sigma;&sup2;. The second is the L2 penalty. The formula &lambda; = 1/(2&tau;&sup2;) holds against that summed negative log-likelihood; against plain squared error it becomes &sigma;&sup2;/&tau;&sup2;, and if the loss is averaged over n examples, divide &lambda; by n.The prior's width sets its strength: &tau; = 1 gives &lambda; = 0.5, and a tighter prior, &tau; = 0.5, gives &lambda; = 1/(2 &times; 0.25) = 2. "Weights should be small" is the belief "weights are probably near zero," and regularization strength is how firmly you hold it. So regularized training is MAP estimation; a fully Bayesian treatment keeps the whole posterior over the weights.</p>
+
+<h2>7. Credible intervals vs. confidence intervals</h2>
+
+<p>Compare the Lesson 5 rule of thumb (observed &plusmn; 2 standard errors) with the Beta credible interval on the same evals.</p>
+
+<div class="step-box">
+<div class="line">n = 10, k = 6:      se = &radic;(0.6 &times; 0.4 / 10) = 0.155</div>
+<div class="line">  confidence (Lesson 5):  0.60 &plusmn; 2 &times; 0.155  =  0.29 to 0.91      (width 0.62)</div>
+<div class="line">  credible (Beta(14,6)):  0.488 to 0.874                              (width 0.39)</div>
+<div class="line"> </div>
+<div class="line">n = 1000, k = 600:  se = &radic;(0.6 &times; 0.4 / 1000) = 0.0155</div>
+<div class="line">  confidence:             0.60 &plusmn; 0.031  =  0.569 to 0.631</div>
+<div class="line">  credible (Beta(608,402)): 0.572 to 0.632</div>
+</div>
+
+<p>At n = 1000 they agree to within a few thousandths. At n = 10 the credible interval is far narrower, and the reason is the prior: it contributed the equivalent of 10 more prompts. That narrowing is earned only if the prior was reasonable. A wrong confident prior gives a tight interval around the wrong place.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">What each interval does and does not say</span>
+  A <strong>credible</strong> interval of 0.488 to 0.874 says: given this prior and this data, there is a 95% probability that the true accuracy lies in that range. A <strong>confidence</strong> interval says nothing about this particular range. It describes the procedure: if you repeated the whole eval many times and built an interval each time, about 95% of those intervals would contain the true accuracy. Any single confidence interval either contains it or does not. Reading a confidence interval as "95% probability the truth is in here" is the most common slip, and it is only correct for the Bayesian interval.
+</div>
+
+<div class="table-wrap">
+<table class="cmp">
+  <thead><tr><th></th><th>Frequentist (Lesson 5)</th><th>Bayesian (this lesson)</th></tr></thead>
+  <tbody>
+    <tr><td>What &theta; is</td><td>A fixed unknown constant</td><td>Uncertain, so described by a distribution</td></tr>
+    <tr><td>What is random</td><td>The data, across repeated evals</td><td>Your belief; the observed data is fixed</td></tr>
+    <tr><td>Point estimate</td><td>MLE: 0.600</td><td>Posterior mean 0.700 or MAP 0.722</td></tr>
+    <tr><td>Interval</td><td>Confidence: 0.29 to 0.91, a statement about the procedure</td><td>Credible: 0.488 to 0.874, a statement about &theta;</td></tr>
+    <tr><td>Prior knowledge</td><td>Not part of the formal method</td><td>Required, and stated openly</td></tr>
+    <tr><td>Behaviour with lots of data</td><td colspan="2">Both converge to nearly the same answer</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>8. The posterior predictive: probability the next prompt is answered correctly</h2>
+
+<p>What you often need is not &theta; itself but a forecast: will the next prompt be answered correctly? Without uncertainty you would plug in a single estimate. A Bayesian averages the prediction over every &theta;, weighted by the posterior. That is the <strong>posterior predictive</strong>.</p>
+
+<p>For one yes/no outcome, "correct" has probability &theta;, so averaging &theta; over the posterior is just the posterior mean:</p>
+
+<div class="step-box">
+<div class="line">P(next prompt correct | data) = E[&theta;] = 14 / (14 + 6) = 0.70</div>
+<div class="line">plug-in with the MLE:            0.60</div>
+</div>
+
+<p>The two forecasts differ because the Bayesian one admits the 10-prompt eval is thin and leans toward the prior. The difference grows for events involving more than one prompt. Take the probability that the next <em>two</em> prompts are both correct. The Beta gives a closed form, &alpha;(&alpha;+1) / ((&alpha;+&beta;)(&alpha;+&beta;+1)):</p>
+
+<div class="step-box">
+<div class="line">P(both correct) = 14 &times; 15 / (20 &times; 21) = 210 / 420 = 0.500</div>
+<div class="line">plug in MLE:          0.60&sup2; = 0.360</div>
+<div class="line">plug in posterior mean: 0.70&sup2; = 0.490</div>
+<div class="line">gap between 0.500 and 0.490 = posterior variance = 0.1&sup2; = 0.010</div>
+</div>
+
+<p>An independent numerical integration of &theta;&sup2; against the Beta(14, 6) density also gives 0.500. The leftover 0.010 is the posterior variance: two answers are positively linked through the shared unknown &theta; even though they are independent once &theta; is known.</p>
+
+<h2>9. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Almost every number an AI team acts on is an estimate from a thin sample. Bayesian inference keeps the thinness visible instead of hiding it in a single score.
+</div>
+
+<p>Test a new prompt on 10 cases and a Beta posterior lets you say "there is a 16% chance this is above 80%" instead of quoting a bare score. Per-prompt or per-route success rates in production work the same way: add one to &alpha; or &beta; per call, and the estimate starts at the prior and sharpens as traffic arrives. Bandit-style routing between models keeps one Beta per option.</p>
+
+<p>Weight penalties are priors, so tuning weight decay means choosing how firmly to believe weights are small.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>Bayes' theorem on a parameter: posterior &prop; likelihood &times; prior. The result is a distribution over the parameter, not a single number.</li>
+  <li><strong>Beta-Binomial update</strong>: prior Beta(&alpha;, &beta;), observe k correct of n, posterior Beta(&alpha;+k, &beta;+n&minus;k). Worked: Beta(8,2) + 6 of 10 = Beta(14,6), mean 0.70, 95% credible interval 0.488 to 0.874.</li>
+  <li>The prior is worth &alpha;+&beta; imagined observations. With n = 10 it carries half the weight; with n = 1000 it carries 1%, and the posterior mean is 0.602.</li>
+  <li><strong>Sequential updating</strong>: yesterday's posterior is today's prior. Batches and one pooled update give the same Beta(44, 16).</li>
+  <li><strong>MAP</strong> is the peak of the posterior; <strong>MLE</strong> is MAP with a flat prior. An L2 penalty is MAP with a zero-mean Gaussian prior, with &lambda; = 1/(2&tau;&sup2;).</li>
+  <li>A <strong>credible</strong> interval is a probability statement about &theta; given your prior and data. A <strong>confidence</strong> interval is a statement about a procedure repeated many times.</li>
+  <li>The <strong>posterior predictive</strong> averages predictions over the posterior: P(next correct) = 0.70, and P(next two correct) = 0.50, not 0.36.</li>
+</ul>
+
+<h2>Leads into Lesson 17</h2>
+<p>Every posterior here, like every p-value in Lesson 15, assumes the eval data was a fair sample. If the prompts were cherry-picked, the groups were assigned by something related to the outcome, or test items leaked into training, no prior and no test can fix the number. Lesson 17 covers study design: random sampling, randomized comparisons, confounding, and data leakage.</p>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. A team's prior on a model's accuracy is Beta(8, 2). They run 5 prompts and 3 are answered correctly. What is the posterior?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Beta(3, 2)</div>
+    <div class="quiz-opt">Beta(11, 7)</div>
+    <div class="quiz-opt">Beta(11, 4)</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. With a Beta(8, 2) prior, why does a 10-prompt eval leave the posterior near the prior, while a 1000-prompt eval does not?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">The prior counts as about 10 imagined prompts, so it is outweighed once the real sample is much larger than that</div>
+    <div class="quiz-opt">The Bayesian method ignores data until n passes 100</div>
+    <div class="quiz-opt">Large eval sets change the prior itself</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. Adding an L2 weight penalty to a training loss is equivalent to which Bayesian choice?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Using the posterior mean instead of the MAP</div>
+    <div class="quiz-opt">MAP estimation with a zero-mean Gaussian prior on the weights</div>
+    <div class="quiz-opt">Choosing a flat prior, so the estimate equals the MLE</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A report gives a 95% credible interval of 0.49 to 0.87 for accuracy. What does it say?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">95% of future prompts will score between 0.49 and 0.87</div>
+    <div class="quiz-opt">If the eval were repeated many times, 95% of such intervals would contain the truth, but this one may not</div>
+    <div class="quiz-opt">Given the prior and the data, there is a 95% probability the true accuracy is in that range</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. A team updates a Beta posterior after batch 1, then uses it as the prior for batch 2. Compared with pooling both batches into one update from the original prior, the result is:</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Different, because batch 1 gets counted twice</div>
+    <div class="quiz-opt">Identical, because the update just adds the correct and wrong counts to &alpha; and &beta;</div>
+    <div class="quiz-opt">Different, because later batches always get more weight</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Bayesian_inference" target="_blank">Bayesian Inference &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Conjugate_prior" target="_blank">Conjugate Prior &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Credible_interval" target="_blank">Credible Interval &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Maximum_a_posteriori_estimation" target="_blank">Maximum a Posteriori Estimation &mdash; Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — re-think how the prior's pseudo-counts, the likelihood from the data, and the posterior combine (add k and n-k to alpha and beta), and what each interval or estimate claims, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

@@ -126,7 +126,7 @@
 </head>
 <body>
 
-<span class="lesson-pill">Lesson 6 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<span class="lesson-pill">Lesson 6 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
 <h1>Correlation, Regression &amp; Why Models "Fit" Data</h1>
 <p class="subtitle">Two variables that move together, a line that summarizes the pattern, and the realization that fitting that line is a miniature version of everything Lesson 8 will call "training."</p>
 
@@ -402,7 +402,7 @@
 
 <script>
 document.querySelectorAll(".quiz-options").forEach(group => {
-  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const fb = group.nextElementSibling;
   const opts = group.querySelectorAll(".quiz-opt");
   const hint = group.dataset.hint || "look again and try another option.";
   let solved = false;
