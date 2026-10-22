@@ -1,14 +1,14 @@
 # Statistics for AI, GenAI & LLMs
 
-Two self-paced courses: **Statistics for AI, GenAI & LLMs** (nineteen lessons) covering the statistics you actually need to build, evaluate, and reason about AI systems, generative models, and LLMs, and a companion, **Math for AI: Linear Algebra & Calculus Essentials** (seven lessons), covering the vectors, matrices, derivatives, and integrals underneath them.
+Two self-paced courses. **Statistics for AI, GenAI & LLMs** has nineteen lessons on the statistics behind building and judging AI systems. **Math for AI: Linear Algebra & Calculus Essentials** has seven lessons on the linear algebra and calculus underneath them.
 
-Every example is drawn from AI and ML work — RAG chunk-size distributions, hallucination-detector base rates, latency percentiles, softmax temperature, cross-entropy loss — rather than the dice and urns most statistics material opens with. The lessons are deliberately sequential: each one assumes only what came before it, and no prior statistics background is required. The math course needs only high-school algebra.
+Every example comes from AI and ML work: RAG chunk-size distributions, hallucination-detector base rates, latency percentiles, softmax temperature, cross-entropy loss. Most statistics material opens with dice and urns instead. The lessons are deliberately sequential: each one assumes only what came before it, and no prior statistics background is required. The math course needs only high-school algebra.
 
 ## Start here
 
 Open **`index.html`** (statistics) or **`math.html`** (math) in any browser. That's the whole setup — no install, no build step, no dependencies.
 
-Each lesson is a single self-contained HTML file with inline styles and inline SVG diagrams. There are no external scripts, stylesheets, fonts, or images, so the lessons render identically from a local file, a static host, or inside a sandboxed iframe.
+Each lesson is a single self-contained HTML file with inline styles and inline SVG diagrams. There are no external scripts, stylesheets, fonts, or images. The lessons render the same from a local file, a static host, or a sandboxed iframe.
 
 ## The statistics lessons
 
@@ -54,7 +54,7 @@ Each lesson ends with a retry-friendly quiz.
 
 ### Flashcards — `ai-statistics-foundations/review/`
 
-Seventy-six cards, four per lesson, in `Statistics for AI, GenAI & LLMs.md`. The math course has its own 28-card deck in `ai-math-foundations/review/`. They're written for active recall — most pose a scenario and ask what breaks or what you'd do — rather than asking you to match a term to its definition.
+Seventy-six cards, four per lesson, in `Statistics for AI, GenAI & LLMs.md`. The math course has its own 28-card deck in `ai-math-foundations/review/`. They test active recall. Most pose a scenario and ask what breaks or what you would do. None ask you to match a term to a definition.
 
 The format is `question :: answer`, one card per line, which [Obsidian_to_Anki](https://github.com/Pseudonium/Obsidian_to_Anki) imports directly. Without that plugin it still reads fine as plain Markdown.
 
@@ -62,7 +62,7 @@ The format is `question :: answer`, one card per line, which [Obsidian_to_Anki](
 
 ### Memory map — `ai-statistics-foundations-memory.canvas`
 
-A 99-node [JSON Canvas](https://jsoncanvas.org/) laying out the whole statistics course as one picture (the math course has its own, `ai-math-foundations/ai-math-foundations-memory.canvas`): one cluster per lesson, with edges showing how each concept feeds the next. It renders in Obsidian. The file-node links inside it are vault-relative, so they resolve once the course folder is imported (below) — not when browsing this repo directly.
+A 99-node [JSON Canvas](https://jsoncanvas.org/) lays out the whole statistics course as one picture. It has one cluster per lesson, with edges showing how each concept feeds the next. The math course has its own map, `ai-math-foundations/ai-math-foundations-memory.canvas`. It renders in Obsidian. The file-node links are vault-relative. They resolve after you import the course folder (below), not when you browse this repo.
 
 ## Using this inside Obsidian
 
@@ -73,21 +73,21 @@ The `ai-statistics-foundations/` and `ai-math-foundations/` folders are each a d
 <vault>/engram-quest/lessons/ai-math-foundations/
 ```
 
-No renaming needed — the folder name is already the course slug the plugin expects. `meta.json` ships with all progress flags set to `false`, so it registers as a fresh, unstarted course.
+Do not rename the folder. Its name is already the course slug the plugin expects. `meta.json` ships with all progress flags set to `false`, so the course registers as unstarted.
 
-To also wire up a review deck, copy the two files from that course's `review/` folder into your vault's `engram-review/ai-cards/` and `engram-review/hints/` respectively, keeping their filenames.
+To add a review deck, copy the two files from that course's `review/` folder into your vault. Put the Markdown file in `engram-review/ai-cards/` and the JSON file in `engram-review/hints/`. Keep the filenames.
 
 ## Sources and attribution
 
-Every external source is cited as an outbound hyperlink with attribution text. No third-party prose, figures, or datasets are reproduced anywhere in these files — all writing, examples, and diagrams here are original. Cited sources include Wikipedia, arXiv, Hugging Face documentation, the OpenAI API reference, the Google SRE Book, and Chris Olah's writing on information theory.
+Every external source is cited as an outbound hyperlink with attribution text. These files reproduce no third-party prose, figures, or datasets. All writing, examples, and diagrams are original. Cited sources include Wikipedia, arXiv, Hugging Face documentation, the OpenAI API reference, the Google SRE Book, and Chris Olah's writing on information theory.
 
 Because nothing is copied, no source license's share-alike or attribution obligations attach to this material.
 
 ## On how this was made
 
-This course was generated with AI assistance and reviewed by a human. The subject matter is well-established, slow-moving statistics rather than a fast-changing field, and the material has been spot-checked for accuracy — but it is a strong first pass, not a peer-reviewed textbook. Treat it as a study aid. If a specific claim matters for something load-bearing, follow the citation and verify it at the source.
+This course was generated with AI assistance and reviewed by a human. The subject is well-established statistics, not a fast-changing field, and the material has been spot-checked for accuracy. It is a strong first pass, not a peer-reviewed textbook. Treat it as a study aid. If a specific claim matters for something load-bearing, follow the citation and verify it at the source.
 
-Statistics lessons 11–19 and the whole math course were written with AI assistance and checked by separate AI reviewers who recomputed every worked number in Python and checked each quiz answer. No human has reviewed them line by line yet. Lessons 1–10 were reviewed by a human; the one correction made to them since is in Lesson 9, where an N = 500 example claimed a small p-value when the exact figure is p ≈ 0.058.
+Statistics lessons 11–19 and the whole math course were written with AI assistance. Separate AI reviewers recomputed every worked number in Python and checked each quiz answer. No human has reviewed them line by line yet. A human reviewed lessons 1–10. One correction has been made since, in Lesson 9. An N = 500 example claimed a small p-value, but the exact figure is p ≈ 0.058.
 
 Corrections are welcome.
 
@@ -95,7 +95,7 @@ Corrections are welcome.
 
 [Creative Commons Attribution 4.0 International (CC BY 4.0)](https://creativecommons.org/licenses/by/4.0/) — see [LICENSE](LICENSE).
 
-You are free to share and adapt this material for any purpose, including commercially, as long as you give appropriate credit, link to the license, and indicate whether you made changes.
+You may share and adapt this material for any purpose, including commercially. You must give credit, link to the license, and say whether you made changes.
 
 Suggested attribution:
 
