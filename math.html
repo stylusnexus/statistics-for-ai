@@ -65,7 +65,7 @@
 
 <p class="eyebrow">🧮 Self-paced course · companion to <a href="index.html" style="color:inherit">Statistics for AI</a></p>
 <h1>Math for AI: Linear Algebra &amp; Calculus Essentials</h1>
-<p class="lede">The vectors, matrices, derivatives and integrals that AI and machine learning actually use — each one tied to something a model does, not a textbook exercise.</p>
+<p class="lede">The vectors, matrices, derivatives and integrals that AI and machine learning use. Each one ties to something a model does.</p>
 
 <div class="meta">
   <span class="chip">7 lessons</span>
@@ -83,12 +83,12 @@
 
   <li><a class="card" href="ai-math-foundations/lsn-1786039516001-matrices-and-transformations.html">
     <h2>Matrices: Transformations, Layers &amp; Why Shapes Matter</h2>
-    <p>A neural-network layer, an attention score table and a batch of embeddings are all one object: a grid of numbers that turns vectors into vectors. Learn to multiply them by hand and to read shapes before your code crashes.</p>
+    <p>A neural-network layer, an attention score table and a batch of embeddings are all grids of numbers. Each grid turns vectors into vectors. Learn to multiply them by hand and to read shapes before your code crashes.</p>
   </a></li>
 
   <li><a class="card" href="ai-math-foundations/lsn-1786039516002-eigen-svd-and-low-rank.html">
     <h2>Eigenvectors, SVD &amp; Low-Rank Structure: PCA and LoRA</h2>
-    <p>Eigenvectors, the singular value decomposition, and low-rank approximation, worked by hand on small matrices. Then the two places AI uses them most: PCA for finding the main axis of data and LoRA for fine-tuning with a fraction of the parameters.</p>
+    <p>Eigenvectors, the singular value decomposition, and low-rank approximation, worked by hand on small matrices. Then the two places AI uses them most. PCA finds the main axis of data. LoRA fine-tunes with a fraction of the parameters.</p>
   </a></li>
 </ol>
 
@@ -96,22 +96,22 @@
 <ol class="lessons" style="counter-reset: lsn 3">
   <li><a class="card" href="ai-math-foundations/lsn-1786039516003-derivatives.html">
     <h2>Derivatives: Slope, Rate of Change &amp; the Functions ML Uses</h2>
-    <p>Slope, the limit of shrinking gaps, tangent lines, and the handful of rules that differentiate everything a network uses: squared error, sigmoid, ReLU, log loss. Read a derivative's sign to know which way to move, and check it numerically.</p>
+    <p>Slope, the limit of shrinking gaps, and tangent lines. Then the few rules that differentiate everything a network uses: squared error, sigmoid, ReLU, log loss. Read a derivative's sign to know which way to move, and check it numerically.</p>
   </a></li>
 
   <li><a class="card" href="ai-math-foundations/lsn-1786039516004-gradients-and-descent.html">
     <h2>Partial Derivatives &amp; Gradients: Which Way Is Downhill?</h2>
-    <p>A loss with millions of weights is a landscape, and the gradient is the arrow that points uphill. Compute partial derivatives by hand, run three steps of gradient descent, and see why a learning rate that is too large blows up.</p>
+    <p>A loss with millions of weights is a landscape, and the gradient is the arrow that points uphill. Compute partial derivatives by hand and run three steps of gradient descent. See why a learning rate that is too large diverges.</p>
   </a></li>
 
   <li><a class="card" href="ai-math-foundations/lsn-1786039516005-chain-rule-and-backpropagation.html">
     <h2>The Chain Rule &amp; Backpropagation: How Gradients Flow Through a Network</h2>
-    <p>A network is a long chain of small functions, and the chain rule is how the loss gets traced back to every weight. Work a complete backprop by hand on a tiny network, see why gradients vanish or explode, and learn what your framework is really doing.</p>
+    <p>A network is a long chain of small functions. The chain rule traces the loss back to every weight. Work a complete backprop by hand on a tiny network. See why gradients vanish or explode, and what your framework does.</p>
   </a></li>
 
   <li><a class="card" href="ai-math-foundations/lsn-1786039516006-integrals.html">
     <h2>Integrals: Accumulation, Area &amp; the Continuous Side of Probability</h2>
-    <p>The last piece of calculus: integrals as accumulated area, the fundamental theorem, and why every density, expected value and softmax denominator is an integral. Includes a Monte Carlo estimate whose error shrinks like 1/√n.</p>
+    <p>The last piece of calculus: integrals as accumulated area, and the fundamental theorem. Every density, expected value and softmax denominator is an integral. Includes a Monte Carlo estimate whose error shrinks like 1/√n.</p>
   </a></li>
 </ol>
 
@@ -119,7 +119,7 @@
   <h3>Also in this repo</h3>
   <p><strong>28 flashcards</strong> — four per lesson, in <code>ai-math-foundations/review/</code>.</p>
   <p><strong>A memory map</strong> — a 36-node JSON Canvas of how the seven lessons connect.</p>
-  <p>The math builds toward the <a href="index.html">statistics course</a>: gradients and backpropagation are what its training lesson (Lesson 8) assumes, and integrals underpin its lessons on continuous distributions and expectation.</p>
+  <p>The math builds toward the <a href="index.html">statistics course</a>. Its training lesson (Lesson 8) assumes gradients and backpropagation. Its lessons on continuous distributions and expectation use integrals.</p>
   <p>See the <a href="https://github.com/stylusnexus/statistics-for-ai#readme">README</a> for how to use each.</p>
 </div>
 

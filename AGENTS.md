@@ -1,10 +1,10 @@
 # AGENTS.md
 
-Workspace-wide rules (commits, security, plan-before-code, approval gates) live in the `AGENTS.md` at the root of the Projects workspace folder; this file only adds what is specific to this project.
+Workspace-wide rules (commits, security, plan-before-code, approval gates) live in the `AGENTS.md` at the root of the Projects workspace folder. This file adds only what is specific to this project.
 
 ## Project Overview
 
-Two self-paced courses, licensed CC BY 4.0 (see `LICENSE`): a nineteen-lesson course on the statistics needed for AI, GenAI, and LLM work, and a seven-lesson companion on the linear algebra and calculus underneath it. Written with AI assistance. Lessons 1–10 were human-reviewed; the later statistics lessons and the math course were checked by AI reviewers only (see `README.md`, which calls the material a study aid, not a peer-reviewed textbook).
+Two self-paced courses, licensed CC BY 4.0 (see `LICENSE`). One is a nineteen-lesson course on the statistics needed for AI, GenAI, and LLM work. The other is a seven-lesson companion on the linear algebra and calculus underneath it. Written with AI assistance. Humans reviewed lessons 1–10. AI reviewers alone checked the later statistics lessons and the math course. `README.md` calls the material a study aid, not a peer-reviewed textbook.
 
 ## Development Commands
 
