@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Chain Rule &amp; Backpropagation</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 6 of 7 &middot; Math for AI: Linear Algebra &amp; Calculus Essentials</span>
+<h1>The Chain Rule &amp; Backpropagation: How Gradients Flow Through a Network</h1>
+<p class="subtitle">A network is a long chain of small functions. The chain rule turns "how does the loss change if I nudge this one weight?" into a bookkeeping job, and backpropagation is that job done in the cheapest possible order.</p>
+
+<p>M4 gave you the derivative of a single function and the finite-difference check that tests it. M5 gave you partial derivatives and the gradient: one slope per parameter, bundled into a vector. M2 gave you matrices as machines that transform vectors. This lesson joins them. A real model is dozens of layers, each feeding the next, and the slope of the loss with respect to a weight in layer 3 depends on everything downstream of it. The <strong>chain rule</strong> says how to get that slope. <strong>Backpropagation</strong> is the chain rule organized so that one sweep through the network yields the slope for every weight. The statistics course, Lesson 8 (The Statistics Behind Training a Model), described gradient descent as a walk downhill. This lesson shows where the direction of that walk comes from.</p>
+
+<h2>1. Composite functions and the chain rule</h2>
+
+<p>A <strong>composite function</strong> feeds the output of one function into another: f(g(x)). First compute the inner value u = g(x), then compute y = f(u). A neural network layer is exactly this shape, and a whole network is many of them stacked.</p>
+
+<p>The <strong>chain rule</strong> says that the slope of the composite is the product of the slopes of the pieces:</p>
+
+<div class="step-box">
+<div class="line">dy/dx = (dy/du) &times; (du/dx)</div>
+</div>
+
+<p>Read it as a chain of exchange rates. If nudging x by 1 moves u by 3, and nudging u by 1 moves y by 14, then nudging x by 1 moves y by 3 &times; 14 = 42. Rates multiply.</p>
+
+<h3>Example: a polynomial inside a square</h3>
+<p>Let y = (3x + 1)<sup>2</sup> and evaluate at x = 2. Name the inner piece u = 3x + 1.</p>
+
+<div class="step-box">
+<div class="line">u = 3x + 1 = 3(2) + 1 = 7</div>
+<div class="line">y = u&sup2; = 49</div>
+<div class="line">du/dx = 3</div>
+<div class="line">dy/du = 2u = 2(7) = 14</div>
+<div class="line result">dy/dx = 14 &times; 3 = 42</div>
+</div>
+
+<p>Check with M4's finite difference: nudge x to 2.000001, get y = (7.000003)<sup>2</sup> = 49.000042, and (49.000042 &minus; 49) / 0.000001 = 42. The product of local slopes matches the measured slope.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Every derivative in the chain is <em>local</em>. The slope of 3x + 1 knows nothing about squaring; the slope of squaring knows nothing about 3x + 1. Each piece only needs its own input and its own output. Backpropagation exploits exactly this: each layer only has to know how to differentiate itself.
+</div>
+
+<h2>2. The computational graph: forward pass and backward pass</h2>
+
+<p>Draw a calculation as a <strong>computational graph</strong>. Each <strong>node</strong> is one simple operation (multiply, add, sigmoid, subtract and square). Each arrow carries a value from one node to the next. A neural network's loss is one big graph.</p>
+
+<ul>
+  <li>The <strong>forward pass</strong> walks the graph from inputs to loss, computing and <em>saving</em> each node's value. This is ordinary inference plus a final loss.</li>
+  <li>The <strong>backward pass</strong> walks the graph in reverse, from the loss back to the parameters. At each node it takes the gradient arriving from downstream, multiplies by that node's local derivative, and hands the result upstream.</li>
+</ul>
+
+<p>The quantity travelling backward is the slope of the final loss L with respect to the value at that point, written &part;L/&part;(value); at the loss node it starts at 1.</p>
+
+<h2>3. Worked example: a complete backprop by hand</h2>
+
+<p>Build the smallest network that still has a hidden nonlinearity: one input, one hidden unit with a sigmoid, one linear output. Sigmoid is &sigma;(z) = 1 / (1 + e<sup>&minus;z</sup>); it squashes any number into the range 0 to 1, and its slope is &sigma;&prime;(z) = &sigma;(z)(1 &minus; &sigma;(z)). Suppose a team is fitting a toy score predictor on a single example and every number is fixed up front:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Item</th><th>Symbol</th><th class="num">Value</th></tr></thead>
+  <tbody>
+    <tr><td>Input</td><td><em>x</em></td><td class="num">1.5</td></tr>
+    <tr><td>Target (what we want)</td><td><em>t</em></td><td class="num">1.0</td></tr>
+    <tr><td>Hidden weight and bias</td><td><em>w</em><sub>1</sub>, <em>b</em><sub>1</sub></td><td class="num">0.4, 0.1</td></tr>
+    <tr><td>Output weight and bias</td><td><em>w</em><sub>2</sub>, <em>b</em><sub>2</sub></td><td class="num">0.9, &minus;0.2</td></tr>
+    <tr><td>Learning rate</td><td>&eta;</td><td class="num">0.5</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The model is z = w<sub>1</sub>x + b<sub>1</sub>, then h = &sigma;(z), then &#374; = w<sub>2</sub>h + b<sub>2</sub> (the prediction, written "y-hat"), and the loss is squared error with a half in front so the derivative comes out clean: L = &frac12;(&#374; &minus; t)<sup>2</sup>.</p>
+
+<h3>Forward pass: compute and save every value</h3>
+<div class="step-box">
+<div class="line">z = w&#8321;&middot;x + b&#8321; = 0.4(1.5) + 0.1 = 0.7</div>
+<div class="line">h = &sigma;(0.7) = 1 / (1 + e^&minus;0.7) = 0.6682</div>
+<div class="line">&#374; = w&#8322;&middot;h + b&#8322; = 0.9(0.6682) + (&minus;0.2) = 0.4014</div>
+<div class="line result">L = &frac12;(0.4014 &minus; 1.0)&sup2; = &frac12;(0.3583) = 0.1792</div>
+</div>
+
+<p>The prediction is 0.4014 against a target of 1.0, so the loss is 0.1792. Now the graph, with the forward values on top and the backward gradients underneath:</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 920 260" role="img" aria-label="Computational graph of the tiny network. Forward values: x 1.5, z 0.7, h 0.6682, y-hat 0.4014, L 0.1792. Backward gradients: dL/dz minus 0.1195, dL/dh minus 0.5388, dL/dy-hat minus 0.5986, dL/dL 1." style="min-width:720px; font-family: Consolas, 'JetBrains Mono', monospace; font-size:14px;">
+  <defs>
+    <marker id="arF" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#6c8fff"/></marker>
+    <marker id="arB" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#f87171"/></marker>
+    <marker id="arP" markerWidth="9" markerHeight="9" refX="8" refY="4.5" orient="auto"><path d="M0,0 L9,4.5 L0,9 z" fill="#94a3b8"/></marker>
+  </defs>
+
+  <!-- parameter boxes -->
+  <rect x="170" y="20" width="110" height="56" rx="8" fill="#242736" stroke="#a78bfa"/>
+  <text x="225" y="42" text-anchor="middle" fill="#e2e8f0">w&#8321; = 0.4</text>
+  <text x="225" y="64" text-anchor="middle" fill="#f87171">grad &minus;0.1792</text>
+  <rect x="290" y="20" width="110" height="56" rx="8" fill="#242736" stroke="#a78bfa"/>
+  <text x="345" y="42" text-anchor="middle" fill="#e2e8f0">b&#8321; = 0.1</text>
+  <text x="345" y="64" text-anchor="middle" fill="#f87171">grad &minus;0.1195</text>
+  <rect x="530" y="20" width="110" height="56" rx="8" fill="#242736" stroke="#a78bfa"/>
+  <text x="585" y="42" text-anchor="middle" fill="#e2e8f0">w&#8322; = 0.9</text>
+  <text x="585" y="64" text-anchor="middle" fill="#f87171">grad &minus;0.4000</text>
+  <rect x="650" y="20" width="110" height="56" rx="8" fill="#242736" stroke="#a78bfa"/>
+  <text x="705" y="42" text-anchor="middle" fill="#e2e8f0">b&#8322; = &minus;0.2</text>
+  <text x="705" y="64" text-anchor="middle" fill="#f87171">grad &minus;0.5986</text>
+  <line x1="225" y1="76" x2="270" y2="138" stroke="#94a3b8" marker-end="url(#arP)"/>
+  <line x1="345" y1="76" x2="310" y2="138" stroke="#94a3b8" marker-end="url(#arP)"/>
+  <line x1="585" y1="76" x2="630" y2="138" stroke="#94a3b8" marker-end="url(#arP)"/>
+  <line x1="705" y1="76" x2="670" y2="138" stroke="#94a3b8" marker-end="url(#arP)"/>
+
+  <!-- main nodes -->
+  <rect x="30" y="140" width="120" height="64" rx="10" fill="#1a1d27" stroke="#6c8fff"/>
+  <text x="90" y="165" text-anchor="middle" fill="#94a3b8">input x</text>
+  <text x="90" y="190" text-anchor="middle" fill="#e2e8f0" font-weight="700">1.5</text>
+
+  <rect x="210" y="140" width="120" height="64" rx="10" fill="#1a1d27" stroke="#6c8fff"/>
+  <text x="270" y="165" text-anchor="middle" fill="#94a3b8">z = w&#8321;x + b&#8321;</text>
+  <text x="270" y="190" text-anchor="middle" fill="#e2e8f0" font-weight="700">0.7</text>
+
+  <rect x="390" y="140" width="120" height="64" rx="10" fill="#1a1d27" stroke="#6c8fff"/>
+  <text x="450" y="165" text-anchor="middle" fill="#94a3b8">h = &sigma;(z)</text>
+  <text x="450" y="190" text-anchor="middle" fill="#e2e8f0" font-weight="700">0.6682</text>
+
+  <rect x="570" y="140" width="120" height="64" rx="10" fill="#1a1d27" stroke="#6c8fff"/>
+  <text x="630" y="165" text-anchor="middle" fill="#94a3b8">&#374; = w&#8322;h + b&#8322;</text>
+  <text x="630" y="190" text-anchor="middle" fill="#e2e8f0" font-weight="700">0.4014</text>
+
+  <rect x="750" y="140" width="120" height="64" rx="10" fill="#1a1d27" stroke="#34d399"/>
+  <text x="810" y="165" text-anchor="middle" fill="#94a3b8">L = &#189;(&#374;&minus;t)&#178;</text>
+  <text x="810" y="190" text-anchor="middle" fill="#e2e8f0" font-weight="700">0.1792</text>
+
+  <!-- forward arrows -->
+  <line x1="150" y1="158" x2="208" y2="158" stroke="#6c8fff" stroke-width="2" marker-end="url(#arF)"/>
+  <line x1="330" y1="158" x2="388" y2="158" stroke="#6c8fff" stroke-width="2" marker-end="url(#arF)"/>
+  <line x1="510" y1="158" x2="568" y2="158" stroke="#6c8fff" stroke-width="2" marker-end="url(#arF)"/>
+  <line x1="690" y1="158" x2="748" y2="158" stroke="#6c8fff" stroke-width="2" marker-end="url(#arF)"/>
+
+  <!-- backward arrows -->
+  <line x1="748" y1="186" x2="692" y2="186" stroke="#f87171" stroke-width="2" marker-end="url(#arB)"/>
+  <line x1="568" y1="186" x2="512" y2="186" stroke="#f87171" stroke-width="2" marker-end="url(#arB)"/>
+  <line x1="388" y1="186" x2="332" y2="186" stroke="#f87171" stroke-width="2" marker-end="url(#arB)"/>
+
+  <!-- gradients below nodes -->
+  <text x="810" y="236" text-anchor="middle" fill="#f87171">&part;L/&part;L = 1</text>
+  <text x="630" y="236" text-anchor="middle" fill="#f87171">&part;L/&part;&#374; = &minus;0.5986</text>
+  <text x="450" y="236" text-anchor="middle" fill="#f87171">&part;L/&part;h = &minus;0.5388</text>
+  <text x="270" y="236" text-anchor="middle" fill="#f87171">&part;L/&part;z = &minus;0.1195</text>
+  <text x="90" y="236" text-anchor="middle" fill="#94a3b8">(input, not trained)</text>
+
+</svg>
+<p class="viz-caption">The same graph carries two kinds of numbers. Blue arrows carry values forward; red arrows carry "how much does the loss care about this value" backward.</p>
+</div>
+
+<h3>Backward pass: one local derivative at a time</h3>
+<p>Start at the loss and walk left. At each step, the gradient arriving from the right is multiplied by the local derivative of that node.</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Step</th><th>Local derivative</th><th>Arithmetic</th><th class="num">Gradient</th></tr></thead>
+  <tbody>
+    <tr><td>Loss to prediction</td><td>&part;L/&part;&#374; = &#374; &minus; t</td><td>0.4014 &minus; 1.0</td><td class="num">&minus;0.5986</td></tr>
+    <tr><td>Prediction to <em>w</em><sub>2</sub></td><td>&part;&#374;/&part;w<sub>2</sub> = h</td><td>&minus;0.5986 &times; 0.6682</td><td class="num">&minus;0.4000</td></tr>
+    <tr><td>Prediction to <em>b</em><sub>2</sub></td><td>&part;&#374;/&part;b<sub>2</sub> = 1</td><td>&minus;0.5986 &times; 1</td><td class="num">&minus;0.5986</td></tr>
+    <tr><td>Prediction to hidden</td><td>&part;&#374;/&part;h = w<sub>2</sub></td><td>&minus;0.5986 &times; 0.9</td><td class="num">&minus;0.5388</td></tr>
+    <tr><td>Hidden to pre-activation</td><td>&sigma;&prime;(z) = h(1 &minus; h)</td><td>0.6682 &times; 0.3318 = 0.2217; &minus;0.5388 &times; 0.2217</td><td class="num">&minus;0.1195</td></tr>
+    <tr><td>Pre-activation to <em>w</em><sub>1</sub></td><td>&part;z/&part;w<sub>1</sub> = x</td><td>&minus;0.1195 &times; 1.5</td><td class="num">&minus;0.1792</td></tr>
+    <tr><td>Pre-activation to <em>b</em><sub>1</sub></td><td>&part;z/&part;b<sub>1</sub> = 1</td><td>&minus;0.1195 &times; 1</td><td class="num">&minus;0.1195</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>The longest path shows the chain rule at full length: &part;L/&part;w<sub>1</sub> = (&part;L/&part;&#374;) &times; (&part;&#374;/&part;h) &times; (&part;h/&part;z) &times; (&part;z/&part;w<sub>1</sub>) = (&minus;0.5986)(0.9)(0.2217)(1.5) = &minus;0.1792. The backward pass reused &minus;0.5986 and &minus;0.5388 for several results; computing shared partial products once is the savings of backprop.</p>
+
+<h3>One gradient-descent step, and a check</h3>
+<p>All four gradients are negative: raising any parameter would lower the loss. Gradient descent (the statistics course, Lesson 8) subtracts &eta; times the gradient, so each parameter moves up:</p>
+
+<div class="step-box">
+<div class="line">w&#8321; = 0.4 &minus; 0.5(&minus;0.1792) = 0.4896</div>
+<div class="line">b&#8321; = 0.1 &minus; 0.5(&minus;0.1195) = 0.1597</div>
+<div class="line">w&#8322; = 0.9 &minus; 0.5(&minus;0.4000) = 1.1000</div>
+<div class="line">b&#8322; = &minus;0.2 &minus; 0.5(&minus;0.5986) = 0.0993</div>
+<div class="line"> </div>
+<div class="line">New forward pass: z = 0.4896(1.5) + 0.1597 = 0.8941, h = 0.7097, &#374; = 1.1(0.7097) + 0.0993 = 0.8800</div>
+<div class="line result">L: 0.1792  &rarr;  0.0072  (one step cut the loss by about 96%)</div>
+</div>
+
+<p>Never trust hand-derived gradients without the M4 test. Nudge each parameter by &plusmn;0.000001, recompute the loss, and divide the difference by 0.000002:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Parameter</th><th class="num">Backprop gradient</th><th class="num">Finite difference</th></tr></thead>
+  <tbody>
+    <tr><td><em>w</em><sub>1</sub></td><td class="num">&minus;0.1792</td><td class="num">&minus;0.1792</td></tr>
+    <tr><td><em>b</em><sub>1</sub></td><td class="num">&minus;0.1195</td><td class="num">&minus;0.1195</td></tr>
+    <tr><td><em>w</em><sub>2</sub></td><td class="num">&minus;0.4000</td><td class="num">&minus;0.4000</td></tr>
+    <tr><td><em>b</em><sub>2</sub></td><td class="num">&minus;0.5986</td><td class="num">&minus;0.5986</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>They agree to about ten digits when run in code. The whole check, with no libraries:</p>
+
+<div class="step-box">
+<div class="line">import math</div>
+<div class="line">sig = lambda z: 1 / (1 + math.exp(-z))</div>
+<div class="line">def loss(w1, b1, w2, b2, x=1.5, t=1.0):</div>
+<div class="line">    h = sig(w1 * x + b1)</div>
+<div class="line">    return 0.5 * (w2 * h + b2 - t) ** 2</div>
+<div class="line"> </div>
+<div class="line">p = [0.4, 0.1, 0.9, -0.2]</div>
+<div class="line">for i in range(4):</div>
+<div class="line">    up, dn = p[:], p[:]</div>
+<div class="line">    up[i] += 1e-6; dn[i] -= 1e-6</div>
+<div class="line">    print((loss(*up) - loss(*dn)) / 2e-6)</div>
+</div>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  The backward pass needs numbers saved from the forward pass (h = 0.6682 and x = 1.5 both appeared as local derivatives), so a framework keeps every layer's intermediate values in memory. That is why training needs far more memory than running a model.
+</div>
+
+<h2>4. When one variable feeds two places: sum over paths</h2>
+
+<p>In the tiny network every variable fed exactly one next node. Real networks branch: one value goes to two places, and both influence the loss. The multivariable chain rule says to add up the contributions along each path.</p>
+
+<p>Take a variable x that feeds two nodes, u = x + 1 and v = x<sup>2</sup>, which are then multiplied: f = u &times; v. At x = 3:</p>
+
+<div class="step-box">
+<div class="line">u = 4, v = 9, f = 36</div>
+<div class="line">Path through u: &part;f/&part;u &times; du/dx = v &times; 1 = 9</div>
+<div class="line">Path through v: &part;f/&part;v &times; dv/dx = u &times; 2x = 4 &times; 6 = 24</div>
+<div class="line result">df/dx = 9 + 24 = 33</div>
+</div>
+
+<p>Check: f = (x + 1)x<sup>2</sup> = x<sup>3</sup> + x<sup>2</sup>, so df/dx = 3x<sup>2</sup> + 2x = 27 + 6 = 33. A finite difference at step 0.000001 also returns 33.00001.</p>
+
+<p>This is common: a residual connection (section 7) sends a layer's input down two routes, and a shared embedding table receives a gradient from every position where a token appears. Whenever two gradients arrive at the same node in a backward pass, they are <strong>added</strong>.</p>
+
+<h2>5. The matrix form: Jacobians and why backward is cheap</h2>
+
+<p>The examples above have one number per node. A real layer takes a vector in and gives a vector out. The M5 gradient generalizes to the <strong>Jacobian</strong>: a matrix whose entry in row <em>i</em>, column <em>j</em> is the partial derivative of output <em>i</em> with respect to input <em>j</em>. For a layer with 1,000 inputs and 1,000 outputs, the Jacobian is a 1,000 &times; 1,000 matrix. (For a linear layer a = Wz from M2, the Jacobian is simply W itself.)</p>
+
+<p>The chain rule for a stack of layers then reads: the Jacobian of the whole network is the product of the layer Jacobians. Only the <em>order</em> of multiplication is a choice, and the order decides the cost:</p>
+
+<ul>
+  <li><strong>Forward mode</strong> multiplies from the input side. Getting all the gradients takes one sweep per parameter: a million sweeps for a million parameters.</li>
+  <li><strong>Reverse mode</strong> (backprop) multiplies from the loss side. It starts with a single row vector, the gradient of one scalar loss, and multiplies it by one Jacobian at a time. Each step is a vector times a matrix. One sweep produces the gradient for <em>every</em> parameter.</li>
+</ul>
+
+<p>The difference is large. A 1,000-entry vector times a 1,000 &times; 1,000 matrix costs about 1,000,000 multiply-adds. Two 1,000 &times; 1,000 matrices cost about 1,000,000,000. Backprop keeps the left factor a vector, so it never pays the second price.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Reverse mode is cheap because training has the shape <em>many inputs, one scalar output</em>: millions or billions of parameters, one loss number. A single backward pass costs roughly a small multiple of the forward pass, no matter how many parameters there are. That one fact is what made training large networks practical. The price, as the pitfall above noted, is memory for the saved forward values.
+</div>
+
+<h2>6. Vanishing and exploding gradients</h2>
+
+<p>The backward pass multiplies one factor per layer. A long product of numbers is dangerous: if the factors are mostly below 1 the product shrinks toward zero, and if they are mostly above 1 it blows up.</p>
+
+<p>Sigmoid is the classic case. Its slope &sigma;&prime;(z) = &sigma;(z)(1 &minus; &sigma;(z)) peaks at z = 0, where &sigma; = 0.5 and the slope is 0.5 &times; 0.5 = <strong>0.25</strong>. It is never larger. In the tiny network the slope was 0.2217, already close to that ceiling, and it shrinks quickly when z is large in either direction. Now stack layers. If each layer's weight is 1 and every sigmoid sits at its best case, each layer multiplies the gradient by at most 0.25:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Sigmoid layers</th><th>Best-case gradient factor</th><th class="num">Value</th></tr></thead>
+  <tbody>
+    <tr><td>5</td><td>0.25<sup>5</sup></td><td class="num">0.00098</td></tr>
+    <tr><td>10</td><td>0.25<sup>10</sup></td><td class="num">0.00000095</td></tr>
+    <tr><td>20</td><td>0.25<sup>20</sup></td><td class="num">9.1 &times; 10<sup>&minus;13</sup></td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>With 10 layers, the gradient reaching the first layer is under one millionth of the gradient at the output. The early layers receive almost no signal, so they barely learn. That is the <strong>vanishing gradient</strong> problem, and it is the best case. Sigmoid slopes are at most 0.25, so this is the best case for a chain of sigmoids; large weights can offset it, which is the exploding side of the same product.</p>
+
+<p>The mirror image is the <strong>exploding gradient</strong>. If each layer's factor is 1.5 instead, the product grows:</p>
+
+<div class="step-box">
+<div class="line">1.5<sup>10</sup>  = 57.7</div>
+<div class="line">1.5<sup>30</sup>  = 191,751</div>
+<div class="line">1.5<sup>50</sup>  &asymp; 637,621,500</div>
+</div>
+
+<p>A gradient that large produces a wild update, and the loss can jump to infinity or NaN. The usual remedy is <strong>gradient clipping</strong>: if the gradient's length exceeds a limit, rescale it to the limit before updating.</p>
+
+<h2>7. Why ReLU and residual connections help</h2>
+
+<h3>ReLU</h3>
+<p>The ReLU activation, max(0, z), has slope exactly 1 for any positive input and 0 for a negative one. For active units the factor per layer is therefore 1 rather than at most 0.25, so a product of many such factors does not shrink just from the activation. A negative input has slope 0 and passes no gradient, so units can get stuck "dead"; and the weights still multiply in. ReLU lowers the risk but does not remove it.</p>
+
+<h3>Residual connections</h3>
+<p>A residual connection computes y = x + F(x), adding the input back onto the output. Differentiating gives dy/dx = 1 + dF/dx. That "+1" is the sum-over-paths rule from section 4 at work: the gradient has a direct route that skips F entirely, so even if dF/dx is tiny, the total factor stays near 1 instead of near 0. This is one reason very deep networks became trainable. It is a helpful property, not a guarantee; a deep network still needs sensible initialization and learning rates.</p>
+
+<h2>8. Automatic differentiation: the framework does it, you still need to know what flows</h2>
+
+<p>Nobody derives these equations by hand for a real model. Deep-learning frameworks track the computation as the forward pass runs, then execute reverse-mode <strong>automatic differentiation</strong> to produce every gradient. Each primitive operation ships with its own local derivative; the framework just chains them. A call like <code>loss.backward()</code> is the backward pass from section 3, at scale.</p>
+
+<p>Knowing the mechanism still pays. A NaN gradient means look for a node with a huge local derivative. Slow early layers mean vanishing factors. Out-of-memory in training but not inference means saved forward values. A non-differentiable operation, such as rounding or a hard argmax, stops the gradient there.</p>
+
+<h2>9. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Every weight in every neural network you will use was set by a gradient that backpropagation computed. The mechanism is short enough to hold in your head, and it explains many failures that otherwise look mysterious.
+</div>
+
+<h3>Debugging training</h3>
+<p>If loss does not move, print the gradient size per layer. Near-zero gradients in early layers and healthy ones late point to vanishing factors; spikes point to exploding ones. Exactly zero for a group of parameters often means something is detached from the graph.</p>
+
+<h3>Cost and memory</h3>
+<p>One backward pass costs a small multiple of a forward pass and needs the activations stored. That is why recomputing activations instead of storing them exists, and why fine-tuning few parameters, as LoRA does, cuts memory: frozen parameters need no stored gradient.</p>
+
+<h2>Leads into M7</h2>
+<p>Derivatives answer "how fast does this change?" M7 covers integrals: adding up a quantity that varies continuously. That is how a probability density becomes a probability, how an expected value over a continuous distribution is computed, and why normalizing constants appear in probabilistic models. It connects the calculus you now have back to the statistics course.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>The <strong>chain rule</strong>: for y = f(u) and u = g(x), dy/dx = (dy/du)(du/dx). Local slopes multiply. Example: y = (3x + 1)<sup>2</sup> at x = 2 has slope 14 &times; 3 = 42.</li>
+  <li>A <strong>computational graph</strong> splits a model into simple nodes. The forward pass computes and saves values; the backward pass multiplies gradients by each node's local derivative, from the loss back to the parameters.</li>
+  <li>Worked network: gradients &minus;0.1792, &minus;0.1195, &minus;0.4000, &minus;0.5986 for w<sub>1</sub>, b<sub>1</sub>, w<sub>2</sub>, b<sub>2</sub>; one step at &eta; = 0.5 took the loss from 0.1792 to 0.0072, and finite differences confirmed every gradient.</li>
+  <li>When a variable feeds several nodes, the gradients along each path <strong>add</strong> (the example gave 9 + 24 = 33).</li>
+  <li>Backprop multiplies Jacobians from the loss side, vector times matrix, so one sweep gives all parameter gradients. The cost is memory for the saved forward values.</li>
+  <li>Sigmoid's slope is at most 0.25, so 10 layers can shrink a gradient to about 10<sup>&minus;6</sup>; factors above 1 explode instead. ReLU and residual connections keep the factors nearer to 1, but do not guarantee stable training.</li>
+  <li>Automatic differentiation does the bookkeeping, but you still debug by knowing what flows and where it can stop.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. For y = (3x + 1)<sup>2</sup>, what is dy/dx at x = 2?</p>
+  <div class="quiz-options" data-answer="2" data-hint="write u = 3x + 1, then multiply dy/du by du/dx.">
+    <div class="quiz-opt">14, because that is the slope of the outer square at u = 7</div>
+    <div class="quiz-opt">21, because 3 &times; 7 uses only the inner piece</div>
+    <div class="quiz-opt">42, because dy/du = 14 and du/dx = 3 multiply</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. In the tiny network, the hidden unit's output is h = 0.6682. What is the local derivative of the sigmoid at that point, used in the backward pass?</p>
+  <div class="quiz-options" data-answer="0" data-hint="the sigmoid's slope is h(1 &minus; h), and it never exceeds 0.25.">
+    <div class="quiz-opt">0.2217, which is h(1 &minus; h) = 0.6682 &times; 0.3318</div>
+    <div class="quiz-opt">0.6682, because the derivative of sigmoid equals its output</div>
+    <div class="quiz-opt">0.3318, because the slope is 1 &minus; h</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. Why is reverse mode (backprop) the standard choice for training a model with millions of parameters and one loss value?</p>
+  <div class="quiz-options" data-answer="1" data-hint="one scalar output and many inputs, and which direction keeps the left factor a vector.">
+    <div class="quiz-opt">It needs one separate forward pass for every parameter, which is the cheapest approach</div>
+    <div class="quiz-opt">One backward sweep, multiplying a vector by one Jacobian at a time, yields the gradient for every parameter</div>
+    <div class="quiz-opt">It avoids storing any intermediate values from the forward pass</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A stack of 10 sigmoid layers, each with weight 1 and each at the best-case slope of 0.25, scales the gradient reaching the first layer by about:</p>
+  <div class="quiz-options" data-answer="2" data-hint="repeated multiplication, 0.25 ten times, not adding or multiplying by 10.">
+    <div class="quiz-opt">2.5, because 0.25 &times; 10</div>
+    <div class="quiz-opt">0.0025, because 0.25 &divide; 100</div>
+    <div class="quiz-opt">0.00000095, because 0.25<sup>10</sup></div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. A variable x feeds two nodes whose outputs are later combined into the loss. How does backprop combine the gradients arriving at x?</p>
+  <div class="quiz-options" data-answer="0" data-hint="each route to the loss contributes, and the contributions are summed over paths.">
+    <div class="quiz-opt">It adds the gradient from each path</div>
+    <div class="quiz-opt">It multiplies the gradients from the two paths together</div>
+    <div class="quiz-opt">It keeps only the larger of the two gradients</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Chain_rule" target="_blank">Chain Rule &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Backpropagation" target="_blank">Backpropagation &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Vanishing_gradient_problem" target="_blank">Vanishing Gradient Problem &mdash; Wikipedia</a></li>
+    <li><a href="https://arxiv.org/abs/1512.03385" target="_blank">Deep Residual Learning for Image Recognition &mdash; He et al., arXiv</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) — you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — re-think: " + (group.dataset.hint || "the chain of local derivatives") + " Then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

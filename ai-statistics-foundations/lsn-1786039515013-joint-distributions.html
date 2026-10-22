@@ -1,0 +1,537 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Joint Distributions, Independence &amp; Covariance</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  /* Bayes flow diagram */
+  .bayes-flow {
+    display: flex; gap: 12px; align-items: stretch; margin: 20px 0;
+    overflow-x: auto; padding-bottom: 6px;
+  }
+  .bayes-step {
+    flex: 1 1 0; min-width: 160px; background: var(--surface); border: 1px solid var(--border);
+    border-radius: 10px; padding: 14px 16px; position: relative;
+  }
+  .bayes-step .label { font-size: 0.72em; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 8px; }
+  .bayes-step .value { font-size: 1.3em; font-weight: 700; color: var(--text); font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .bayes-step .desc { font-size: 0.82em; color: var(--muted); margin-top: 6px; }
+  .bayes-step.prior { border-color: var(--accent); }
+  .bayes-step.prior .value { color: var(--accent); }
+  .bayes-step.likelihood { border-color: var(--accent2); }
+  .bayes-step.likelihood .value { color: var(--accent2); }
+  .bayes-step.evidence { border-color: var(--yellow); }
+  .bayes-step.evidence .value { color: var(--yellow); }
+  .bayes-step.posterior { border-color: var(--green); background: rgba(52,211,153,0.08); }
+  .bayes-step.posterior .value { color: var(--green); }
+  .bayes-arrow { display: flex; align-items: center; justify-content: center; color: var(--muted); font-size: 1.4em; flex: 0 0 20px; }
+  @media (max-width: 600px) {
+    .bayes-flow { flex-direction: column; }
+    .bayes-arrow { transform: rotate(90deg); padding: 2px 0; }
+  }
+
+  /* Base rate 2x2 grid */
+  .grid2x2-wrap { overflow-x: auto; }
+  .grid2x2 {
+    display: grid; grid-template-columns: 140px repeat(2, 1fr); gap: 2px;
+    min-width: 480px; margin: 16px 0; background: var(--border); border-radius: 8px; overflow: hidden;
+  }
+  .grid2x2 .cell { background: var(--surface); padding: 14px; font-size: 0.88em; }
+  .grid2x2 .head { background: var(--surface2); font-weight: 700; color: var(--muted); font-size: 0.78em; text-transform: uppercase; letter-spacing: 0.04em; display: flex; align-items: center; }
+  .grid2x2 .corner { background: var(--code-bg); }
+  .grid2x2 .tp { background: rgba(52,211,153,0.12); }
+  .grid2x2 .fp { background: rgba(248,113,113,0.14); }
+  .grid2x2 .fn { background: rgba(248,113,113,0.08); }
+  .grid2x2 .tn { background: rgba(108,143,255,0.08); }
+  .grid2x2 .count { font-size: 1.25em; font-weight: 700; font-family: 'Consolas', 'JetBrains Mono', monospace; display: block; margin-bottom: 2px; }
+  .grid2x2 .tag { font-size: 0.75em; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+  @media (max-width: 600px) {
+    .grid2x2 { grid-template-columns: 100px repeat(2, 1fr); min-width: 400px; }
+  }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 14 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Joint Distributions: Several Variables at Once, Independence &amp; Covariance</h1>
+<p class="subtitle">Real systems never produce one number at a time. A request has a type, a length, a latency, and an outcome, all at once. This lesson is about describing them together, and about the factorization trick that lets a language model write one token after another.</p>
+
+<p>So far you have mostly looked at one random quantity at a time. But an AI pipeline emits several at once, and the interesting questions are about how they <em>move together</em>. Do hard queries fail more often? Does slow retrieval predict slow generation? Does the third token depend on the first two? These are questions about a <strong>joint distribution</strong>: one probability assignment over combinations of values. This lesson builds it from a table, ties it to the conditional probability and independence of Lesson 3 and the correlation of Lesson 6, and ends with the chain rule, which is how an autoregressive LLM defines the probability of a sentence.</p>
+
+<h2>1. A joint distribution is a table over combinations</h2>
+
+<p>Say a team logs every query to a question-answering assistant and tags each with two things: the <strong>query type</strong> (lookup, summary, or math) and whether the <strong>answer was correct</strong> against a reference. Counting over a large log and dividing by the total gives the joint distribution, <strong>P(type, correct)</strong>:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th></th><th class="num">Lookup</th><th class="num">Summary</th><th class="num">Math</th><th class="num">Row total</th></tr></thead>
+  <tbody>
+    <tr><td><strong>Correct</strong></td>
+      <td class="num" style="background:rgba(108,143,255,0.40)">0.36</td>
+      <td class="num" style="background:rgba(108,143,255,0.27)">0.24</td>
+      <td class="num" style="background:rgba(108,143,255,0.14)">0.12</td>
+      <td class="num"><strong>0.72</strong></td></tr>
+    <tr><td><strong>Wrong</strong></td>
+      <td class="num" style="background:rgba(248,113,113,0.05)">0.04</td>
+      <td class="num" style="background:rgba(248,113,113,0.08)">0.06</td>
+      <td class="num" style="background:rgba(248,113,113,0.20)">0.18</td>
+      <td class="num"><strong>0.28</strong></td></tr>
+    <tr><td><strong>Column total</strong></td>
+      <td class="num"><strong>0.40</strong></td><td class="num"><strong>0.30</strong></td><td class="num"><strong>0.30</strong></td><td class="num"><strong>1.00</strong></td></tr>
+  </tbody>
+</table>
+</div>
+
+<div class="step-box">
+<div class="line">0.36 + 0.24 + 0.12 + 0.04 + 0.06 + 0.18 = 1.00</div>
+</div>
+
+<p>Each cell is the probability of one <em>pair</em> happening together: 0.12 of all traffic is math queries answered correctly. The rule from Lesson 3 still holds, just stretched across a grid: all cells together sum to 1. If you have three variables, the table becomes a cube, and so on. With the continuous distributions of Lesson 13 the grid becomes a surface (a joint density), but every idea below carries over.</p>
+
+<h2>2. Marginals and conditionals fall out of the table</h2>
+
+<p>Once you hold the joint table you hold everything. Two operations pull out the single-variable and the &ldquo;given that&rdquo; views.</p>
+
+<h3>Marginals: sum along a row or column</h3>
+<p>To get P(type) alone, ignore correctness by summing each column. To get P(correct) alone, sum each row. The totals in the margins of the table above are literally why these are called <strong>marginal</strong> distributions.</p>
+
+<div class="step-box">
+<div class="line">P(Math)    = 0.12 + 0.18 = 0.30</div>
+<div class="line">P(Correct) = 0.36 + 0.24 + 0.12 = 0.72</div>
+</div>
+
+<h3>Conditionals: slice the table, then rescale</h3>
+<p>To get P(correct | Math), restrict attention to the Math column (the &ldquo;given&rdquo; world from Lesson 3) and divide each cell by that column's total so the slice sums to 1 again:</p>
+
+<div class="step-box">
+<div class="line">P(Correct | Math)   = 0.12 / 0.30 = 0.40</div>
+<div class="line">P(Correct | Lookup) = 0.36 / 0.40 = 0.90</div>
+<div class="line">P(Correct | Summary)= 0.24 / 0.30 = 0.80</div>
+</div>
+
+<p>The same formula you already know, P(A|B) = P(A, B) / P(B), now has a concrete reading: <strong>joint cell divided by marginal</strong>. The headline accuracy of 72% hides the fact that the assistant is right 90% of the time on lookups and 40% of the time on math. Marginals alone would never show you that.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  You can always compute the marginals from the joint, but you can <strong>not</strong> rebuild the joint from the marginals: many tables share the same totals. A dashboard showing only &ldquo;72% correct&rdquo; and &ldquo;30% math&rdquo; has lost the fact that math is where the failures live.
+</div>
+
+<h2>3. Independence, tested on the table</h2>
+
+<p>Lesson 3 defined independence as P(A|B) = P(A). On a joint table the same idea has a cleaner test: two variables are <strong>independent</strong> exactly when every cell equals the product of its two marginals.</p>
+
+<div class="step-box">
+<div class="line">independent  &hArr;  P(type, correct) = P(type) &times; P(correct)   for every cell</div>
+</div>
+
+<p>Test our table on the Math / Correct cell:</p>
+
+<div class="step-box">
+<div class="line">P(Math) &times; P(Correct) = 0.30 &times; 0.72 = 0.216</div>
+<div class="line">actual P(Math, Correct)                = 0.12</div>
+<div class="line result">0.12 &ne; 0.216   &rarr;   not independent</div>
+</div>
+
+<p>One failing cell is enough. Math answers are correct far less often than the product predicts, which is the dependence a router or a prompt change would want to exploit. Now compare a table <em>built</em> to be independent, using the same marginals (0.40, 0.30, 0.30 and 0.72, 0.28):</p>
+
+<div class="step-box">
+<div class="line">Correct row: 0.40&times;0.72 = 0.288   0.30&times;0.72 = 0.216   0.30&times;0.72 = 0.216</div>
+<div class="line">Wrong row:   0.40&times;0.28 = 0.112   0.30&times;0.28 = 0.084   0.30&times;0.28 = 0.084</div>
+</div>
+
+<p>In this version P(Correct | any type) is 0.72 everywhere (for example 0.216 / 0.30 = 0.72), so learning the query type tells you nothing about correctness. Real logs are never exactly this clean, so you ask whether an observed gap is bigger than sampling noise; Lesson 15 gives the tools for judging a gap against sampling noise (z-tests on proportions and t-tests on means).</p>
+
+<h2>4. Covariance: how two numbers move together</h2>
+
+<p>The table works for categories. For two <em>numeric</em> quantities you want a single number that says whether they tend to rise together. Say a team logs five requests through a RAG pipeline, with retrieval time X and generation time Y, both in seconds:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Request</th><th class="num">Retrieval X (s)</th><th class="num">Generation Y (s)</th><th class="num">X &minus; 0.4</th><th class="num">Y &minus; 1.7</th><th class="num">Product</th></tr></thead>
+  <tbody>
+    <tr><td>1</td><td class="num">0.2</td><td class="num">1.0</td><td class="num">&minus;0.2</td><td class="num">&minus;0.7</td><td class="num">+0.14</td></tr>
+    <tr><td>2</td><td class="num">0.3</td><td class="num">1.6</td><td class="num">&minus;0.1</td><td class="num">&minus;0.1</td><td class="num">+0.01</td></tr>
+    <tr><td>3</td><td class="num">0.4</td><td class="num">1.4</td><td class="num">0.0</td><td class="num">&minus;0.3</td><td class="num">0.00</td></tr>
+    <tr><td>4</td><td class="num">0.5</td><td class="num">2.2</td><td class="num">+0.1</td><td class="num">+0.5</td><td class="num">+0.05</td></tr>
+    <tr><td>5</td><td class="num">0.6</td><td class="num">2.3</td><td class="num">+0.2</td><td class="num">+0.6</td><td class="num">+0.12</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p><strong>Covariance</strong> is the average of the product of the two deviations from their means (the same deviations that built variance in Lesson 2):</p>
+
+<div class="step-box">
+<div class="line">Cov(X, Y) = E[(X &minus; &mu;X)(Y &minus; &mu;Y)]</div>
+<div class="line">sample version: &Sigma;(x &minus; x&#772;)(y &minus; y&#772;) / (n &minus; 1)</div>
+<div class="line"> </div>
+<div class="line">x&#772; = 0.4,  y&#772; = 1.7</div>
+<div class="line">sum of products = 0.14 + 0.01 + 0.00 + 0.05 + 0.12 = 0.32</div>
+<div class="line result">Cov(X, Y) = 0.32 / 4 = 0.08  (seconds&sup2;)</div>
+</div>
+
+<p>Here is the picture. The dashed lines mark the two means and cut the plot into four quadrants. A point in the upper-right or lower-left quadrant has both deviations the same sign, so its product is positive. A point in the upper-left or lower-right has opposite signs and a negative product. Covariance is the average of those signed products:</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 640 380" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Scatter plot of retrieval time versus generation time for five requests. Dashed lines at the two means divide the plot into four quadrants. All five points fall in the upper-right or lower-left quadrants or on the vertical mean line, so covariance is positive.">
+  <!-- quadrants: mean x=320, mean y=153.75 ; area x 80-560, y 40-300 -->
+  <rect x="320" y="40" width="240" height="113.75" fill="#34d399" fill-opacity="0.10"/>
+  <rect x="80" y="153.75" width="240" height="146.25" fill="#34d399" fill-opacity="0.10"/>
+  <rect x="80" y="40" width="240" height="113.75" fill="#f87171" fill-opacity="0.10"/>
+  <rect x="320" y="153.75" width="240" height="146.25" fill="#f87171" fill-opacity="0.10"/>
+  <text x="545" y="143" text-anchor="end" fill="#34d399" font-size="12">product &gt; 0</text>
+  <text x="95" y="290" fill="#34d399" font-size="12">product &gt; 0</text>
+  <text x="95" y="58" fill="#f87171" font-size="12">product &lt; 0</text>
+  <text x="545" y="290" text-anchor="end" fill="#f87171" font-size="12">product &lt; 0</text>
+  <!-- axes -->
+  <line x1="80" y1="40" x2="80" y2="300" stroke="#2e3248" stroke-width="1.5"/>
+  <line x1="80" y1="300" x2="560" y2="300" stroke="#2e3248" stroke-width="1.5"/>
+  <!-- mean lines -->
+  <line x1="320" y1="40" x2="320" y2="300" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <line x1="80" y1="153.75" x2="560" y2="153.75" stroke="#94a3b8" stroke-width="1.2" stroke-dasharray="5,4"/>
+  <text x="324" y="52" fill="#94a3b8" font-size="11">mean X = 0.4</text>
+  <text x="566" y="157" fill="#94a3b8" font-size="11">mean Y = 1.7</text>
+  <!-- x ticks -->
+  <text x="160" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">0.2</text>
+  <text x="240" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">0.3</text>
+  <text x="320" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">0.4</text>
+  <text x="400" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">0.5</text>
+  <text x="480" y="318" text-anchor="middle" fill="#94a3b8" font-size="11">0.6</text>
+  <text x="320" y="342" text-anchor="middle" fill="#94a3b8" font-size="12">Retrieval time X (s)</text>
+  <!-- y ticks -->
+  <text x="70" y="271" text-anchor="end" fill="#94a3b8" font-size="11">1.0</text>
+  <text x="70" y="190" text-anchor="end" fill="#94a3b8" font-size="11">1.5</text>
+  <text x="70" y="109" text-anchor="end" fill="#94a3b8" font-size="11">2.0</text>
+  <text x="24" y="170" fill="#94a3b8" font-size="12" transform="rotate(-90 24 170)" text-anchor="middle">Generation time Y (s)</text>
+  <!-- points -->
+  <circle cx="160" cy="267.5" r="7" fill="#6c8fff"/>
+  <circle cx="240" cy="170" r="7" fill="#6c8fff"/>
+  <circle cx="320" cy="202.5" r="7" fill="#6c8fff"/>
+  <circle cx="400" cy="72.5" r="7" fill="#6c8fff"/>
+  <circle cx="480" cy="56.3" r="7" fill="#6c8fff"/>
+</svg>
+<p class="viz-caption">Five requests, no point in a red quadrant: slow retrieval goes with slow generation, so Cov(X, Y) = +0.08 s&sup2;. Point 3 sits on the X-mean line and contributes zero.</p>
+</div>
+
+<h3>Reading the sign and the units</h3>
+<ul>
+  <li><strong>Positive:</strong> when X is above its average, Y tends to be above its average too. <strong>Negative:</strong> one above, the other below. <strong>Near zero:</strong> no consistent linear tendency.</li>
+  <li><strong>Units are the product of the two units.</strong> Here that is seconds &times; seconds = s&sup2;. Covariance of a token count with a latency would be token&middot;seconds. That makes the raw number hard to judge: is 0.08 big? It depends entirely on how X and Y are scaled. Measure X in milliseconds and it becomes 1000 times larger with nothing about the system changed.</li>
+</ul>
+
+<h2>5. From covariance to the correlation of Lesson 6</h2>
+
+<p>The scale problem has a fix you have already used. Divide the covariance by both standard deviations so the units cancel:</p>
+
+<div class="step-box">
+<div class="line">Var(X) = (0.04 + 0.01 + 0 + 0.01 + 0.04) / 4 = 0.025   &rarr; SD = 0.158 s</div>
+<div class="line">Var(Y) = (0.49 + 0.01 + 0.09 + 0.25 + 0.36) / 4 = 0.30  &rarr; SD = 0.548 s</div>
+<div class="line"> </div>
+<div class="line">r = Cov(X, Y) / (SD(X) &times; SD(Y)) = 0.08 / &radic;(0.025 &times; 0.30)</div>
+<div class="line">  = 0.08 / 0.0866</div>
+<div class="line result">r &asymp; 0.92</div>
+</div>
+
+<p>That is the Pearson r from Lesson 6: <strong>correlation is covariance rescaled to live between &minus;1 and +1</strong>. It keeps the sign of the covariance, drops the units, and does not change if you switch from seconds to milliseconds. The same caveat carries over: both measure only <em>linear</em> co-movement, and neither says anything about cause.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Independent variables always have covariance 0, but covariance 0 does not imply independence. A U-shaped relationship can have Cov = 0 while one variable completely determines the other. The table test in section 3 (every cell equals the product of marginals) is the strict one; covariance only checks for a straight-line tendency.
+</div>
+
+<h2>6. The covariance matrix</h2>
+
+<p>With more than two quantities you collect every pairwise covariance into a square table. Add a third column to the same five requests: output length Z, in hundreds of tokens (1, 2, 2, 3, 4; mean 2.4). The <strong>covariance matrix</strong> puts each variable's variance on the diagonal and each pair's covariance off it:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th></th><th class="num">X retrieval</th><th class="num">Y generation</th><th class="num">Z output length</th></tr></thead>
+  <tbody>
+    <tr><td><strong>X retrieval</strong></td><td class="num">0.025</td><td class="num">0.080</td><td class="num">0.175</td></tr>
+    <tr><td><strong>Y generation</strong></td><td class="num">0.080</td><td class="num">0.300</td><td class="num">0.600</td></tr>
+    <tr><td><strong>Z output length</strong></td><td class="num">0.175</td><td class="num">0.600</td><td class="num">1.300</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>It is symmetric (Cov(X, Y) = Cov(Y, X)), so you only need half of it. Dividing each entry by the two matching standard deviations turns it into a correlation matrix: r(X, Y) &asymp; 0.92, r(X, Z) &asymp; 0.97, r(Y, Z) &asymp; 0.96. All three features move almost in lockstep.</p>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  If two input features are nearly perfectly correlated, they carry almost the same information, and a regression like Lesson 6's cannot tell their effects apart. An embedding is a vector of hundreds of numbers; the covariance matrix of a set of embeddings shows which directions carry real variation, which is what PCA works on.
+</div>
+
+<h2>7. Variance of a sum, with the covariance term</h2>
+
+<p>Lesson 12 gave you the rules for the variance of a random variable. The rule for a sum has a third term, and covariance is what fills it:</p>
+
+<div class="step-box">
+<div class="line">Var(X + Y) = Var(X) + Var(Y) + 2&middot;Cov(X, Y)</div>
+</div>
+
+<p>Total request latency is T = X + Y. Compute its variance two ways from the five requests. The totals are 1.2, 1.9, 1.8, 2.7, 2.9, with mean 2.1:</p>
+
+<div class="step-box">
+<div class="line">direct:   deviations (&minus;0.9, &minus;0.2, &minus;0.3, +0.6, +0.8)</div>
+<div class="line">          squares  (0.81 + 0.04 + 0.09 + 0.36 + 0.64) = 1.94</div>
+<div class="line">          1.94 / 4 = 0.485</div>
+<div class="line"> </div>
+<div class="line">formula:  0.025 + 0.30 + 2 &times; 0.08 = 0.485     &check; matches</div>
+<div class="line"> </div>
+<div class="line">pretending independence: 0.025 + 0.30 = 0.325</div>
+<div class="line result">SD(T): true 0.696 s   vs   assumed 0.570 s</div>
+</div>
+
+<p>Ignoring the covariance understates the spread of total latency by about 18%, which matters for a tail-latency budget (the percentiles of Lesson 2). Slow retrievals line up with slow generations, so the bad cases stack instead of canceling. With <strong>negative</strong> covariance the sum would be <em>tighter</em> than independence predicts. The same term means averaging many correlated eval runs cuts noise far less than the 1/n you get from independent ones.</p>
+
+<h2>8. The chain rule: how an LLM factorizes a sentence</h2>
+
+<p>The chain rule of probability is the definition of conditional probability applied over and over. For two variables, P(a, b) = P(a) &times; P(b | a). Extend it to n variables, peeling off one at a time:</p>
+
+<div class="step-box">
+<div class="line">P(x&#8321;, x&#8322;, &hellip;, x&#8345;) = P(x&#8321;) &times; P(x&#8322; | x&#8321;) &times; P(x&#8323; | x&#8321;, x&#8322;) &times; &hellip; &times; P(x&#8345; | x&#8321;&hellip;x&#8345;&#8331;&#8321;)</div>
+<div class="line">                = &Pi;&#7522; P(x&#7522; | x&#8203;&lt;&#7522;)</div>
+</div>
+
+<p>This is an identity, not an assumption: no independence is needed, and it holds for any ordering of the variables. An <strong>autoregressive language model</strong> simply picks the left-to-right order and learns each factor. At every step it reads the tokens so far and outputs a distribution over the next token (the categorical distribution from Lesson 4). Take a three-token reply, &ldquo;The model answers&rdquo;, and suppose the model assigns these probabilities:</p>
+
+<div class="step-box">
+<div class="line">P(&ldquo;The&rdquo;)                       = 0.20      first token, given the start of the reply</div>
+<div class="line">P(&ldquo;model&rdquo; | &ldquo;The&rdquo;)           = 0.05</div>
+<div class="line">P(&ldquo;answers&rdquo; | &ldquo;The model&rdquo;)   = 0.30</div>
+<div class="line"> </div>
+<div class="line">P(sequence) = 0.20 &times; 0.05 &times; 0.30 = 0.01 &times; 0.30</div>
+<div class="line result">            = 0.003</div>
+</div>
+
+<p>In practice you add logs instead of multiplying, because products of many small numbers underflow:</p>
+
+<div class="step-box">
+<div class="line">ln 0.20 + ln 0.05 + ln 0.30 = &minus;1.609 &minus; 2.996 &minus; 1.204 = &minus;5.809</div>
+<div class="line">ln 0.003 = &minus;5.809   &check; same number</div>
+<div class="line"> </div>
+<div class="line">average per token: 5.809 / 3 = 1.936 nats  &rarr;  e^1.936 &asymp; 6.93</div>
+<div class="line result">(perplexity of this sequence &asymp; 6.9; see Lesson 10)</div>
+</div>
+
+<p>The negative average log-probability is the cross-entropy loss of Lesson 7, and its exponential is the perplexity of Lesson 10. Both are the chain rule evaluated on a sentence.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Why factorize at all? With a vocabulary of 50,000 tokens, a full joint table over just three positions has 50,000&sup3; = 125,000,000,000,000 cells (1.25 &times; 10&sup1;&#8308;). Nobody can store or estimate that. The chain rule replaces the impossible table with a function: one network that, given any prefix, produces the 50,000-way next-token distribution. Generating a sentence means sampling those conditionals in order, which is why a bad early token changes everything after it.
+</div>
+
+<h2>9. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Most questions about an AI system involve two or more quantities at once, and the joint view is where the answers live.
+</div>
+
+<h3>Slice evals by condition</h3>
+<p>The 72% accuracy in section 1 averaged 90%, 80% and 40%. Build the joint table of condition against correctness whenever you can: P(correct | slice) finds the failure cluster.</p>
+
+<h3>Budget latency with covariances</h3>
+<p>Pipeline stages share causes, such as long inputs. Treating them as independent understates the tail, as the 0.570 s versus 0.696 s gap showed.</p>
+
+<h3>Audit features and score sequences</h3>
+<p>A correlation matrix is the quick check for duplicated features, and the starting point for reducing embeddings. Scoring a completion, computing perplexity, or running beam search is adding conditional log-probabilities, one per token.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>A <strong>joint distribution</strong> assigns a probability to each combination of values; all cells sum to 1. <strong>Marginals</strong> come from summing rows or columns; a <strong>conditional</strong> is a joint cell divided by the marginal of what you condition on. You cannot rebuild the joint from the marginals.</li>
+  <li>Variables are <strong>independent</strong> exactly when every joint cell equals the product of its marginals. One failing cell (0.12 vs 0.30 &times; 0.72 = 0.216) proves dependence.</li>
+  <li><strong>Covariance</strong> is the average product of deviations from the means. Its sign gives the direction of co-movement; its units are the product of the two units; Cov(X, X) = Var(X).</li>
+  <li><strong>Correlation</strong> is covariance divided by both standard deviations (0.08 / 0.0866 &asymp; 0.92). Independence implies Cov = 0, but not the reverse.</li>
+  <li>A <strong>covariance matrix</strong> collects variances and all pairwise covariances; it exposes redundant features and underlies work on embeddings.</li>
+  <li>Var(X + Y) = Var(X) + Var(Y) + 2&middot;Cov(X, Y): 0.025 + 0.30 + 0.16 = 0.485, not 0.325.</li>
+  <li>The <strong>chain rule</strong>, P(x&#8321;&hellip;x&#8345;) = &Pi; P(x&#7522; | x&lt;&#7522;), is exactly how an autoregressive LLM scores and generates a sequence: 0.20 &times; 0.05 &times; 0.30 = 0.003.</li>
+</ul>
+
+<div class="callout insight">
+  <span class="callout-label">Leads into Lesson 15</span>
+  You now know how several variables fit together and how a sum of correlated pieces behaves. Lesson 15 asks what happens when you add up <em>many</em> pieces and then need to decide something from the result: the limit theorems that explain why averages settle down and become bell-shaped, and the hypothesis tests that turn &ldquo;these two numbers differ&rdquo; into a defensible yes or no.
+</div>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. In the joint table of query type and correctness, P(Math, Correct) = 0.12 and P(Math) = 0.30. What is P(Correct | Math)?</p>
+  <div class="quiz-options" data-answer="1" data-hint="a conditional is a joint cell divided by the marginal of the thing you condition on">
+    <div class="quiz-opt">0.12, because that is the cell where Math and Correct meet</div>
+    <div class="quiz-opt">0.40, because 0.12 / 0.30 rescales the Math column so it sums to 1</div>
+    <div class="quiz-opt">0.30, because that is the marginal for Math</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. Which observation proves that query type and correctness are NOT independent in that table?</p>
+  <div class="quiz-options" data-answer="2" data-hint="independence means every joint cell equals the product of its two marginals">
+    <div class="quiz-opt">All six cells add up to 1.00</div>
+    <div class="quiz-opt">P(Correct) = 0.72, which is greater than 0.5</div>
+    <div class="quiz-opt">P(Math, Correct) = 0.12, but P(Math) &times; P(Correct) = 0.30 &times; 0.72 = 0.216</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. Retrieval time and generation time have Cov(X, Y) = +0.08 s&sup2; across a set of requests. What does the sign tell you?</p>
+  <div class="quiz-options" data-answer="0" data-hint="covariance sign is about both deviations from the means having the same sign, not about cause or scale">
+    <div class="quiz-opt">When retrieval is slower than its average, generation also tends to be slower than its average</div>
+    <div class="quiz-opt">Slow retrieval causes slow generation</div>
+    <div class="quiz-opt">The two are 8% correlated</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. Two pipeline stages have Var(X) = 0.025, Var(Y) = 0.30 and Cov(X, Y) = +0.08. If you compute the variance of total latency as Var(X) + Var(Y) = 0.325, what is wrong?</p>
+  <div class="quiz-options" data-answer="2" data-hint="the sum rule has a third term, 2 times the covariance, and its sign matters">
+    <div class="quiz-opt">Nothing; variances of sums always add</div>
+    <div class="quiz-opt">It overstates the variance, because positive covariance cancels some spread</div>
+    <div class="quiz-opt">It understates the variance; the correct value is 0.325 + 2 &times; 0.08 = 0.485</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. An autoregressive LLM gives a three-token reply the probability P(x&#8321;) &times; P(x&#8322; | x&#8321;) &times; P(x&#8323; | x&#8321;, x&#8322;). Why is this a valid way to write P(x&#8321;, x&#8322;, x&#8323;)?</p>
+  <div class="quiz-options" data-answer="1" data-hint="the chain rule is an identity from the definition of conditional probability, not an independence assumption">
+    <div class="quiz-opt">Because the model assumes the tokens are independent of each other</div>
+    <div class="quiz-opt">Because the chain rule holds for any joint distribution: each factor conditions on everything before it</div>
+    <div class="quiz-opt">Because only the last token matters, so the earlier factors can be dropped</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Joint_probability_distribution" target="_blank">Joint probability distribution &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Covariance" target="_blank">Covariance &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Covariance_matrix" target="_blank">Covariance matrix &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Chain_rule_(probability)" target="_blank">Chain rule (probability) &mdash; Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — re-think: " + group.dataset.hint + ", then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

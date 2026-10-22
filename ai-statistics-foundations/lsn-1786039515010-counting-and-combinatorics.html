@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Counting &amp; Combinatorics: How Big Is the Space of Possibilities?</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 11 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<h1>Counting &amp; Combinatorics: How Big Is the Space of Possibilities?</h1>
+<p class="subtitle">Before you can say how likely something is, you often need to know how many things could have happened. This lesson is about counting: why you can never brute-force an LLM's output space, how many ways there are to pick an eval set, and the distribution that turns "k correct out of n" into a probability.</p>
+
+<p>Lessons 3 and 4 quietly assumed you already knew the list of possible outcomes. In practice that list is the hard part. A model with a 50,000-token vocabulary has far more than 50,000 possible outputs, because outputs are <em>sequences</em>. An eval harness has an enormous number of possible test sets you could have drawn. <strong>Combinatorics</strong> counts those possibilities, and it feeds probability: when outcomes are equally likely, a probability is a count of the outcomes you care about divided by a count of all outcomes.</p>
+
+<h2>1. The multiplication rule: how sequences explode</h2>
+
+<p>The <strong>multiplication rule</strong> says: if a process has several steps, and step 1 can go <em>a</em> ways, step 2 can go <em>b</em> ways (whatever happened in step 1), and step 3 can go <em>c</em> ways, then the whole process can go <em>a &times; b &times; c</em> ways. Choices at each step multiply; they do not add.</p>
+
+<p>Here is the smallest possible language model: a vocabulary of V = 3 tokens (A, B, C) and outputs of length n = 2. The first token has 3 choices. For each of those, the second token has 3 choices. The tree below draws every path.</p>
+
+<div class="viz-wrap">
+    <svg viewBox="0 0 600 240" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Branching tree: a root with three branches for the first token A, B, C, each branching into three second-token choices, giving nine two-token sequences at the bottom.">
+    <g stroke="#2e3248" stroke-width="1.5">
+    <line x1="300" y1="42" x2="112.5" y2="102"/>
+    <line x1="300" y1="42" x2="300" y2="102"/>
+    <line x1="300" y1="42" x2="487.5" y2="102"/>
+    <line x1="112.5" y1="124" x2="50.0" y2="182"/>
+    <line x1="112.5" y1="124" x2="112.5" y2="182"/>
+    <line x1="112.5" y1="124" x2="175.0" y2="182"/>
+    <line x1="300" y1="124" x2="237.5" y2="182"/>
+    <line x1="300" y1="124" x2="300.0" y2="182"/>
+    <line x1="300" y1="124" x2="362.5" y2="182"/>
+    <line x1="487.5" y1="124" x2="425.0" y2="182"/>
+    <line x1="487.5" y1="124" x2="487.5" y2="182"/>
+    <line x1="487.5" y1="124" x2="550.0" y2="182"/>
+    </g>
+    <circle cx="300" cy="30" r="12" fill="#242736" stroke="#94a3b8"/><text x="300" y="34" text-anchor="middle" fill="#e2e8f0" font-size="11">start</text>
+    <circle cx="112.5" cy="113" r="12" fill="#242736" stroke="#6c8fff"/><text x="112.5" y="117" text-anchor="middle" fill="#6c8fff" font-size="12" font-weight="700">A</text>
+    <rect x="26.0" y="182" width="48" height="26" rx="6" fill="rgba(167,139,250,0.14)" stroke="#a78bfa"/><text x="50.0" y="199" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">AA</text>
+    <rect x="88.5" y="182" width="48" height="26" rx="6" fill="rgba(167,139,250,0.14)" stroke="#a78bfa"/><text x="112.5" y="199" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">AB</text>
+    <rect x="151.0" y="182" width="48" height="26" rx="6" fill="rgba(167,139,250,0.14)" stroke="#a78bfa"/><text x="175.0" y="199" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">AC</text>
+    <circle cx="300" cy="113" r="12" fill="#242736" stroke="#6c8fff"/><text x="300" y="117" text-anchor="middle" fill="#6c8fff" font-size="12" font-weight="700">B</text>
+    <rect x="213.5" y="182" width="48" height="26" rx="6" fill="rgba(167,139,250,0.14)" stroke="#a78bfa"/><text x="237.5" y="199" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">BA</text>
+    <rect x="276.0" y="182" width="48" height="26" rx="6" fill="rgba(167,139,250,0.14)" stroke="#a78bfa"/><text x="300.0" y="199" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">BB</text>
+    <rect x="338.5" y="182" width="48" height="26" rx="6" fill="rgba(167,139,250,0.14)" stroke="#a78bfa"/><text x="362.5" y="199" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">BC</text>
+    <circle cx="487.5" cy="113" r="12" fill="#242736" stroke="#6c8fff"/><text x="487.5" y="117" text-anchor="middle" fill="#6c8fff" font-size="12" font-weight="700">C</text>
+    <rect x="401.0" y="182" width="48" height="26" rx="6" fill="rgba(167,139,250,0.14)" stroke="#a78bfa"/><text x="425.0" y="199" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">CA</text>
+    <rect x="463.5" y="182" width="48" height="26" rx="6" fill="rgba(167,139,250,0.14)" stroke="#a78bfa"/><text x="487.5" y="199" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">CB</text>
+    <rect x="526.0" y="182" width="48" height="26" rx="6" fill="rgba(167,139,250,0.14)" stroke="#a78bfa"/><text x="550.0" y="199" text-anchor="middle" fill="#e2e8f0" font-size="12" font-weight="700">CC</text>
+    <text x="300" y="232" text-anchor="middle" fill="#fbbf24" font-size="12" font-weight="700">3 &#215; 3 = 9 sequences of length 2   (V = 3, n = 2, so V^n = 9)</text>
+    </svg>
+  <p class="viz-caption">Every path from the start to the bottom row is one distinct output sequence. Add one more level and each of the 9 boxes sprouts 3 more: 27 sequences.</p>
+</div>
+
+<p>With vocabulary size V and sequence length n, the count is V &times; V &times; &hellip; &times; V (n times) = <strong>V<sup>n</sup></strong>. Now put in real-sized numbers. Take V = 50,000 tokens, a plausible order of magnitude from Lesson 4:</p>
+
+<div class="step-box">
+<div class="line">n = 1:   50,000</div>
+<div class="line">n = 3:   50,000 &times; 50,000 &times; 50,000 = 125,000,000,000,000   (1.25 &times; 10<sup>14</sup>)</div>
+<div class="line">n = 20:  50,000<sup>20</sup> &asymp; 9.5 &times; 10<sup>93</sup></div>
+</div>
+
+<p>A 20-token reply is a short sentence. The number of distinct token strings of that length is a 94-digit number, far too many to list, let alone score. Most of those strings are gibberish and the model gives them near-zero probability, but you cannot enumerate even the sensible ones.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Counting sequences is not the same as assigning them probabilities. V<sup>n</sup> tells you how many strings <em>exist</em>. The chain of conditional probabilities from Lesson 3 tells you how likely each one is: P(sequence) = P(token 1) &times; P(token 2 | token 1) &times; &hellip; Only if every string were equally likely would the probability of each be 1/V<sup>n</sup>, and for a language model that is nowhere near true.
+</div>
+
+<h3>What this rules out</h3>
+<p>Exhaustively testing a prompt template (10 slots with 20 fillers each is 20<sup>10</sup> = 10,240,000,000,000 variants), searching all outputs for the single best one, and proving a model never says X all fail on this arithmetic. Decoders build answers one token at a time instead, and you estimate how often something happens by sampling (Lesson 5).</p>
+
+<h2>2. Permutations vs. combinations: does order matter?</h2>
+
+<p>Two questions sound alike and have very different answers. Say a RAG system retrieved 20 candidate chunks and you will paste 5 of them into the prompt.</p>
+
+<ul>
+  <li><strong>Order matters</strong> (a <strong>permutation</strong>): chunk 7 first and chunk 3 second is a different prompt from chunk 3 first and chunk 7 second. Models do respond differently to ordering. Pick 5 in order from 20: 20 &times; 19 &times; 18 &times; 17 &times; 16 = 1,860,480. Each pick removes one option, so the multiplier shrinks by one each step.</li>
+  <li><strong>Order does not matter</strong> (a <strong>combination</strong>): you only care <em>which</em> 5 chunks end up in the context, not how they are arranged. Every set of 5 can be arranged in 5! = 5 &times; 4 &times; 3 &times; 2 &times; 1 = 120 ways, and the 1,860,480 count has counted each set 120 times. So divide: 1,860,480 &divide; 120 = <strong>15,504</strong>.</li>
+</ul>
+
+<p>That division is the whole idea behind the formula for "n choose k", written C(n, k) or &#8319;C&#8342;:</p>
+
+<div class="step-box">
+<div class="line">             n!</div>
+<div class="line">C(n, k) = ───────────</div>
+<div class="line">          k! &times; (n &minus; k)!</div>
+<div class="line"> </div>
+<div class="line">C(20, 5) = 20! / (5! &times; 15!) = 15,504</div>
+<div class="line result">ordered picks = 15,504 &times; 5! = 15,504 &times; 120 = 1,860,480</div>
+</div>
+
+<p>Read it as: <em>n!</em> arranges all n items, <em>(n &minus; k)!</em> cancels the arrangements of the items you did not pick, and <em>k!</em> cancels the arrangements within the group you did pick. Check by hand: choose 3 of 10 prompts to review. Ordered: 10 &times; 9 &times; 8 = 720; each set appears 3! = 6 times, so C(10, 3) = 120.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  Decide whether order matters <em>before</em> you count. A training split is a combination; which chunk goes first in a prompt is a permutation. Using C(n, k) when order matters undercounts; using the ordered count when it does not overcounts by exactly k!.
+</div>
+
+<h2>3. Pascal's triangle and the shape of binomial coefficients</h2>
+
+<p>The numbers C(n, k) have a pattern you can build with addition alone. To choose k items from n, look at one particular item. Either it is in your group (then choose the other k &minus; 1 from the remaining n &minus; 1) or it is not (then choose all k from the remaining n &minus; 1). So:</p>
+
+<div class="step-box">
+<div class="line">C(n, k) = C(n&minus;1, k&minus;1) + C(n&minus;1, k)</div>
+</div>
+
+<p>Stack these into rows and you get <strong>Pascal's triangle</strong>, where each entry is the sum of the two above it:</p>
+
+<div class="step-box">
+<div class="line">n=0:            1</div>
+<div class="line">n=1:          1   1</div>
+<div class="line">n=2:        1   2   1</div>
+<div class="line">n=3:      1   3   3   1</div>
+<div class="line">n=4:    1   4   6   4   1</div>
+<div class="line">n=5:  1   5  10  10   5   1       sum = 32 = 2<sup>5</sup></div>
+<div class="line">n=6: 1  6  15  20  15   6  1      sum = 64 = 2<sup>6</sup></div>
+</div>
+
+<ul>
+  <li><strong>Symmetry.</strong> C(n, k) = C(n, n &minus; k): choosing which 2 of 5 prompts failed is the same as choosing which 3 passed.</li>
+  <li><strong>The middle is biggest.</strong> Only 1 way for all 5 prompts to pass, but 10 ways for exactly 2 (or exactly 3) to pass. This is the seed of why results cluster near the average.</li>
+  <li><strong>Rows sum to 2<sup>n</sup>.</strong> Pass/fail on 5 prompts is 2 &times; 2 &times; 2 &times; 2 &times; 2 = 32 outcomes (the multiplication rule with V = 2); each row sorts those 32 by how many passes they contain.</li>
+</ul>
+
+<h2>4. The binomial distribution: counting meets probability</h2>
+
+<p>This is the bridge to Lesson 4. A Bernoulli is one yes/no trial with success probability p. Now run <strong>n independent Bernoulli trials</strong> with the same p and ask: how many successes? The count k follows a <strong>binomial distribution</strong>.</p>
+
+<p>Build the formula from what you already have. One specific pattern with exactly k successes, say the first k trials succeed and the rest fail, has probability p<sup>k</sup>(1 &minus; p)<sup>n&minus;k</sup>, because independent probabilities multiply (Lesson 3). But the k successes could land on <em>any</em> k of the n trials, and there are C(n, k) ways to choose which. Every such pattern has the same probability, so:</p>
+
+<div class="step-box">
+<div class="line">P(k successes) = C(n, k) &times; p<sup>k</sup> &times; (1 &minus; p)<sup>n&minus;k</sup></div>
+<div class="line"> </div>
+<div class="line">mean     = n &times; p</div>
+<div class="line">variance = n &times; p &times; (1 &minus; p)</div>
+</div>
+
+<p>The mean and variance come from treating the count as a sum of n Bernoulli trials: the mean of a sum is the sum of the means (np), and for independent trials the variances add too (n &times; p(1 &minus; p)). Lesson 12 derives both rules.</p>
+
+<h3>Worked example: k correct out of 10 test prompts</h3>
+
+<p>A team runs a model on n = 10 test prompts. Suppose the model's true per-prompt success rate is p = 0.8 (so each prompt is an independent Bernoulli trial with p = 0.8, an assumption we come back to in the pitfall below). What is the chance it gets exactly 8 right?</p>
+
+<div class="step-box">
+<div class="line">C(10, 8)  = 10! / (8! &times; 2!) = 45</div>
+<div class="line">0.8<sup>8</sup>      = 0.16777216</div>
+<div class="line">0.2<sup>2</sup>      = 0.04</div>
+<div class="line"> </div>
+<div class="line">P(k = 8) = 45 &times; 0.16777216 &times; 0.04 = 0.3020</div>
+<div class="line result">mean = 10 &times; 0.8 = 8     variance = 10 &times; 0.8 &times; 0.2 = 1.6     sd &asymp; 1.26</div>
+</div>
+
+<div class="viz-wrap">
+  <svg viewBox="0 0 500 200" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Binomial distribution with n equals 10 and p equals 0.8: bars for 0 through 10 correct answers, peaking at 8 correct with probability 0.302, then 9 at 0.268 and 7 at 0.201.">
+    <line x1="20" y1="150" x2="480" y2="150" stroke="#2e3248" stroke-width="1.5"/>
+    <rect x="30" y="150.0" width="28" height="0.6" fill="#6c8fff"/>
+    <text x="44" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">0</text>
+    <rect x="70" y="150.0" width="28" height="0.6" fill="#6c8fff"/>
+    <text x="84" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">1</text>
+    <rect x="110" y="150.0" width="28" height="0.6" fill="#6c8fff"/>
+    <text x="124" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">2</text>
+    <rect x="150" y="149.7" width="28" height="0.6" fill="#6c8fff"/>
+    <text x="164" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">3</text>
+    <rect x="190" y="147.9" width="28" height="2.1" fill="#6c8fff"/>
+    <text x="204" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">4</text>
+    <rect x="230" y="140.0" width="28" height="10.0" fill="#6c8fff"/>
+    <text x="244" y="135.0" text-anchor="middle" fill="#94a3b8" font-size="10">0.026</text>
+    <text x="244" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">5</text>
+    <rect x="270" y="116.5" width="28" height="33.5" fill="#6c8fff"/>
+    <text x="284" y="111.5" text-anchor="middle" fill="#94a3b8" font-size="10">0.088</text>
+    <text x="284" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">6</text>
+    <rect x="310" y="73.5" width="28" height="76.5" fill="#6c8fff"/>
+    <text x="324" y="68.5" text-anchor="middle" fill="#94a3b8" font-size="10">0.201</text>
+    <text x="324" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">7</text>
+    <rect x="350" y="35.2" width="28" height="114.8" fill="#34d399"/>
+    <text x="364" y="30.2" text-anchor="middle" fill="#94a3b8" font-size="10">0.302</text>
+    <text x="364" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">8</text>
+    <rect x="390" y="48.0" width="28" height="102.0" fill="#6c8fff"/>
+    <text x="404" y="43.0" text-anchor="middle" fill="#94a3b8" font-size="10">0.268</text>
+    <text x="404" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">9</text>
+    <rect x="430" y="109.2" width="28" height="40.8" fill="#6c8fff"/>
+    <text x="444" y="104.2" text-anchor="middle" fill="#94a3b8" font-size="10">0.107</text>
+    <text x="444" y="168" text-anchor="middle" fill="#94a3b8" font-size="11">10</text>
+    <text x="250" y="190" text-anchor="middle" fill="#94a3b8" font-size="11">k = number of prompts answered correctly out of 10</text>
+  </svg>
+  <p class="viz-caption">Binomial with n = 10, p = 0.8. Even when the model is truly 80% accurate, the score it earns on 10 prompts is a spread, not a single number.</p>
+</div>
+
+<p>Even at the most likely score (8 of 10), the model hits it only about 30% of the time. P(k &ge; 8) = 0.302 + 0.268 + 0.107 = 0.678, and P(k &le; 6) = 0.121: an honestly 80%-accurate model scores 6/10 or worse about one run in eight.</p>
+
+<p>Run it the other way, the way a real team does. You see 8 of 10 and wonder what the true p is. Under p = 0.6 the same data has probability C(10, 8) &times; 0.6<sup>8</sup> &times; 0.4<sup>2</sup> = 45 &times; 0.016796 &times; 0.16 = 0.121. Under p = 0.95 it is 45 &times; 0.95<sup>8</sup> &times; 0.05<sup>2</sup> = 0.075. Both are only about 2.5 to 4 times less likely than 0.302 (0.302 / 0.121 ≈ 2.5, 0.302 / 0.075 ≈ 4.0). A small eval makes a 60% or a 95% model less plausible than an 80% one, but it cannot rule either out. Lesson 5 turns this observation into confidence intervals and maximum likelihood.</p>
+
+<p>More prompts shrink the relative noise. With n = 100 and p = 0.8: sd = &radic;(100 &times; 0.8 &times; 0.2) = &radic;16 = 4 correct answers, which is 4 percentage points on the accuracy. The sd of the <em>proportion</em> is &radic;(p(1 &minus; p)/n) = 0.04. With 10 prompts the same formula gives 0.126, three times bigger.</p>
+
+<div class="callout pitfall">
+  <span class="callout-label">Pitfall</span>
+  The binomial needs <strong>independent trials with the same p</strong>. Eval prompts violate both when they share a template, a source document, or a topic: if the model fails one it likely fails its near-duplicates, and easy and hard prompts do not share one p. Correlated prompts behave like fewer independent trials than you counted, so the real spread is wider than the binomial formula says. The binomial is the right baseline, not a guarantee.
+</div>
+
+<h2>5. Sampling without replacement: eval subsets and splits</h2>
+
+<p>When you pick an eval set of 100 prompts out of a pool of 1,000, you do not pick the same prompt twice. That is <strong>sampling without replacement</strong>, and the count of possible subsets is C(1,000, 100), a 140-digit number (about 10<sup>140</sup>). The same logic gives you the size of other familiar choices:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>Choice</th><th>Count</th><th class="num">Size</th></tr></thead>
+  <tbody>
+    <tr><td>100-prompt eval subset from a pool of 1,000</td><td>C(1,000, 100)</td><td class="num">about 10<sup>140</sup></td></tr>
+    <tr><td>200 validation examples from 1,000 (an 80/20 split)</td><td>C(1,000, 200)</td><td class="num">216 digits</td></tr>
+</tbody>
+</table>
+</div>
+
+<p>Two people who each draw a "random" split will essentially never draw the same one, so a single lucky or unlucky split is possible. That is why serious reports show several splits or a confidence interval.</p>
+
+<h3>K-fold assignments</h3>
+<p>Cross-validation cuts the data into k folds of equal size. Count the ways on a small case: 20 examples into 5 labeled folds of 4. Choose 4 for fold 1 from 20, then 4 for fold 2 from the remaining 16, and so on:</p>
+
+<div class="step-box">
+<div class="line">C(20,4) &times; C(16,4) &times; C(12,4) &times; C(8,4) &times; C(4,4) = 20! / (4!)<sup>5</sup></div>
+<div class="line result">                                           = 305,540,235,000</div>
+</div>
+
+<p>The folds are interchangeable in practice (it does not matter which one you call "fold 1"), so divide by the 5! = 120 relabelings: 305,540,235,000 &divide; 120 = 2,546,168,625 genuinely different ways to partition 20 examples into 5 folds of 4. Any one run of k-fold uses just one of them.</p>
+
+<h3>Worked example: how many bad prompts does a sample catch?</h3>
+<p>This is the without-replacement version of the binomial, the <strong>hypergeometric</strong> count. A dataset of N = 1,000 prompts contains 100 mislabeled ones (10%). You hand-audit a random 50. On average you expect 50 &times; 100 / 1,000 = 5 mislabeled prompts. What is the chance your audit finds <em>none</em>? Count the audits that avoid all 100 bad prompts (choose 50 of the 900 good ones) over all possible audits:</p>
+
+<div class="step-box">
+<div class="line">P(no bad prompts) = C(900, 50) / C(1,000, 50)</div>
+<div class="line result">                  &asymp; 0.0045   so  P(at least one) &asymp; 0.9955</div>
+</div>
+
+<p>A 50-prompt audit almost certainly spots a 10% problem. For a 1% problem (10 bad in 1,000) you expect only 50 &times; 10 / 1,000 = 0.5 hits, and C(990, 50) / C(1,000, 50) &asymp; 0.60 says the audit finds nothing about 60% of the time. An audit sized for common problems says little about rare ones.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  With replacement, draws are independent and the count is binomial. Without replacement, each draw changes what is left and the count is hypergeometric. When the pool is far larger than the sample, the difference is negligible.
+</div>
+
+<h2>6. Collisions and the birthday effect: duplicate prompts and hash dedup</h2>
+
+<p>Counting also explains a surprise: duplicates appear far sooner than intuition suggests. Pick n items at random from N possible values and the number of <em>pairs</em> is n(n &minus; 1)/2, which grows like n<sup>2</sup>. Each pair collides with probability about 1/N. So the expected number of colliding pairs is roughly:</p>
+
+<div class="step-box">
+<div class="line">expected collisions &asymp; n(n &minus; 1) / (2N)       P(at least one) &asymp; 1 &minus; e<sup>&minus;n(n&minus;1)/(2N)</sup></div>
+</div>
+
+<p>This is the <strong>birthday effect</strong>, and it matters for deduplication. Say a team deduplicates a training corpus by giving each document a 32-bit hash (N = 2<sup>32</sup> = 4,294,967,296 possible values) and treating equal hashes as equal documents:</p>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th class="num">Documents n</th><th class="num">Pairs n(n&minus;1)/2</th><th class="num">Expected colliding pairs</th><th class="num">P(at least one)</th></tr></thead>
+  <tbody>
+    <tr><td class="num">10,000</td><td class="num">49,995,000</td><td class="num">0.0116</td><td class="num">1.2%</td></tr>
+    <tr><td class="num">100,000</td><td class="num">4,999,950,000</td><td class="num">1.16</td><td class="num">68.8%</td></tr>
+  </tbody>
+</table>
+</div>
+
+<p>With a hash space of over 4 billion values, 100,000 documents already collide about 69% of the time. Counting it exactly, the 50% mark is reached at 77,164 documents, about &radic;N rather than N. Practical result: a corpus of millions of documents will have distinct documents treated as duplicates under a 32-bit hash. A 64-bit hash (N = 2<sup>64</sup> &asymp; 1.8 &times; 10<sup>19</sup>) with 10<sup>9</sup> documents gives expected collisions of 10<sup>9</sup> &times; (10<sup>9</sup> &minus; 1) / (2 &times; 2<sup>64</sup>) &asymp; 0.027, small enough to ignore.</p>
+
+<h2>7. Top-k: counting candidate sets</h2>
+
+<p>Top-k sampling restricts each next-token draw to the k highest-probability tokens (Lesson 10 treats the mechanics). Combinatorics tells you two things about it.</p>
+
+<ul>
+  <li><strong>The shortlist is a combination.</strong> Out of V = 50,000 tokens there are C(50,000, 50) possible 50-token candidate sets, a 171-digit number. Top-k does not choose among them: ranking by probability picks exactly one, the top 50.</li>
+  <li><strong>It shrinks the sequence space but not to something searchable.</strong> With k = 40 allowed tokens per step and a 10-token reply, the multiplication rule gives 40<sup>10</sup> = 10,485,760,000,000,000 (about 10<sup>16</sup>) outputs, versus 50,000<sup>10</sup> &asymp; 10<sup>47</sup> without the cut.</li>
+</ul>
+
+<h2>8. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Counting tells you what you can never check and how much you can learn from what you do check.
+</div>
+
+<h3>The binomial sets the noise floor on your eval</h3>
+<p>Any pass/fail eval is a binomial count. Before comparing two models that scored 82/100 and 79/100, note that each has an sd of about 4 correct answers, so a 3-point gap is well within noise. Check this first when a "win" shows up on a small test set.</p>
+
+<h3>Splits, audits and hashes</h3>
+<p>Report variability across several splits, size audits for the problem rate you care about, and size hashes from n<sup>2</sup>/(2N), not from n alone.</p>
+
+<h3>Leads into Lesson 12</h3>
+<p>Here the focus was counting outcomes and the count of successes. The next step is to treat a number attached to a random outcome, such as the count of correct answers, the latency of a request, or the loss on a batch, as an object in its own right. That is a <strong>random variable</strong>, and its long-run average is its <strong>expectation</strong>. The binomial's np and np(1 &minus; p) were your first two examples.</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>The <strong>multiplication rule</strong> multiplies choices across steps: V tokens and n positions give V<sup>n</sup> sequences. For V = 50,000 and n = 20 that is about 10<sup>94</sup>, so brute-force search of prompt or output space is impossible.</li>
+  <li><strong>Permutations</strong> count ordered picks; <strong>combinations</strong> divide by k! to ignore order: C(n, k) = n! / (k!(n &minus; k)!). C(20, 5) = 15,504 sets but 1,860,480 orderings.</li>
+  <li><strong>Pascal's triangle</strong>: C(n, k) = C(n&minus;1, k&minus;1) + C(n&minus;1, k); rows are symmetric, peak in the middle, and sum to 2<sup>n</sup>.</li>
+  <li>The <strong>binomial distribution</strong> counts successes in n independent Bernoulli trials: P(k) = C(n, k)p<sup>k</sup>(1 &minus; p)<sup>n&minus;k</sup>, mean np, variance np(1 &minus; p). It needs independence and a shared p.</li>
+  <li><strong>Without replacement</strong>, subsets are counted by C(N, k) and the count of hits is hypergeometric; eval subsets and fold assignments number far beyond anything you could enumerate.</li>
+  <li>The <strong>birthday effect</strong>: collisions arrive near &radic;N draws because pairs grow like n<sup>2</sup>. A 32-bit hash collides about 69% of the time at 100,000 documents.</li>
+  <li><strong>Top-k</strong> picks one candidate set out of C(V, k) possibilities and shrinks the sequence space from V<sup>n</sup> to k<sup>n</sup>, which is still too large to enumerate.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. A model has a 1,000-token vocabulary and generates replies exactly 4 tokens long. How many distinct 4-token sequences exist?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">4,000 (1,000 &times; 4)</div>
+    <div class="quiz-opt">1,000 &times; 999 &times; 998 &times; 997, because tokens cannot repeat</div>
+    <div class="quiz-opt">1,000<sup>4</sup> = 10<sup>12</sup>, because each of the 4 positions has 1,000 independent choices</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. You will choose which 3 of 10 candidate prompts to include in a review batch and the order inside the batch is irrelevant. How many different batches are there?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">120, which is 10 &times; 9 &times; 8 = 720 ordered picks divided by 3! = 6</div>
+    <div class="quiz-opt">720, the number of ordered picks</div>
+    <div class="quiz-opt">1,000, which is 10<sup>3</sup></div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. A model's true per-prompt success rate is 0.8 and you test 10 independent prompts. What are the mean and variance of the number of correct answers?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Mean 0.8, variance 0.16</div>
+    <div class="quiz-opt">Mean 8, variance 1.6</div>
+    <div class="quiz-opt">Mean 8, variance 8</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. A team's eval prompts are 100 near-paraphrases of the same 10 base questions. Why is the binomial formula likely to understate the true spread of their accuracy score?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">Binomial variance is always too small for sample sizes under 1,000</div>
+    <div class="quiz-opt">Paraphrases make the model's answers more random, which adds variance</div>
+    <div class="quiz-opt">The prompts are not independent: a model that fails one paraphrase likely fails its siblings, so there are effectively closer to 10 independent trials than 100</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. You deduplicate 100,000 documents with a 32-bit hash. Roughly how often will at least one pair of different documents share a hash value?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">Almost never: 100,000 is tiny compared with 4.29 billion possible hash values</div>
+    <div class="quiz-opt">More often than not (about 69%), because the number of pairs grows like n<sup>2</sup> and each pair has about a 1 in 4.29 billion chance</div>
+    <div class="quiz-opt">Exactly 50%, because a hash either collides or it does not</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Combinatorics" target="_blank">Combinatorics &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Binomial_distribution" target="_blank">Binomial Distribution &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Birthday_problem" target="_blank">Birthday Problem &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Hypergeometric_distribution" target="_blank">Hypergeometric Distribution &mdash; Wikipedia</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+document.querySelectorAll(".quiz-options").forEach(group => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = "✗ Not quite — re-think whether order matters, how choices multiply across steps, and whether the trials are independent, then try another option.";
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,174 @@
+{
+  "note": "engram-quest/lessons/ai-math-foundations/meta.json",
+  "generated": "2026-10-21",
+  "cards": {
+    "Your RAG index scores chunks by raw dot product on unnormalized embeddings, and the longest chunks keep coming back first even when shorter ones are more on-topic. What is going on, and what do you change?": {
+      "l1": "Which factor in the geometric dot-product formula is rewarding the long chunks?",
+      "l2": "",
+      "l3": "dot product, vector length, normalization",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516000-vectors-and-similarity.html"
+    },
+    "Query q = (3, 1, 2); chunk A = (6, 2, 4) and chunk B = (2, 1, 2). Which chunk does cosine similarity prefer, and does Euclidean distance agree?": {
+      "l1": "Is A the same direction as q, and is it also the nearest point?",
+      "l2": "",
+      "l3": "cosine similarity, Euclidean distance, direction vs length",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516000-vectors-and-similarity.html"
+    },
+    "You swap in a new embedding model and keep your old similarity cutoff of 0.80, and now almost everything passes. What assumption broke, and what do you do?": {
+      "l1": "Is 0.80 from one model comparable with 0.80 from another?",
+      "l2": "",
+      "l3": "high dimensions, cosine threshold, calibration",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516000-vectors-and-similarity.html"
+    },
+    "Two vectors a = (2, -3, 0) and b = (3, 2, 5) are fed into a dot-product scorer. What score do you get and what does it say about the angle between them?": {
+      "l1": "What angle has cosine zero?",
+      "l2": "",
+      "l3": "orthogonality, dot product, cos(theta) = 0",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516000-vectors-and-similarity.html"
+    },
+    "Your code runs X @ W with X of shape (32, 512) and W stored as (256, 512), and it crashes. What is wrong and what is the fix?": {
+      "l1": "Write the shape of each operand and compare the two middle numbers.",
+      "l2": "",
+      "l3": "inner dimensions, transpose, out x in",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516001-matrices-and-transformations.html"
+    },
+    "A layer has W = [[0.5,-1,2],[1,0.5,-0.5]], b = (-1,-2) and input x = (2,1,4). What is y = Wx + b, and how many learnable numbers does the layer have?": {
+      "l1": "Each output is one row of W dotted with x, then add the bias entry.",
+      "l2": "",
+      "l3": "row dot products, bias, parameter count",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516001-matrices-and-transformations.html"
+    },
+    "You stack ten layers y = Wx + b with no activation between them and training gives no better results than one layer. Why?": {
+      "l1": "What single matrix equals the product of all the layers?",
+      "l2": "",
+      "l3": "linear collapse, activation, ReLU",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516001-matrices-and-transformations.html"
+    },
+    "A teammate calls inv(A) to solve A x = b for a 4096x4096 system, and results are noisy. What would you change and why?": {
+      "l1": "You need x, not the inverse itself.",
+      "l2": "",
+      "l3": "solve not inv, determinant, near-singular",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516001-matrices-and-transformations.html"
+    },
+    "A team's matrix A sends the vector (1, 1) to (3, 3) and (1, -1) to (1, -1). What are the eigenvectors and eigenvalues, and what does this say about how A treats those directions?": {
+      "l1": "Ask whether each output is just a scaled copy of its input.",
+      "l2": "",
+      "l3": "A v = lambda v, stretch only, trace and determinant",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516002-eigen-svd-and-low-rank.html"
+    },
+    "You compute the SVD of a feature matrix and get squared singular values 81, 16, 4, 1. Your manager wants to store only the top 2 directions. What do you tell them about what is lost?": {
+      "l1": "Add the squares you keep and divide by the total of all the squares.",
+      "l2": "",
+      "l3": "squared singular values, share kept, Eckart-Young error",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516002-eigen-svd-and-low-rank.html"
+    },
+    "You run PCA on a dataset's features but forget to subtract the mean first. What goes wrong with the 'main axis' you get back, and how do you fix it?": {
+      "l1": "Think about what a cloud far from the origin looks like to an uncentered method.",
+      "l2": "",
+      "l3": "center the data, covariance eigenvector, variance share",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516002-eigen-svd-and-low-rank.html"
+    },
+    "A team wants to fine-tune a 4096 x 4096 weight matrix but cannot afford to train all of it. They use LoRA with rank r = 8. How many numbers do they train for that matrix, how does it compare to a full update, and what is the risk?": {
+      "l1": "The update is a product of two thin matrices, so count both.",
+      "l2": "",
+      "l3": "2 x d x r, 65,536 vs 16,777,216, rank limit",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516002-eigen-svd-and-low-rank.html"
+    },
+    "A training loop reports a loss of 0.36 and a derivative of -1.2 with respect to the model's prediction (squared error, target 1.0, prediction 0.4). Which way should the prediction move, and how do you know?": {
+      "l1": "Sign of the slope tells you whether raising the input raises or lowers the output.",
+      "l2": "",
+      "l3": "negative slope, move up, -2(y-ŷ)",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516003-derivatives.html"
+    },
+    "You estimate the slope of f(x) = x² at x = 3 using (f(3+h) - f(3))/h and get 7 with h = 1, 6.1 with h = 0.1, 6.01 with h = 0.01. What number is it heading toward, and why can't you just set h = 0?": {
+      "l1": "Expand (3+h)² and divide by h before shrinking anything.",
+      "l2": "",
+      "l3": "limit, 6 + h, 0/0 undefined",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516003-derivatives.html"
+    },
+    "A network with sigmoid units stops learning in its early layers. Using the sigmoid derivative σ' = σ(1-σ), what is the largest slope any sigmoid unit can pass back, and what happens when you multiply it across three layers?": {
+      "l1": "Compute σ(1-σ) at σ = 0.5, then multiply it by itself.",
+      "l2": "",
+      "l3": "σ(1-σ), maximum 0.25, vanishing gradient",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516003-derivatives.html"
+    },
+    "You hand-derive the gradient of -ln σ(z) and your code returns -0.8808 at z = 2. A central-difference check with h = 1e-5 returns -0.1192. What is the likely bug and what should the formula be?": {
+      "l1": "Chain rule: (-1/σ) times σ(1-σ).",
+      "l2": "",
+      "l3": "σ(z) - 1, central difference, relative error",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516003-derivatives.html"
+    },
+    "A team's loss is L(w1,w2) = (w1-3)^2 + 4(w2-1)^2 and the weights sit at (0, 3). Which weight does the gradient say to change harder, and what is the gradient?": {
+      "l1": "Take each partial derivative while treating the other weight as a constant.",
+      "l2": "",
+      "l3": "partial derivative, hold other fixed, gradient vector",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516004-gradients-and-descent.html"
+    },
+    "With gradient (-6, 16), learning rate 0.1 and start (0, 3), what are the weights after one step and why does that step lower the loss?": {
+      "l1": "Subtract the scaled gradient from each weight.",
+      "l2": "",
+      "l3": "update rule, minus gradient, dot product, cos theta",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516004-gradients-and-descent.html"
+    },
+    "Training loss goes 25, 32.8, 61.7, 120.5 on the toy loss with learning rate 0.3. What is going wrong, and what would you change?": {
+      "l1": "Look at how the step changes the distance to the best w2 each time.",
+      "l2": "",
+      "l3": "divergence, overshoot, learning rate, hyperparameter",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516004-gradients-and-descent.html"
+    },
+    "Why is the gradient from one mini-batch not the same as the true gradient, and what happens to the error as the batch gets bigger?": {
+      "l1": "Treat the batch as a sample from the training set.",
+      "l2": "",
+      "l3": "mini-batch, unbiased, noisy estimate, 1/sqrt(n)",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516004-gradients-and-descent.html"
+    },
+    "A team trains a 10-layer sigmoid network and finds the first layer's weights barely change while the last layer learns fine. What is happening, with numbers?": {
+      "l1": "Think about what the backward pass multiplies at every layer.",
+      "l2": "",
+      "l3": "sigmoid slope 0.25, product over layers, vanishing",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516005-chain-rule-and-backpropagation.html"
+    },
+    "In the tiny network (x=1.5, w1=0.4, b1=0.1, w2=0.9, b2=-0.2, target 1.0), you hand-derive dL/dw1 = -0.1792. How do you check it before trusting it, and what should you see?": {
+      "l1": "Nudge the parameter both ways and compare slopes.",
+      "l2": "",
+      "l3": "finite difference, central difference, gradient check",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516005-chain-rule-and-backpropagation.html"
+    },
+    "A variable x feeds two nodes u = x+1 and v = x^2, and f = u*v. At x=3 a teammate multiplies the two path gradients and gets 216. What went wrong and what is the right answer?": {
+      "l1": "Multiply along a path, but combine separate paths another way.",
+      "l2": "",
+      "l3": "sum over paths, multivariable chain rule, residual",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516005-chain-rule-and-backpropagation.html"
+    },
+    "A model has 50 million parameters and one scalar loss. Why does training use reverse mode (backprop) instead of forward mode, and what does it cost you?": {
+      "l1": "Many inputs, one scalar output: which direction of multiplication is cheaper?",
+      "l2": "",
+      "l3": "reverse mode, Jacobian, saved activations, memory",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516005-chain-rule-and-backpropagation.html"
+    },
+    "A team models the gap between requests as f(t) = 2e^(−2t) per second. A teammate asks for the chance the next request arrives between 0.5 s and 1.5 s. What do you compute, and what do you get?": {
+      "l1": "Probability of a range is an area, not a height.",
+      "l2": "",
+      "l3": "integrate density, CDF difference, e^-1 minus e^-3",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516006-integrals.html"
+    },
+    "You approximate ∫ x² dx from 0 to 3 with six left-edge rectangles and get 6.875, but your colleague says the answer is 9. Who is right, and what would you change?": {
+      "l1": "Rectangles on a rising curve all fall short.",
+      "l2": "",
+      "l3": "Riemann sum, antiderivative, F(b) minus F(a)",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516006-integrals.html"
+    },
+    "A Monte Carlo estimate of an integral with 1,000 samples has a typical error of 0.006, which is too noisy. A teammate says to run 2,000 samples to halve it. What is wrong, and what should you do?": {
+      "l1": "Error scales with 1 over the square root of n.",
+      "l2": "",
+      "l3": "1/√n, central limit theorem, 4× samples",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516006-integrals.html"
+    },
+    "Raw model scores (logits) of 2, 1 and 0 are positive after exponentiating, but they sum to 11.107, not 1. What do you do to get usable probabilities, and what are they?": {
+      "l1": "Divide by the total so the pieces add to 1.",
+      "l2": "",
+      "l3": "softmax denominator, normalizing constant, √(2π)",
+      "source": "engram-quest/lessons/ai-math-foundations/lsn-1786039516006-integrals.html"
+    }
+  }
+}

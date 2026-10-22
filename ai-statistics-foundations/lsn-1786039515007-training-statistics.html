@@ -112,7 +112,7 @@
 </head>
 <body>
 
-<span class="lesson-pill">Lesson 8 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<span class="lesson-pill">Lesson 8 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
 <h1>The Statistics Behind Training a Model</h1>
 <p class="subtitle">Lesson 6 gave you squared-error loss. Lesson 7 gave you cross-entropy loss. This lesson is about what actually happens when a model tries to shrink that number over millions of steps — and the two ways that process quietly goes wrong.</p>
 
@@ -389,7 +389,7 @@
 
 <script>
 document.querySelectorAll(".quiz-options").forEach(group => {
-  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const fb = group.nextElementSibling;
   const opts = group.querySelectorAll(".quiz-opt");
   let solved = false;
   opts.forEach((opt, i) => {

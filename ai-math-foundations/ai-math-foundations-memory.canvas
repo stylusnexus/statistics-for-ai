@@ -1,0 +1,526 @@
+{
+  "nodes": [
+    {
+      "id": "course",
+      "type": "text",
+      "x": 245.0,
+      "y": 0,
+      "width": 340,
+      "height": 300,
+      "text": "## Math for AI: Linear Algebra & Calculus Essentials\nVectors and matrices are how a model holds data; derivatives and gradients are how it learns; integrals are how probability adds up. Seven lessons, ending where the statistics course begins its account of training."
+    },
+    {
+      "id": "g-m1",
+      "type": "group",
+      "x": 0,
+      "y": 520,
+      "width": 830,
+      "height": 980,
+      "label": "M1 — Vectors & Similarity"
+    },
+    {
+      "id": "m1-core",
+      "type": "text",
+      "x": 80,
+      "y": 600,
+      "width": 300,
+      "height": 380,
+      "text": "## M1 — Vectors are lists of numbers you can add, measure, and compare\nA vector is an ordered list of numbers, readable as a feature row, a point, or an arrow. The dot product (sum of entry-wise products, equal to ||a|| ||b|| cos theta) measures how much two vectors point the same way. Cosine similarity divides out lengths; unit vectors make dot product and cosine the same number."
+    },
+    {
+      "id": "m1-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 600,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Three similarity scores, three different winners\nIn the worked example one query and three chunks give three different best matches: raw dot product picks the long off-direction chunk (30), cosine picks the same-direction chunk (1.000), and Euclidean distance picks the nearest point (1.0). Normalizing first makes all three agree. In high dimensions, scores cluster, so thresholds must be calibrated per model."
+    },
+    {
+      "id": "m1-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 1040,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into M2\nOne dot product scores one pair. A matrix bundles many dot products, so a neural-network layer and the query, key, and value projections in attention are matrix-vector multiplication. M2 (Matrices & Transformations) builds that."
+    },
+    {
+      "id": "m1-file",
+      "type": "file",
+      "x": 450,
+      "y": 1040,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-math-foundations/lsn-1786039516000-vectors-and-similarity.html"
+    },
+    {
+      "id": "g-m2",
+      "type": "group",
+      "x": 0,
+      "y": 1720,
+      "width": 830,
+      "height": 980,
+      "label": "M2 — Matrices & Shapes"
+    },
+    {
+      "id": "m2-core",
+      "type": "text",
+      "x": 80,
+      "y": 1800,
+      "width": 300,
+      "height": 380,
+      "text": "## M2 — Matrices are functions, and shapes are the contract\nA matrix is a grid of numbers and a function that maps vectors to vectors; its columns are where the basis vectors land. A layer is y = Wx + b, a batch is Y = XWᵀ + b, and attention scores are QKᵀ. (m×n)(n×p) = (m×p): inner dimensions match and vanish."
+    },
+    {
+      "id": "m2-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 1800,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Depth needs a bend\nStacked linear layers multiply into one matrix, so ten of them equal one. A ReLU between layers breaks the collapse. Inverses are rarely computed in ML: most matrices are non-square or near-singular, so you solve systems instead."
+    },
+    {
+      "id": "m2-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 2240,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into M3\nA matrix with redundant columns loses information. M3 asks which directions a matrix only stretches (eigenvectors), how to split it into rotate-stretch-rotate (SVD), and why low-rank structure underlies LoRA."
+    },
+    {
+      "id": "m2-file",
+      "type": "file",
+      "x": 450,
+      "y": 2240,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-math-foundations/lsn-1786039516001-matrices-and-transformations.html"
+    },
+    {
+      "id": "g-m3",
+      "type": "group",
+      "x": 0,
+      "y": 2920,
+      "width": 830,
+      "height": 980,
+      "label": "M3 — Eigen, SVD & Low-Rank"
+    },
+    {
+      "id": "m3-core",
+      "type": "text",
+      "x": 80,
+      "y": 3000,
+      "width": 300,
+      "height": 380,
+      "text": "## M3 — Matrices are built from a few strong directions\nEigenvectors are directions a matrix only stretches, and the SVD (rotate, stretch, rotate) works on any matrix. Keeping the top singular values gives the best low-rank approximation, with error equal to what was dropped."
+    },
+    {
+      "id": "m3-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 3000,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — PCA and LoRA are the same low-rank bet\nPCA keeps the top eigenvector of the covariance matrix to find a data cloud's main axis; LoRA replaces a 4096 x 4096 update (16,777,216 numbers) with two thin matrices (65,536). Both only work if a few directions carry most of the signal, so you check the singular values first."
+    },
+    {
+      "id": "m3-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 3440,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into M4\nNow that you can describe a matrix and shrink it, the next question is how to change it to make a model better. M4 starts the calculus half with derivatives, the tool that gives the direction to nudge each number."
+    },
+    {
+      "id": "m3-file",
+      "type": "file",
+      "x": 450,
+      "y": 3440,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-math-foundations/lsn-1786039516002-eigen-svd-and-low-rank.html"
+    },
+    {
+      "id": "g-m4",
+      "type": "group",
+      "x": 0,
+      "y": 4120,
+      "width": 830,
+      "height": 980,
+      "label": "M4 — Derivatives & Slope"
+    },
+    {
+      "id": "m4-core",
+      "type": "text",
+      "x": 80,
+      "y": 4200,
+      "width": 300,
+      "height": 380,
+      "text": "## M4 — A derivative is the slope at one point\nThe derivative is the limit of the slope between two points as the gap h shrinks (x² at 3: 7, 6.1, 6.01, heading to 6). Its sign says which way to move a parameter: negative means increase it, positive means decrease it, zero means a flat spot."
+    },
+    {
+      "id": "m4-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 4200,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — The ML toolkit is five small derivatives\nSquared error gives -2(y-ŷ), the sigmoid gives σ(1-σ) with a maximum of 0.25, ReLU gives 0 or 1 with a corner at 0, and log loss gives -1/p, which collapses to σ(z)-1 through a sigmoid. A finite-difference check catches wrong hand-written gradients."
+    },
+    {
+      "id": "m4-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 4640,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into M5\nEvery example here had one input. A model has millions of parameters, so M5 takes the slope along each parameter separately (partial derivatives) and bundles them into the gradient vector that gradient descent walks against."
+    },
+    {
+      "id": "m4-file",
+      "type": "file",
+      "x": 450,
+      "y": 4640,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-math-foundations/lsn-1786039516003-derivatives.html"
+    },
+    {
+      "id": "g-m5",
+      "type": "group",
+      "x": 0,
+      "y": 5320,
+      "width": 830,
+      "height": 980,
+      "label": "M5 — Gradients and descent"
+    },
+    {
+      "id": "m5-core",
+      "type": "text",
+      "x": 80,
+      "y": 5400,
+      "width": 300,
+      "height": 380,
+      "text": "## M5 — The gradient points uphill, so step the other way\nA loss with many weights is a landscape. The gradient collects every partial derivative into one vector that points uphill, with length equal to steepness. Updating w <- w - eta*grad is the steepest short step downhill, and the learning rate eta decides whether it crawls, converges or diverges."
+    },
+    {
+      "id": "m5-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 5400,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Gradients are noisy and the landscape is not a bowl\nA mini-batch gives an unbiased but noisy gradient, and its noise shrinks like 1/sqrt(n). Real loss surfaces have saddle points and plateaus, and gradient descent comes with no guarantee of finding the global minimum on deep nets. The Hessian, the matrix of second derivatives, measures the curvature that limits a safe learning rate."
+    },
+    {
+      "id": "m5-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 5840,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into M6\nYou can now use a gradient but not compute one for a deep network. M6 applies the chain rule layer by layer (backpropagation) to get every partial derivative in one backward pass."
+    },
+    {
+      "id": "m5-file",
+      "type": "file",
+      "x": 450,
+      "y": 5840,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-math-foundations/lsn-1786039516004-gradients-and-descent.html"
+    },
+    {
+      "id": "g-m6",
+      "type": "group",
+      "x": 0,
+      "y": 6520,
+      "width": 830,
+      "height": 980,
+      "label": "M6 — Chain Rule & Backprop"
+    },
+    {
+      "id": "m6-core",
+      "type": "text",
+      "x": 80,
+      "y": 6600,
+      "width": 300,
+      "height": 380,
+      "text": "## M6 — Gradients flow backward by multiplying local slopes\nThe chain rule says the slope of a composite function is the product of the slopes of its pieces. Backprop applies it to a computational graph: a forward pass saves values, a backward pass multiplies local derivatives from the loss to each parameter. In the worked network the gradients were -0.1792, -0.1195, -0.4000 and -0.5986, and one step cut the loss from 0.1792 to 0.0072."
+    },
+    {
+      "id": "m6-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 6600,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Vanishing and exploding products\nThe sigmoid slope never exceeds 0.25, so ten layers can shrink a gradient to about 10^-6, while factors of 1.5 grow to 57.7 after ten layers. ReLU and residual connections keep the per-layer factor nearer to 1, but they do not guarantee stable training. Automatic differentiation does the bookkeeping, and you still need to know what flows and where it can stop."
+    },
+    {
+      "id": "m6-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 7040,
+      "width": 300,
+      "height": 380,
+      "text": "## Leads Into M7\nDerivatives measure how fast a quantity changes. M7 turns that around with integrals: adding up a continuously varying quantity, which is how densities become probabilities and expected values are computed."
+    },
+    {
+      "id": "m6-file",
+      "type": "file",
+      "x": 450,
+      "y": 7040,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-math-foundations/lsn-1786039516005-chain-rule-and-backpropagation.html"
+    },
+    {
+      "id": "g-m7",
+      "type": "group",
+      "x": 0,
+      "y": 7720,
+      "width": 830,
+      "height": 980,
+      "label": "M7 — Integrals & Continuous Probability"
+    },
+    {
+      "id": "m7-core",
+      "type": "text",
+      "x": 80,
+      "y": 7800,
+      "width": 300,
+      "height": 380,
+      "text": "## M7 — Integrals: continuous sums\nAn integral adds up infinitely many thin slices; the fundamental theorem says ∫ₐᵇ f = F(b) − F(a) where F′ = f, so derivatives and integrals undo each other. Probability densities integrate to 1 and P(a ≤ X ≤ b) is an area."
+    },
+    {
+      "id": "m7-novelty",
+      "type": "text",
+      "x": 450,
+      "y": 7800,
+      "width": 300,
+      "height": 380,
+      "text": "## Novelty — Monte Carlo and normalizers\nExpected values E[X] = ∫ x f(x) dx are the continuous weighted average, and the softmax denominator and the Gaussian's √(2π) are both normalizing constants. When no closed form exists, averaging random samples estimates the integral with error shrinking like 1/√n."
+    },
+    {
+      "id": "m7-assoc",
+      "type": "text",
+      "x": 80,
+      "y": 8240,
+      "width": 300,
+      "height": 380,
+      "text": "## How M1–M7 plug into the course\nM1–M3 give embeddings (vectors) and layers (matrix multiplications); M4–M6 give the derivatives and gradients that flow back through them as backprop; M7 supplies the expectations and normalizers behind the loss. They meet in the statistics course, Lesson 8: embeddings → layers → gradients → backprop → training."
+    },
+    {
+      "id": "m7-file",
+      "type": "file",
+      "x": 450,
+      "y": 8240,
+      "width": 300,
+      "height": 200,
+      "file": "engram-quest/lessons/ai-math-foundations/lsn-1786039516006-integrals.html"
+    }
+  ],
+  "edges": [
+    {
+      "id": "e-int-m1-core-m1-novelty",
+      "fromNode": "m1-core",
+      "toNode": "m1-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-m1-core-m1-assoc",
+      "fromNode": "m1-core",
+      "toNode": "m1-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m1-core-m1-file",
+      "fromNode": "m1-core",
+      "toNode": "m1-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-course-g-m1",
+      "fromNode": "course",
+      "toNode": "g-m1",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m2-core-m2-novelty",
+      "fromNode": "m2-core",
+      "toNode": "m2-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-m2-core-m2-assoc",
+      "fromNode": "m2-core",
+      "toNode": "m2-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m2-core-m2-file",
+      "fromNode": "m2-core",
+      "toNode": "m2-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-m1-g-m2",
+      "fromNode": "g-m1",
+      "toNode": "g-m2",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m3-core-m3-novelty",
+      "fromNode": "m3-core",
+      "toNode": "m3-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-m3-core-m3-assoc",
+      "fromNode": "m3-core",
+      "toNode": "m3-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m3-core-m3-file",
+      "fromNode": "m3-core",
+      "toNode": "m3-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-m2-g-m3",
+      "fromNode": "g-m2",
+      "toNode": "g-m3",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m4-core-m4-novelty",
+      "fromNode": "m4-core",
+      "toNode": "m4-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-m4-core-m4-assoc",
+      "fromNode": "m4-core",
+      "toNode": "m4-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m4-core-m4-file",
+      "fromNode": "m4-core",
+      "toNode": "m4-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-m3-g-m4",
+      "fromNode": "g-m3",
+      "toNode": "g-m4",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m5-core-m5-novelty",
+      "fromNode": "m5-core",
+      "toNode": "m5-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-m5-core-m5-assoc",
+      "fromNode": "m5-core",
+      "toNode": "m5-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m5-core-m5-file",
+      "fromNode": "m5-core",
+      "toNode": "m5-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-m4-g-m5",
+      "fromNode": "g-m4",
+      "toNode": "g-m5",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m6-core-m6-novelty",
+      "fromNode": "m6-core",
+      "toNode": "m6-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-m6-core-m6-assoc",
+      "fromNode": "m6-core",
+      "toNode": "m6-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m6-core-m6-file",
+      "fromNode": "m6-core",
+      "toNode": "m6-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-m5-g-m6",
+      "fromNode": "g-m5",
+      "toNode": "g-m6",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m7-core-m7-novelty",
+      "fromNode": "m7-core",
+      "toNode": "m7-novelty",
+      "fromSide": "right",
+      "toSide": "left"
+    },
+    {
+      "id": "e-int-m7-core-m7-assoc",
+      "fromNode": "m7-core",
+      "toNode": "m7-assoc",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-int-m7-core-m7-file",
+      "fromNode": "m7-core",
+      "toNode": "m7-file",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "e-spine-g-m6-g-m7",
+      "fromNode": "g-m6",
+      "toNode": "g-m7",
+      "fromSide": "bottom",
+      "toSide": "top"
+    }
+  ]
+}

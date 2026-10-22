@@ -241,6 +241,222 @@
       "l2": "",
       "l3": "hallucination, low-probability sampling",
       "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515009-llm-statistics.html"
+    },
+    "A teammate proposes finding the best 20-token reply by scoring every possible sequence from a 50,000-token vocabulary. Why does this fail, and how do decoders get around it?": {
+      "l1": "Count the sequences first: how many choices at each position, and how do they combine?",
+      "l2": "",
+      "l3": "multiplication rule, V^n, sequence space",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515010-counting-and-combinatorics.html"
+    },
+    "A RAG system retrieves 20 chunks and puts 5 into the prompt. How many different sets of 5 exist, and how many distinct prompts if the order of chunks also matters?": {
+      "l1": "Which count ignores order, and by what factor does the ordered count exceed it?",
+      "l2": "",
+      "l3": "combinations, permutations, n choose k",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515010-counting-and-combinatorics.html"
+    },
+    "A model's true per-prompt accuracy is 0.8 and you test it on 10 independent prompts. What is P(exactly 8 correct), and what does that tell you about trusting a 10-prompt eval?": {
+      "l1": "Count the ways to place 8 successes among 10 trials, then multiply by the probability of one such pattern.",
+      "l2": "",
+      "l3": "binomial, C(n,k), np and np(1-p)",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515010-counting-and-combinatorics.html"
+    },
+    "You dedupe 100,000 documents by 32-bit hash and assume equal hashes mean equal documents. Why is that unsafe, and roughly how likely is at least one false match?": {
+      "l1": "Count the pairs of documents, not the documents.",
+      "l2": "",
+      "l3": "birthday effect, hash collisions, n²/2N",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515010-counting-and-combinatorics.html"
+    },
+    "Your response-length distribution is 100 tokens (0.4), 200 (0.3), 400 (0.2), 800 (0.1) and output costs 2 micro-dollars per token plus a fixed 400 for the prompt. A teammate budgets using the most common length. What do you use instead, and what do you get?": {
+      "l1": "The typical value and the average are not the same thing when the distribution has a long tail.",
+      "l2": "",
+      "l3": "expected value, linearity, probability-weighted average",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515011-random-variables.html"
+    },
+    "A three-step agent has independent step latencies with SDs of 30 ms, 200 ms, and 40 ms. A colleague says the pipeline SD is 270 ms. What is wrong, and what is the right number?": {
+      "l1": "Which quantity is additive for independent variables: the SD or the square of the SD?",
+      "l2": "",
+      "l3": "variance adds, independence, square root",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515011-random-variables.html"
+    },
+    "You change the cost formula from Y = 2X + 400 to Y = 2X + 4,000 (a bigger fixed prompt charge), with Var(X) = 44,400. What happens to the mean cost and to the variance of the cost?": {
+      "l1": "Does adding the same constant to every value change how spread out the values are?",
+      "l2": "",
+      "l3": "Var(aX+b), shift vs scale, a squared",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515011-random-variables.html"
+    },
+    "Single eval questions score 1 or 0 with p = 0.8, so one question has SD 0.4. You average over 100 independent questions and then decide to quadruple the eval set to 400. How much does the noise in the measured accuracy drop at each size, and what is the lesson?": {
+      "l1": "Variance of an average of n independent runs is the single-run variance divided by what?",
+      "l2": "",
+      "l3": "sigma over root n, averaging, eval noise",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515011-random-variables.html"
+    },
+    "A teammate reads a density chart of request gaps, sees the curve start at height 2.0, and says there is a 200% chance of a very short gap. What is wrong, and what is the real probability of a gap under 0.5 s when the density is 2e^(-2t)?": {
+      "l1": "Ask what the height of a density curve actually measures.",
+      "l2": "",
+      "l3": "area not height, density above 1, exact value probability 0",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515012-continuous-distributions.html"
+    },
+    "Gaps between requests have CDF F(t) = 1 - e^(-2t). Your SLO dashboard needs the p95 gap and you notice the median is below the mean. How do you get both, and what does the difference tell you?": {
+      "l1": "A percentile is the CDF solved for t.",
+      "l2": "",
+      "l3": "inverse CDF, p95 = ln(20)/lambda, median below mean",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515012-continuous-distributions.html"
+    },
+    "Requests arrive at 2 per second with exponential gaps. A batcher waits for the 3rd request, and 0.5 s have already passed with none. What are the mean and variance of a fresh 3-request wait, and does the silence so far change the wait for the next request?": {
+      "l1": "Sum of 3 independent exponentials; and exponentials forget.",
+      "l2": "",
+      "l3": "gamma mean k/lambda, variance k/lambda^2, memoryless",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515012-continuous-distributions.html"
+    },
+    "Two eval reports both give a model's accuracy as a Beta distribution with mean 0.75: Beta(9, 3) from one run and Beta(30, 10) from a bigger one. How do they differ, and which would you trust for a ship decision?": {
+      "l1": "Compare the totals alpha+beta, not just the ratio.",
+      "l2": "",
+      "l3": "Beta mean, alpha+beta sets spread, uncertainty about accuracy",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515012-continuous-distributions.html"
+    },
+    "Your QA assistant reports 72% correct overall, with math queries making up 30% of traffic. Why is that pair of numbers not enough to know where it fails, and what do you build instead?": {
+      "l1": "Many different tables share the same row and column totals.",
+      "l2": "",
+      "l3": "joint table, marginal, conditional",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515013-joint-distributions.html"
+    },
+    "In a log, P(Math) = 0.30, P(Correct) = 0.72 and P(Math, Correct) = 0.12. Are query type and correctness independent, and how do you know?": {
+      "l1": "Compare a joint cell to the product of its two marginals.",
+      "l2": "",
+      "l3": "independence, joint = product of marginals",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515013-joint-distributions.html"
+    },
+    "Retrieval and generation times have Cov = +0.08 s^2, Var(retrieval) = 0.025 and Var(generation) = 0.30. A teammate says total latency variance is 0.325. What is wrong and what is the right figure?": {
+      "l1": "Variance of a sum has a third term.",
+      "l2": "",
+      "l3": "Var(X+Y), covariance, correlated stages",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515013-joint-distributions.html"
+    },
+    "An LLM scores a three-token reply with P(x1) = 0.20, P(x2 | x1) = 0.05, P(x3 | x1, x2) = 0.30. What is the sequence probability, why can't a model store the joint table instead, and why do implementations add logs?": {
+      "l1": "Multiply each token given everything before it.",
+      "l2": "",
+      "l3": "chain rule, autoregressive, log-probability",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515013-joint-distributions.html"
+    },
+    "Prompt A passes 600/800 eval examples and Prompt B passes 640/800. How do you test whether B is really better, and what do you get?": {
+      "l1": "Under the null both prompts share one pass rate, so what do you estimate it from?",
+      "l2": "",
+      "l3": "two-proportion z-test, pooled proportion, standard error",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515014-limit-theorems-and-hypothesis-testing.html"
+    },
+    "Your teammate says p = 0.03 means there is a 3% chance the two prompts are equal. What is wrong, and what does it actually mean?": {
+      "l1": "Which direction does the conditional probability run: data given hypothesis, or hypothesis given data?",
+      "l2": "",
+      "l3": "p-value misreading, P(data|null), conditional direction",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515014-limit-theorems-and-hypothesis-testing.html"
+    },
+    "You test 20 prompt variants against a baseline at alpha = 0.05 and one 'wins' with p = 0.02. Why shouldn't you ship it, and what threshold would you use instead?": {
+      "l1": "How many chances did luck get to hand you a winner?",
+      "l2": "",
+      "l3": "multiple comparisons, Bonferroni, 0.05/20",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515014-limit-theorems-and-hypothesis-testing.html"
+    },
+    "A 0.2-point accuracy gain is 'highly significant' (p = 0.0004) on a 1,000,000-example test set. Should you ship the change automatically?": {
+      "l1": "Significance answers 'is it nonzero'; what question does it leave unanswered?",
+      "l2": "",
+      "l3": "effect size, large N, confidence interval",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515014-limit-theorems-and-hypothesis-testing.html"
+    },
+    "A team puts a Beta(8,2) prior on a new model's accuracy, then scores 6 correct out of 10 prompts. What is the posterior, its mean, and why does the mean land at 0.70 instead of the observed 0.60?": {
+      "l1": "Add the correct answers to alpha and the wrong ones to beta, then ask how many pseudo-prompts the prior is worth.",
+      "l2": "",
+      "l3": "conjugate update, pseudo-counts, Beta(14,6)",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515015-bayesian-inference.html"
+    },
+    "The same Beta(8,2) prior meets an eval of 600 correct out of 1000. Why does the prior barely matter now, and what are the posterior and its mean?": {
+      "l1": "Compare the prior's imagined sample size with the real sample size.",
+      "l2": "",
+      "l3": "prior weight, large n, credible interval width",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515015-bayesian-inference.html"
+    },
+    "Your weight-decay setting adds lambda times the squared weights to the loss. What Bayesian belief are you encoding, and how does a tighter belief change lambda?": {
+      "l1": "Take the log of likelihood times prior and look at the prior term for a Normal.",
+      "l2": "",
+      "l3": "MAP, Gaussian prior, L2, lambda = 1/(2 tau^2)",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515015-bayesian-inference.html"
+    },
+    "A report says the 95% credible interval for accuracy is 0.49 to 0.87, and another says the 95% confidence interval is 0.29 to 0.91 on the same 6-of-10 eval. What can you say with each, and why are they so different?": {
+      "l1": "One interval is a statement about the parameter, the other about the procedure.",
+      "l2": "",
+      "l3": "credible vs confidence, prior, repeated sampling",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515015-bayesian-inference.html"
+    },
+    "A team builds its ticket-model eval only from tickets that already have an approved reference reply, which are mostly easy. Production is 55% easy (model right 92%) and 45% hard (right 64%). What does the eval report, what is the truth, and why won't more tickets of the same kind help?": {
+      "l1": "Ask what the filter for inclusion in the eval set is correlated with.",
+      "l2": "",
+      "l3": "selection bias, convenience sample, random draw",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515016-study-design-and-confounding.html"
+    },
+    "The old model beats the new one on easy tickets (93.1% vs 86.7%) and on hard tickets (73.0% vs 68.8%), yet the new one wins overall (82.6% vs 78.0%), both on 350 tickets. What happened, and which comparison do you trust?": {
+      "l1": "Compare how many easy tickets each model received.",
+      "l2": "",
+      "l3": "Simpson's paradox, confounder, segment mix",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515016-study-design-and-confounding.html"
+    },
+    "An A/B test planned as 50/50 on 10,000 users ends with 5,200 in A and 4,800 in B. The lift looks good. What do you check first, with what number, and what does it mean?": {
+      "l1": "Compare the observed arm sizes to what the design promised before looking at outcomes.",
+      "l2": "",
+      "l3": "sample ratio mismatch, chi-square, 5200 vs 4800",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515016-study-design-and-confounding.html"
+    },
+    "A test set of 1,000 items secretly contains 300 exact copies of training items. The model gets 98% of the copies and 74% of the genuinely new items. What accuracy gets reported, how much is inflation, and what would you do?": {
+      "l1": "Score the duplicated slice and the unseen slice separately, then weight them.",
+      "l2": "",
+      "l3": "data leakage, duplicates, deduplicate, time split",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515016-study-design-and-confounding.html"
+    },
+    "A team logs 9 request latencies and reports a median of 232 ms. How do you get an interval for that median, and what do 10,000 bootstrap resamples (seed 42) give?": {
+      "l1": "Resample the data itself, not the statistic's formula, and see how the median moves.",
+      "l2": "",
+      "l3": "resample with replacement, percentile interval, 205 to 410",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515017-resampling-bootstrap-and-cross-validation.html"
+    },
+    "Two prompts are graded on the same 40 eval items: A passes 29, B passes 35, and they disagree on 8 items (7 for B, 1 for A). Why is a paired bootstrap of the +15 point gap better than resampling each prompt separately?": {
+      "l1": "Which items tell you anything about A versus B, and does an unpaired resample respect that?",
+      "l2": "",
+      "l3": "paired bootstrap, item as unit, discordant items",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515017-resampling-bootstrap-and-cross-validation.html"
+    },
+    "Why does a bootstrap sample of n items contain only about 63.2% of the distinct originals, and what is the leftover set called?": {
+      "l1": "Work out the chance one specific item is never drawn in n draws.",
+      "l2": "",
+      "l3": "(1-1/n)^n, 1/e, out-of-bag",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515017-resampling-bootstrap-and-cross-validation.html"
+    },
+    "A team standardizes all features on the full dataset and then runs 5-fold cross-validation, getting 0.82. What went wrong, and what would you do differently?": {
+      "l1": "Ask which data each preprocessing step was allowed to look at.",
+      "l2": "",
+      "l3": "leakage, fit inside the fold, test set touched once",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515017-resampling-bootstrap-and-cross-validation.html"
+    },
+    "Prompt length alone has slope +4.28 on judge score, but in a model that also has passages retrieved its coefficient is -0.75 (95% CI -2.03 to +0.52). What happened, and what should you conclude?": {
+      "l1": "Which other feature rises along with prompt length, and what does 'holding it fixed' remove?",
+      "l2": "",
+      "l3": "confounding, holding fixed, partial coefficient",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515018-multiple-and-logistic-regression.html"
+    },
+    "You add a second prompt-length feature (characters, r = 0.9985 with tokens). R-squared stays high but the token coefficient goes from -0.75 to +26.47 with SE 12.44. What is wrong and what do you do?": {
+      "l1": "If two columns carry the same information, can the fit say which one deserves the credit?",
+      "l2": "",
+      "l3": "collinearity, VIF, inflated standard error",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515018-multiple-and-logistic-regression.html"
+    },
+    "A logistic model for 'answer has an unsupported claim' has intercept -2.0, -0.9 per supporting passage and +0.7 per 100 answer tokens. What is p for 1 passage and 300 tokens, and what does adding one passage do?": {
+      "l1": "Add up the log-odds first, then turn the total into a probability.",
+      "l2": "",
+      "l3": "log-odds, sigmoid, odds ratio e^coefficient",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515018-multiple-and-logistic-regression.html"
+    },
+    "Three prompt variants score means of 72, 79 and 74 (5 inputs each; SSB = 130, SSW = 66). What is F, what does p = 0.0015 let you say, and what can't you say?": {
+      "l1": "ANOVA asks one question about all the groups at once; what question is that?",
+      "l2": "",
+      "l3": "F = MSB/MSW, omnibus test, post-hoc comparisons",
+      "source": "engram-quest/lessons/ai-statistics-foundations/lsn-1786039515018-multiple-and-logistic-regression.html"
     }
   }
 }

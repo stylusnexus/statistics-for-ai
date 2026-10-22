@@ -114,7 +114,7 @@
 </head>
 <body>
 
-<span class="lesson-pill">Lesson 5 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<span class="lesson-pill">Lesson 5 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
 <h1>From Sample to Population: Estimation &amp; the Central Limit Theorem</h1>
 <p class="subtitle">You never have all the data. Here's the math for how much that should worry you — and how models turn a pile of observations into a fitted distribution.</p>
 
@@ -401,7 +401,7 @@
 
 <script>
 document.querySelectorAll(".quiz-options").forEach(group => {
-  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const fb = group.nextElementSibling;
   const opts = group.querySelectorAll(".quiz-opt");
   let solved = false;
   opts.forEach((opt, i) => {

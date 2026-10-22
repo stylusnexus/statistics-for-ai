@@ -147,7 +147,7 @@
 </head>
 <body>
 
-<span class="lesson-pill">Lesson 3 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<span class="lesson-pill">Lesson 3 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
 <h1>Probability Foundations &amp; Bayes' Theorem</h1>
 <p class="subtitle">You can already describe a dataset you can see. This lesson is about reasoning over outcomes you haven't seen yet — the math every classifier, spam filter, and hallucination detector runs on.</p>
 
@@ -454,7 +454,7 @@
 
 <script>
 document.querySelectorAll(".quiz-options").forEach(group => {
-  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const fb = group.nextElementSibling;
   const opts = group.querySelectorAll(".quiz-opt");
   let solved = false;
   opts.forEach((opt, i) => {

@@ -4,7 +4,7 @@ Workspace-wide rules (commits, security, plan-before-code, approval gates) live 
 
 ## Project Overview
 
-A ten-lesson, self-paced course on the statistics needed for AI, GenAI, and LLM work, licensed CC BY 4.0 (see `LICENSE`). Written with AI assistance and human-reviewed; `README.md` calls it a study aid, not a peer-reviewed textbook.
+Two self-paced courses, licensed CC BY 4.0 (see `LICENSE`): a nineteen-lesson course on the statistics needed for AI, GenAI, and LLM work, and a seven-lesson companion on the linear algebra and calculus underneath it. Written with AI assistance. Lessons 1–10 were human-reviewed; the later statistics lessons and the math course were checked by AI reviewers only (see `README.md`, which calls the material a study aid, not a peer-reviewed textbook).
 
 ## Development Commands
 
@@ -12,8 +12,10 @@ None. There is no build step or package manifest. Open `index.html` in a browser
 
 ## Architecture
 
-- `index.html`: course landing page.
-- `ai-statistics-foundations/lsn-*.html`: the 10 lessons. Each is self-contained (inline CSS and inline SVG, no external scripts, styles, fonts, or images).
+- `index.html`: statistics course landing page. `math.html`: math course landing page.
+- `ai-statistics-foundations/lsn-*.html`: the 19 statistics lessons (1–10 original, 11–19 added for the probability and inference fundamentals).
+- `ai-math-foundations/`: the math course, with the same layout (`lsn-*.html`, `meta.json`, `review/`, memory-map canvas). Its folder name is also a plugin course slug; do not rename it.
+- Lesson files in both folders: Each is self-contained (inline CSS and inline SVG, no external scripts, styles, fonts, or images).
 - `ai-statistics-foundations/meta.json`: EngramQuest course metadata (progress flags ship as `false`).
 - `ai-statistics-foundations/review/`: flashcards (`question :: answer`, one per line) and a hints JSON.
 - `ai-statistics-foundations/ai-statistics-foundations-memory.canvas`: Obsidian JSON Canvas memory map.

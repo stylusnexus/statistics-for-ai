@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math for AI: Linear Algebra &amp; Calculus Essentials</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #34d399; --accent2: #6c8fff;
+    --text: #e2e8f0; --muted: #94a3b8;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  .eyebrow { color: var(--muted); font-size: 0.85em; letter-spacing: 0.08em; text-transform: uppercase; }
+  h1 { font-size: 2.1em; margin: 10px 0 8px; line-height: 1.2; }
+  .lede { color: var(--muted); font-size: 1.08em; margin: 0 0 32px; }
+  .meta { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 40px; }
+  .chip {
+    background: var(--surface2); border: 1px solid var(--border); border-radius: 999px;
+    padding: 4px 14px; font-size: 0.82em; color: var(--muted);
+  }
+  ol.lessons { list-style: none; counter-reset: lsn; padding: 0; margin: 0; }
+  h2.part { font-size: 0.95em; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin: 36px 0 14px; }
+  ol.lessons li { counter-increment: lsn; margin-bottom: 12px; }
+  a.card {
+    display: block; text-decoration: none; color: inherit; position: relative;
+    background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
+    padding: 18px 22px 18px 68px; transition: border-color .15s, background .15s, transform .15s;
+  }
+  a.card:hover { border-color: var(--accent); background: var(--surface2); transform: translateY(-1px); }
+  a.card::before {
+    content: counter(lsn); position: absolute; left: 20px; top: 18px;
+    width: 32px; height: 32px; border-radius: 8px;
+    background: var(--surface2); border: 1px solid var(--border);
+    color: var(--accent); font-weight: 700; font-size: 0.95em;
+    display: flex; align-items: center; justify-content: center;
+  }
+  a.card:hover::before { border-color: var(--accent); }
+  .card h2 { font-size: 1.05em; margin: 0 0 4px; line-height: 1.35; color: var(--text); }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; line-height: 1.55; }
+  .aside {
+    margin-top: 44px; background: var(--surface); border: 1px solid var(--border);
+    border-left: 3px solid var(--accent2); border-radius: 8px; padding: 18px 22px;
+  }
+  .aside h3 { margin: 0 0 8px; font-size: 0.95em; }
+  .aside p { margin: 0 0 10px; color: var(--muted); font-size: 0.92em; }
+  .aside p:last-child { margin-bottom: 0; }
+  .aside a { color: var(--accent2); }
+  footer a { color: var(--accent2); }
+  footer { margin-top: 40px; color: var(--muted); font-size: 0.85em; border-top: 1px solid var(--border); padding-top: 20px; }
+  @media (max-width: 480px) {
+    body { padding: 32px 16px 60px; }
+    h1 { font-size: 1.7em; }
+    a.card { padding: 16px 16px 16px 60px; }
+    a.card::before { left: 14px; }
+  }
+</style>
+</head>
+<body>
+
+<p class="eyebrow">🧮 Self-paced course · companion to <a href="index.html" style="color:inherit">Statistics for AI</a></p>
+<h1>Math for AI: Linear Algebra &amp; Calculus Essentials</h1>
+<p class="lede">The vectors, matrices, derivatives and integrals that AI and machine learning actually use — each one tied to something a model does, not a textbook exercise.</p>
+
+<div class="meta">
+  <span class="chip">7 lessons</span>
+  <span class="chip">Sequential — each builds on the last</span>
+  <span class="chip">High-school algebra is enough</span>
+  <span class="chip">Quizzes included</span>
+</div>
+
+<h2 class="part">Linear algebra</h2>
+<ol class="lessons">
+  <li><a class="card" href="ai-math-foundations/lsn-1786039516000-vectors-and-similarity.html">
+    <h2>Vectors: Embeddings, Dot Products &amp; Measuring Similarity</h2>
+    <p>A vector is a list of numbers that can be a point, an arrow, or a meaning. Add them, measure them, take dot products, and learn why dot product, cosine, and distance pick different winners in retrieval.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-math-foundations/lsn-1786039516001-matrices-and-transformations.html">
+    <h2>Matrices: Transformations, Layers &amp; Why Shapes Matter</h2>
+    <p>A neural-network layer, an attention score table and a batch of embeddings are all one object: a grid of numbers that turns vectors into vectors. Learn to multiply them by hand and to read shapes before your code crashes.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-math-foundations/lsn-1786039516002-eigen-svd-and-low-rank.html">
+    <h2>Eigenvectors, SVD &amp; Low-Rank Structure: PCA and LoRA</h2>
+    <p>Eigenvectors, the singular value decomposition, and low-rank approximation, worked by hand on small matrices. Then the two places AI uses them most: PCA for finding the main axis of data and LoRA for fine-tuning with a fraction of the parameters.</p>
+  </a></li>
+</ol>
+
+<h2 class="part">Calculus</h2>
+<ol class="lessons" style="counter-reset: lsn 3">
+  <li><a class="card" href="ai-math-foundations/lsn-1786039516003-derivatives.html">
+    <h2>Derivatives: Slope, Rate of Change &amp; the Functions ML Uses</h2>
+    <p>Slope, the limit of shrinking gaps, tangent lines, and the handful of rules that differentiate everything a network uses: squared error, sigmoid, ReLU, log loss. Read a derivative's sign to know which way to move, and check it numerically.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-math-foundations/lsn-1786039516004-gradients-and-descent.html">
+    <h2>Partial Derivatives &amp; Gradients: Which Way Is Downhill?</h2>
+    <p>A loss with millions of weights is a landscape, and the gradient is the arrow that points uphill. Compute partial derivatives by hand, run three steps of gradient descent, and see why a learning rate that is too large blows up.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-math-foundations/lsn-1786039516005-chain-rule-and-backpropagation.html">
+    <h2>The Chain Rule &amp; Backpropagation: How Gradients Flow Through a Network</h2>
+    <p>A network is a long chain of small functions, and the chain rule is how the loss gets traced back to every weight. Work a complete backprop by hand on a tiny network, see why gradients vanish or explode, and learn what your framework is really doing.</p>
+  </a></li>
+
+  <li><a class="card" href="ai-math-foundations/lsn-1786039516006-integrals.html">
+    <h2>Integrals: Accumulation, Area &amp; the Continuous Side of Probability</h2>
+    <p>The last piece of calculus: integrals as accumulated area, the fundamental theorem, and why every density, expected value and softmax denominator is an integral. Includes a Monte Carlo estimate whose error shrinks like 1/√n.</p>
+  </a></li>
+</ol>
+
+<div class="aside">
+  <h3>Also in this repo</h3>
+  <p><strong>28 flashcards</strong> — four per lesson, in <code>ai-math-foundations/review/</code>.</p>
+  <p><strong>A memory map</strong> — a 36-node JSON Canvas of how the seven lessons connect.</p>
+  <p>The math builds toward the <a href="index.html">statistics course</a>: gradients and backpropagation are what its training lesson (Lesson 8) assumes, and integrals underpin its lessons on continuous distributions and expectation.</p>
+  <p>See the <a href="https://github.com/stylusnexus/statistics-for-ai#readme">README</a> for how to use each.</p>
+</div>
+
+<footer>
+  <p>Sources are cited as outbound links throughout. Lesson content is AI-generated and spot-checked; see the <a href="https://github.com/stylusnexus/statistics-for-ai#readme">README</a> before relying on it for anything load-bearing.</p>
+  <p>&copy; 2026 Stylus Nexus · Licensed <a href="https://creativecommons.org/licenses/by/4.0/">CC BY 4.0</a> — share and adapt with attribution.</p>
+</footer>
+
+</body>
+</html>

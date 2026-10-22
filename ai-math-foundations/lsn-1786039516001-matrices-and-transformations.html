@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Matrices: Transformations, Layers &amp; Why Shapes Matter</title>
+<style>
+  :root {
+    --bg: #0f1117; --surface: #1a1d27; --surface2: #242736; --border: #2e3248;
+    --accent: #6c8fff; --accent2: #a78bfa;
+    --green: #34d399; --yellow: #fbbf24; --red: #f87171;
+    --text: #e2e8f0; --muted: #94a3b8; --code-bg: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    max-width: 860px; margin: 0 auto; padding: 48px 24px 80px;
+    background: var(--bg); color: var(--text); line-height: 1.7; font-size: 16px;
+    font-family: -apple-system, 'Segoe UI', 'Noto Sans TC', sans-serif;
+  }
+  code, pre, .mono { font-family: 'Consolas', 'JetBrains Mono', monospace; }
+
+  .lesson-pill {
+    display: inline-block; font-size: 0.78em; font-weight: 600; letter-spacing: 0.04em;
+    color: var(--accent); background: rgba(108,143,255,0.12); border: 1px solid rgba(108,143,255,0.35);
+    border-radius: 999px; padding: 4px 12px; text-transform: uppercase; margin-bottom: 16px;
+  }
+  h1 { font-size: 1.9em; line-height: 1.25; margin: 0 0 8px; color: var(--text); }
+  .subtitle { color: var(--muted); font-size: 1.05em; margin: 0 0 40px; }
+  h2 {
+    color: var(--accent); font-size: 1.35em; margin: 48px 0 16px;
+    padding-bottom: 8px; border-bottom: 1px solid var(--border);
+  }
+  h3 { color: var(--accent2); font-size: 1.1em; margin: 28px 0 12px; }
+  p { margin: 0 0 16px; }
+  strong { color: var(--text); }
+  a { color: var(--accent); }
+  ul, ol { margin: 0 0 16px; padding-left: 1.3em; }
+  li { margin-bottom: 6px; }
+
+  .callout {
+    border-left: 3px solid var(--accent); background: var(--surface);
+    border-radius: 6px; padding: 14px 18px; margin: 20px 0;
+  }
+  .callout-label {
+    font-size: 0.75em; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    margin-bottom: 6px; display: block;
+  }
+  .callout.insight { border-color: var(--accent); }
+  .callout.insight .callout-label { color: var(--accent); }
+  .callout.pitfall { border-color: var(--red); }
+  .callout.pitfall .callout-label { color: var(--red); }
+  .callout.matters { border-color: var(--green); }
+  .callout.matters .callout-label { color: var(--green); }
+
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.92em; }
+  th, td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+  th { color: var(--muted); font-weight: 600; background: var(--surface2); }
+  .num { text-align: right; font-family: 'Consolas', 'JetBrains Mono', monospace; }
+  .table-wrap { overflow-x: auto; }
+
+  .step-box {
+    background: var(--code-bg); border: 1px solid var(--border); border-radius: 8px;
+    padding: 16px 18px; margin: 16px 0; font-family: 'Consolas', 'JetBrains Mono', monospace;
+    font-size: 0.9em; overflow-x: auto;
+  }
+  .step-box .line { margin-bottom: 4px; white-space: pre; }
+  .step-box .result { color: var(--green); font-weight: 600; }
+
+  .viz-wrap { overflow-x: auto; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin: 20px 0; }
+  .viz-wrap svg { display: block; min-width: 560px; width: 100%; height: auto; }
+  .viz-caption { color: var(--muted); font-size: 0.85em; text-align: center; margin-top: 8px; }
+
+  .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; margin: 20px 0; }
+  .card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 16px; }
+  .card h4 { margin: 0 0 8px; color: var(--text); font-size: 1em; }
+  .card p { margin: 0; color: var(--muted); font-size: 0.92em; }
+
+  .quiz { margin-top: 56px; padding-top: 24px; border-top: 1px solid var(--border); }
+  .quiz h3 { color: var(--text); margin-top: 0; }
+  .quiz-q { font-weight: 600; margin: 24px 0 10px; }
+  .quiz-opt {
+    cursor: pointer; border: 1px solid var(--border); border-radius: 8px;
+    padding: 10px 14px; margin: 6px 0; transition: background .15s;
+  }
+  .quiz-opt:hover { background: var(--surface2); }
+  .quiz-opt.correct { background: rgba(52,211,153,.15); border-color: var(--green); pointer-events: none; cursor: default; }
+  .quiz-opt.wrong { background: rgba(248,113,113,.12); border-color: var(--red); }
+  .quiz-feedback { min-height: 1.4em; margin-top: 6px; font-size: .9em; }
+  .quiz-feedback.correct { color: var(--green); }
+  .quiz-feedback.wrong { color: var(--red); }
+
+  footer { margin-top: 56px; padding-top: 20px; border-top: 1px solid var(--border); color: var(--muted); font-size: 0.88em; }
+  footer a { color: var(--muted); }
+  footer .teacher-note { margin-top: 12px; }
+
+  @media (max-width: 600px) {
+    body { padding: 32px 16px 60px; font-size: 15px; }
+    h1 { font-size: 1.55em; }
+    table { font-size: 0.85em; }
+  }
+</style>
+</head>
+<body>
+
+<span class="lesson-pill">Lesson 2 of 7 &middot; Math for AI: Linear Algebra &amp; Calculus Essentials</span>
+<h1>Matrices: Transformations, Layers &amp; Why Shapes Matter</h1>
+<p class="subtitle">A neural-network layer, an attention score table, and a batch of embeddings are all the same object: a grid of numbers that turns vectors into other vectors. Most "my model crashed" errors are really shape errors.</p>
+
+<p>In M1 you worked with vectors and the dot product: a vector is a list of numbers, and a dot product multiplies two same-length lists entry by entry and adds the results. A <strong>matrix</strong> is what you get when you stack several such lists. Almost everything a neural network does in a forward pass is matrix arithmetic, so this lesson builds three habits: reading a matrix as a function, multiplying by hand without losing track, and tracking shapes before code runs. M3 then asks what a matrix does geometrically at its core (eigenvectors, SVD, low-rank).</p>
+
+<h2>1. A matrix is a grid of numbers &mdash; and a function</h2>
+
+<p>A matrix is a rectangular grid of numbers. An <strong>m&times;n matrix</strong> has <em>m</em> rows and <em>n</em> columns, and the entry in row <em>i</em>, column <em>j</em> is written <em>A</em><sub>ij</sub>. A vector is the special case of one column (n&times;1) or one row (1&times;n).</p>
+
+<p>As data, a matrix is a table: 3 rows of embeddings, each with 2 dimensions, is a 3&times;2 matrix. As a <strong>function</strong>, a matrix takes a vector in and produces a vector out. A 2&times;2 matrix takes any 2-D vector to another 2-D vector; a 3&times;2 matrix takes a 2-D vector to a 3-D vector. Section 2 shows the arithmetic. First, the picture.</p>
+
+<p>Take the unit square with corners (0,0), (1,0), (1,1), (0,1) and push every corner through a matrix. The coloured arrows below show where the two basis vectors <em>e</em><sub>1</sub> = (1,0) and <em>e</em><sub>2</sub> = (0,1) land. They always land on the <strong>columns</strong> of the matrix, which is why the columns tell you everything about what the matrix does.</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 720 235" role="img" aria-label="The unit square under a stretch, a rotation by 90 degrees, and a shear">
+  <defs>
+    <marker id="ah1" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#6c8fff"/></marker>
+    <marker id="ah2" markerWidth="8" markerHeight="8" refX="6" refY="4" orient="auto"><path d="M0,0 L8,4 L0,8 z" fill="#34d399"/></marker>
+  </defs>
+  <g font-family="Consolas, monospace" font-size="13" fill="#94a3b8" text-anchor="middle">
+    <text x="100" y="28" fill="#e2e8f0" font-size="15" font-weight="700">Stretch</text>
+    <text x="360" y="28" fill="#e2e8f0" font-size="15" font-weight="700">Rotate 90&#176;</text>
+    <text x="580" y="28" fill="#e2e8f0" font-size="15" font-weight="700">Shear</text>
+    <!-- panel 1: stretch -->
+    <line x1="20" y1="170" x2="200" y2="170" stroke="#2e3248"/><line x1="40" y1="60" x2="40" y2="190" stroke="#2e3248"/>
+    <polygon points="40,170 100,170 100,110 40,110" fill="none" stroke="#94a3b8" stroke-dasharray="4 3"/>
+    <polygon points="40,170 160,170 160,110 40,110" fill="rgba(167,139,250,0.22)" stroke="#a78bfa" stroke-width="2"/>
+    <line x1="40" y1="170" x2="155" y2="170" stroke="#6c8fff" stroke-width="3" marker-end="url(#ah1)"/>
+    <line x1="40" y1="170" x2="40" y2="116" stroke="#34d399" stroke-width="3" marker-end="url(#ah2)"/>
+    <text x="100" y="210">[[2, 0], [0, 1]]</text>
+    <text x="100" y="228">(1,1) &#8594; (2,1)</text>
+    <!-- panel 2: rotation -->
+    <line x1="270" y1="170" x2="450" y2="170" stroke="#2e3248"/><line x1="360" y1="60" x2="360" y2="190" stroke="#2e3248"/>
+    <polygon points="360,170 420,170 420,110 360,110" fill="none" stroke="#94a3b8" stroke-dasharray="4 3"/>
+    <polygon points="360,170 360,110 300,110 300,170" fill="rgba(167,139,250,0.22)" stroke="#a78bfa" stroke-width="2"/>
+    <line x1="360" y1="170" x2="360" y2="116" stroke="#6c8fff" stroke-width="3" marker-end="url(#ah1)"/>
+    <line x1="360" y1="170" x2="306" y2="170" stroke="#34d399" stroke-width="3" marker-end="url(#ah2)"/>
+    <text x="360" y="210">[[0, -1], [1, 0]]</text>
+    <text x="360" y="228">(1,1) &#8594; (-1,1)</text>
+    <!-- panel 3: shear -->
+    <line x1="500" y1="170" x2="680" y2="170" stroke="#2e3248"/><line x1="520" y1="60" x2="520" y2="190" stroke="#2e3248"/>
+    <polygon points="520,170 580,170 580,110 520,110" fill="none" stroke="#94a3b8" stroke-dasharray="4 3"/>
+    <polygon points="520,170 580,170 640,110 580,110" fill="rgba(167,139,250,0.22)" stroke="#a78bfa" stroke-width="2"/>
+    <line x1="520" y1="170" x2="574" y2="170" stroke="#6c8fff" stroke-width="3" marker-end="url(#ah1)"/>
+    <line x1="520" y1="170" x2="576" y2="116" stroke="#34d399" stroke-width="3" marker-end="url(#ah2)"/>
+    <text x="580" y="210">[[1, 1], [0, 1]]</text>
+    <text x="580" y="228">(1,1) &#8594; (2,1)</text>
+  </g>
+</svg>
+<p class="viz-caption">Dashed: the original unit square. Purple: the square after the matrix. Blue arrow: where e<sub>1</sub> = (1,0) lands (column 1). Green arrow: where e<sub>2</sub> = (0,1) lands (column 2). Straight edges stay straight and the origin stays put &mdash; that is what "linear" means.</p>
+</div>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  Reading a matrix column by column tells you its geometry: column 1 is where (1,0) goes, column 2 is where (0,1) goes. In a neural-network layer the same reading applies in higher dimensions: each column is how much one input feature contributes to every output.
+</div>
+
+<h2>2. Matrix&ndash;vector multiplication: two ways to read the same arithmetic</h2>
+
+<p>Multiplying a matrix <em>A</em> (m&times;n) by a vector <em>x</em> (length n) gives a vector of length m. There are two equivalent ways to compute it; you should be able to do both, because different problems make one of them obvious.</p>
+
+<h3>Way 1: by rows (a stack of dot products)</h3>
+<p>Each output entry is the dot product (M1) of one row of <em>A</em> with <em>x</em>. Take <em>A</em> = [[3, 1], [0, 2]] and an embedding <em>x</em> = (2, &minus;1):</p>
+
+<div class="step-box">
+<div class="line">row 1 &middot; x = 3&times;2 + 1&times;(&minus;1) = 6 &minus; 1 = 5</div>
+<div class="line">row 2 &middot; x = 0&times;2 + 2&times;(&minus;1) = 0 &minus; 2 = &minus;2</div>
+<div class="line result">A x = (5, &minus;2)</div>
+</div>
+
+<h3>Way 2: by columns (a weighted sum of columns)</h3>
+<p>The entries of <em>x</em> are weights, and the output is the sum of the columns of <em>A</em> scaled by those weights:</p>
+
+<div class="step-box">
+<div class="line">2 &times; column 1 + (&minus;1) &times; column 2</div>
+<div class="line">= 2 &times; (3, 0) + (&minus;1) &times; (1, 2)</div>
+<div class="line">= (6, 0) + (&minus;1, &minus;2)</div>
+<div class="line result">= (5, &minus;2)</div>
+</div>
+
+<p>Same answer. The row view is how you compute it; the column view is how you <em>understand</em> it: the output is built from the columns, and <em>x</em> says how much of each to mix in. This is the same picture as section 1: the output is a blend of where the basis vectors went.</p>
+
+<h3>A non-square example: 3&times;2</h3>
+<p>A matrix does not have to be square. Let <em>W</em> be 3&times;2, which maps a 2-D input to a 3-D output, and let <em>x</em> = (4, 2):</p>
+
+<div class="step-box">
+<div class="line">W = [[ 1, 0],</div>
+<div class="line">     [ 2, 1],</div>
+<div class="line">     [&minus;1, 3]]</div>
+<div class="line"> </div>
+<div class="line">By rows:    (1&times;4 + 0&times;2,  2&times;4 + 1&times;2,  &minus;1&times;4 + 3&times;2)</div>
+<div class="line">          = (4,  10,  2)</div>
+<div class="line"> </div>
+<div class="line">By columns: 4&times;(1, 2, &minus;1) + 2&times;(0, 1, 3)</div>
+<div class="line">          = (4, 8, &minus;4) + (0, 2, 6)</div>
+<div class="line result">          = (4, 10, 2)</div>
+</div>
+
+<p>Shape check: (3&times;2)(2&times;1) = (3&times;1). The 2s in the middle matched and disappeared; the outer numbers 3 and 1 give the result's shape. A 2-D input became a 3-D output, so a non-square matrix <em>changes dimension</em>. That is exactly what a layer that expands or compresses an embedding does.</p>
+
+<h2>3. Matrix&ndash;matrix multiplication and the shape rule</h2>
+
+<p>To multiply two matrices, treat the right-hand one as a set of column vectors and multiply <em>A</em> by each in turn. Entry (<em>i</em>, <em>j</em>) of <em>AB</em> is the dot product of row <em>i</em> of <em>A</em> with column <em>j</em> of <em>B</em>. For this to work, a row of <em>A</em> and a column of <em>B</em> must have the same length. That is the <strong>shape rule</strong>:</p>
+
+<div class="step-box">
+<div class="line">(m &times; n) &middot; (n &times; p)  =  (m &times; p)</div>
+<div class="line">       &uarr;   &uarr;</div>
+<div class="line">   inner dimensions must match, then disappear</div>
+</div>
+
+<p>Applying a matrix is a function; multiplying two matrices is <strong>composing</strong> two functions. <em>AB</em> means "apply <em>B</em> first, then <em>A</em>". Take <em>A</em> = [[1, 2], [0, 1]] (a shear) and <em>B</em> = [[0, 1], [1, 0]] (swap the two coordinates):</p>
+
+<div class="step-box">
+<div class="line">AB: row 1 of A with columns of B: (1&times;0+2&times;1, 1&times;1+2&times;0) = (2, 1)</div>
+<div class="line">    row 2 of A with columns of B: (0&times;0+1&times;1, 0&times;1+1&times;0) = (1, 0)</div>
+<div class="line result">AB = [[2, 1], [1, 0]]</div>
+<div class="line"> </div>
+<div class="line">BA: row 1 of B with columns of A: (0&times;1+1&times;0, 0&times;2+1&times;1) = (0, 1)</div>
+<div class="line">    row 2 of B with columns of A: (1&times;1+0&times;0, 1&times;2+0&times;1) = (1, 2)</div>
+<div class="line result">BA = [[0, 1], [1, 2]]</div>
+</div>
+
+<p><em>AB</em> &ne; <em>BA</em>. Order matters: "shear, then swap" is a different transformation from "swap, then shear". Matrix multiplication is <strong>not commutative</strong>. It is associative, (<em>AB</em>)<em>C</em> = <em>A</em>(<em>BC</em>), which is why frameworks are free to regroup the multiplications for speed.</p>
+
+<h3>The transpose</h3>
+<p>The <strong>transpose</strong> <em>A</em><sup>T</sup> flips a matrix over its diagonal: rows become columns. An m&times;n matrix becomes n&times;m.</p>
+
+<div class="step-box">
+<div class="line">A = [[1, 2, 3],        A<sup>T</sup> = [[1, 4],</div>
+<div class="line">     [4, 5, 6]]              [2, 5],</div>
+<div class="line">                             [3, 6]]</div>
+<div class="line">  2 &times; 3                        3 &times; 2</div>
+</div>
+
+<p>Two facts you will use constantly: the dot product from M1 is a matrix product, <em>x</em>&middot;<em>y</em> = <em>x</em><sup>T</sup><em>y</em> (a 1&times;n times an n&times;1 gives a 1&times;1), and a product reverses under transpose: (<em>AB</em>)<sup>T</sup> = <em>B</em><sup>T</sup><em>A</em><sup>T</sup>.</p>
+
+<h3>Debugging shape errors</h3>
+<p>Before you run anything, write the shape of each operand and check that the inner numbers match. This table covers the errors you will actually see in model code. Here <em>B</em> is a batch size, and a weight matrix is stored as (out &times; in).</p>
+
+<div class="viz-wrap">
+<svg viewBox="0 0 720 150" role="img" aria-label="Shape diagram: batch by 3 times 3 by 2 equals batch by 2">
+  <g font-family="Consolas, monospace" font-size="14" text-anchor="middle">
+    <rect x="40" y="25" width="150" height="90" rx="6" fill="rgba(108,143,255,0.15)" stroke="#6c8fff" stroke-width="2"/>
+    <text x="115" y="68" fill="#e2e8f0">X</text><text x="115" y="88" fill="#94a3b8">B &times; 3</text>
+    <text x="225" y="76" fill="#94a3b8" font-size="22">&times;</text>
+    <rect x="260" y="25" width="100" height="90" rx="6" fill="rgba(167,139,250,0.15)" stroke="#a78bfa" stroke-width="2"/>
+    <text x="310" y="68" fill="#e2e8f0">W<tspan font-size="10" dy="-6">T</tspan></text><text x="310" y="88" fill="#94a3b8">3 &times; 2</text>
+    <text x="395" y="76" fill="#94a3b8" font-size="22">=</text>
+    <rect x="430" y="25" width="100" height="90" rx="6" fill="rgba(52,211,153,0.15)" stroke="#34d399" stroke-width="2"/>
+    <text x="480" y="68" fill="#e2e8f0">Y</text><text x="480" y="88" fill="#94a3b8">B &times; 2</text>
+    <path d="M190,128 L190,138 L260,138 L260,128" fill="none" stroke="#fbbf24" stroke-width="2"/>
+    <text x="225" y="148" fill="#fbbf24" font-size="12">3 = 3: match, then vanish</text>
+    <text x="625" y="62" fill="#94a3b8" font-size="12">result takes the</text>
+    <text x="625" y="80" fill="#94a3b8" font-size="12">outer numbers:</text>
+    <text x="625" y="98" fill="#e2e8f0" font-size="12">B and 2</text>
+  </g>
+</svg>
+<p class="viz-caption">The inner dimension (yellow) is consumed by the sum inside each dot product; the outer dimensions survive.</p>
+</div>
+
+<div class="table-wrap">
+<table>
+  <thead><tr><th>What you wrote</th><th>Shapes</th><th>What happens</th><th>Fix</th></tr></thead>
+  <tbody>
+    <tr><td><code>X @ W</code> with W stored (out&times;in)</td><td>(32&times;512) @ (256&times;512)</td><td>Error: inner 512 &ne; 256</td><td>Transpose: <code>X @ W.T</code> gives (32&times;256)</td></tr>
+    <tr><td><code>W @ x</code> with a batch</td><td>(256&times;512) @ (32&times;512)</td><td>Error: inner 512 &ne; 32</td><td>Put examples in rows and use <code>X @ W.T</code>, or transpose X</td></tr>
+    <tr><td>Bias of wrong shape</td><td>(32&times;256) + (32,)</td><td>Error, or a silent wrong broadcast if sizes happen to line up</td><td>Bias has one entry per output: shape (256,)</td></tr>
+    <tr><td><code>Q @ K</code> instead of <code>Q @ K.T</code></td><td>(n&times;d) @ (n&times;d)</td><td>Error unless n = d; if n = d it runs and is silently wrong</td><td>Transpose K: (n&times;d) @ (d&times;n) = (n&times;n)</td></tr>
+    <tr><td><code>*</code> instead of <code>@</code></td><td>(2&times;2) * (2&times;2)</td><td>Runs: multiplies entry by entry, not a matrix product</td><td>Use <code>@</code> for matrix products</td></tr>
+  </tbody>
+</table>
+</div>
+
+<h2>4. A neural-network layer, worked by hand</h2>
+
+<p>A fully connected layer computes <strong><em>y</em> = <em>W x</em> + <em>b</em></strong>. <em>x</em> is the input vector, <em>W</em> is the <strong>weight matrix</strong> (learned), <em>b</em> is the <strong>bias</strong> vector (learned), and <em>y</em> is the output. Say a toy layer takes 3 input features and produces 2 outputs, so <em>W</em> is 2&times;3 (out &times; in), <em>b</em> has length 2, and <em>x</em> has length 3.</p>
+
+<div class="step-box">
+<div class="line">W = [[0.5, &minus;1.0,  2.0],     b = (&minus;1, &minus;2)     x = (2, 1, 4)</div>
+<div class="line">     [1.0,  0.5, &minus;0.5]]</div>
+<div class="line"> </div>
+<div class="line">W x, row 1: 0.5&times;2 + (&minus;1.0)&times;1 + 2.0&times;4 = 1 &minus; 1 + 8 = 8</div>
+<div class="line">W x, row 2: 1.0&times;2 + 0.5&times;1 + (&minus;0.5)&times;4 = 2 + 0.5 &minus; 2 = 0.5</div>
+<div class="line">W x = (8, 0.5)</div>
+<div class="line"> </div>
+<div class="line">y = W x + b = (8 &minus; 1, 0.5 &minus; 2)</div>
+<div class="line result">y = (7, &minus;1.5)</div>
+</div>
+
+<p>Shapes: (2&times;3)(3) + (2) = (2). The layer has 2&times;3 + 2 = 8 learnable numbers. Training (M4 onward, and the statistics course, Lesson 8, <em>The Statistics Behind Training a Model</em>) is the search for good values for exactly these entries. Row <em>i</em> of <em>W</em> is the "detector" for output <em>i</em>: its dot product with the input says how much the input matches that pattern.</p>
+
+<h3>Batches are matrices</h3>
+<p>Models process many examples at once. Stack 3 inputs as the rows of a matrix <em>X</em> (shape 3&times;3: batch &times; features). Because <em>W</em> is stored out&times;in, you compute <em>Y</em> = <em>X W</em><sup>T</sup> + <em>b</em>, adding <em>b</em> to every row:</p>
+
+<div class="step-box">
+<div class="line">X = [[2, 1, 4], [0, 2, 1], [1, 1, 1]]          (3&times;3: batch &times; features)</div>
+<div class="line"> </div>
+<div class="line">example 2: row 1 of W: 0&times;0.5 + 2&times;(&minus;1) + 1&times;2 = 0;  row 2: 0 + 1 &minus; 0.5 = 0.5</div>
+<div class="line">example 3: row 1 of W: 0.5 &minus; 1 + 2 = 1.5;          row 2: 1 + 0.5 &minus; 0.5 = 1</div>
+<div class="line">X W<sup>T</sup> = [[8, 0.5], [0, 0.5], [1.5, 1]]       (3&times;3)(3&times;2) = (3&times;2)</div>
+<div class="line">add b = (&minus;1, &minus;2) to every row:</div>
+<div class="line result">Y = [[7, &minus;1.5], [&minus;1, &minus;1.5], [0.5, &minus;1]]</div>
+</div>
+
+<p>The first row of <em>Y</em> matches the single-example result above. A batch costs the same arithmetic per example, but one big matrix product runs far faster on a GPU than many small ones. Hence the convention: the first axis of every tensor is the batch.</p>
+
+<h2>5. Attention scores: shape bookkeeping only</h2>
+
+<p>In a transformer, each token gets a <strong>query</strong> vector and a <strong>key</strong> vector. A token's score for another token is the dot product of its query with the other's key. All scores at once are one matrix product, <em>Q K</em><sup>T</sup>. This lesson only tracks the shapes; how the scores are used is a different topic.</p>
+
+<p>Toy case: 3 tokens, 2 dimensions per vector. <em>Q</em> and <em>K</em> are each 3&times;2 (tokens &times; dims):</p>
+
+<div class="step-box">
+<div class="line">Q = [[1, 0], [0, 1], [1, 1]]      K = [[2, 1], [0, 3], [1, 1]]</div>
+<div class="line"> </div>
+<div class="line">K<sup>T</sup> = [[2, 0, 1],</div>
+<div class="line">      [1, 3, 1]]                       (2&times;3)</div>
+<div class="line"> </div>
+<div class="line">token 1: q = (1,0): (1&times;2+0&times;1, 1&times;0+0&times;3, 1&times;1+0&times;1) = (2, 0, 1)</div>
+<div class="line">token 2: q = (0,1): (0+1, 0+3, 0+1)                         = (1, 3, 1)</div>
+<div class="line">token 3: q = (1,1): (2+1, 0+3, 1+1)                         = (3, 3, 2)</div>
+<div class="line result">Q K<sup>T</sup> = [[2, 0, 1], [1, 3, 1], [3, 3, 2]]    (3&times;2)(2&times;3) = (3&times;3)</div>
+</div>
+
+<p>Entry (<em>i</em>, <em>j</em>) is "how strongly token <em>i</em>'s query matches token <em>j</em>'s key." The result is always <em>n</em>&times;<em>n</em> for <em>n</em> tokens, no matter how many dimensions the vectors have. The dimension <em>d</em> is the inner dimension and vanishes. This is why long contexts are expensive: at <em>n</em> = 4,096 tokens the score table has 4,096&sup2; = 16,777,216 entries per attention head, and doubling the context quadruples that.</p>
+
+<h2>6. Identity and inverse</h2>
+
+<p>The <strong>identity matrix</strong> <em>I</em> has 1s on the diagonal and 0s elsewhere. It does nothing: <em>I x</em> = <em>x</em> and <em>AI</em> = <em>IA</em> = <em>A</em>. It is the matrix version of the number 1.</p>
+
+<p>The <strong>inverse</strong> <em>A</em><sup>&minus;1</sup> of a matrix <em>A</em> undoes it: <em>A</em><sup>&minus;1</sup><em>A</em> = <em>A A</em><sup>&minus;1</sup> = <em>I</em>. For a 2&times;2 matrix [[<em>a</em>, <em>b</em>], [<em>c</em>, <em>d</em>]] the inverse is 1/(<em>ad</em> &minus; <em>bc</em>) &times; [[<em>d</em>, &minus;<em>b</em>], [&minus;<em>c</em>, <em>a</em>]]. The number <em>ad</em> &minus; <em>bc</em> is the <strong>determinant</strong>.</p>
+
+<div class="step-box">
+<div class="line">A = [[2, 1], [1, 1]]      determinant = 2&times;1 &minus; 1&times;1 = 1</div>
+<div class="line">A<sup>&minus;1</sup> = (1/1) &times; [[1, &minus;1], [&minus;1, 2]]</div>
+<div class="line"> </div>
+<div class="line">A A<sup>&minus;1</sup> = [[2&times;1+1&times;(&minus;1), 2&times;(&minus;1)+1&times;2],</div>
+<div class="line">         [1&times;1+1&times;(&minus;1), 1&times;(&minus;1)+1&times;2]]</div>
+<div class="line result">      = [[1, 0], [0, 1]] = I</div>
+</div>
+
+<h3>When an inverse exists</h3>
+<p>Only a <strong>square</strong> matrix can have an inverse, and even then only if its determinant is not zero. Zero determinant means the matrix squashes space and loses information. Take <em>S</em> = [[1, 2], [2, 4]]: its second column is twice its first, so it flattens the whole plane onto a line. Its determinant is 1&times;4 &minus; 2&times;2 = 0, and it sends the nonzero vector (2, &minus;1) to (1&times;2 + 2&times;(&minus;1), 2&times;2 + 4&times;(&minus;1)) = (0, 0). Two different inputs now give the same output, so no function can recover which one you started with. This situation, redundant columns, is called <strong>rank deficiency</strong>; M3 makes it precise.</p>
+
+<h3>Why you almost never compute one in ML</h3>
+<ul>
+  <li><strong>Many matrices in ML have no inverse.</strong> A layer mapping 512 features to 256 is 256&times;512, not square. There is nothing to invert.</li>
+  <li><strong>It is expensive.</strong> Inverting an <em>n</em>&times;<em>n</em> matrix costs on the order of <em>n</em>&sup3; operations; for <em>n</em> = 4,096 that is about 68.7 billion, for a matrix that holds 16.8 million numbers.</li>
+  <li><strong>It is numerically fragile.</strong> A matrix that is nearly singular has an inverse with huge entries, and rounding errors blow up.</li>
+  <li><strong>You rarely need the inverse itself.</strong> If you want <em>x</em> in <em>A x</em> = <em>b</em>, call a solver (for example <code>solve</code> or <code>lstsq</code>), which finds <em>x</em> directly and more accurately. Writing <em>A</em><sup>&minus;1</sup><em>b</em> on paper is fine; calling <code>inv</code> in code usually is not.</li>
+</ul>
+
+<h2>7. Linear vs. non-linear: why layers need an activation</h2>
+
+<p>A function <em>f</em> is <strong>linear</strong> if <em>f</em>(<em>a x</em> + <em>c y</em>) = <em>a f</em>(<em>x</em>) + <em>c f</em>(<em>y</em>): scaling and adding inputs scales and adds outputs. Every matrix is linear. (With the bias <em>b</em> it is technically "affine", a linear map plus a shift, and the argument below still holds.)</p>
+
+<p>Here is the consequence. Stack two layers with no activation between them. Let layer 1 be <em>W</em><sub>1</sub> = [[1, 2], [0, 1]] and layer 2 be <em>W</em><sub>2</sub> = [[3, 0], [1, 1]], and feed in <em>x</em> = (1, &minus;1):</p>
+
+<div class="step-box">
+<div class="line">Layer by layer:</div>
+<div class="line">  W<sub>1</sub> x  = (1&times;1+2&times;(&minus;1), 0&times;1+1&times;(&minus;1)) = (&minus;1, &minus;1)</div>
+<div class="line">  W<sub>2</sub>(W<sub>1</sub> x) = (3&times;(&minus;1)+0, 1&times;(&minus;1)+1&times;(&minus;1)) = (&minus;3, &minus;2)</div>
+<div class="line"> </div>
+<div class="line">Multiply the matrices first:</div>
+<div class="line">  W<sub>2</sub> W<sub>1</sub> = [[3&times;1+0&times;0, 3&times;2+0&times;1], [1&times;1+1&times;0, 1&times;2+1&times;1]] = [[3, 6], [1, 3]]</div>
+<div class="line">  (W<sub>2</sub> W<sub>1</sub>) x = (3&times;1+6&times;(&minus;1), 1&times;1+3&times;(&minus;1))</div>
+<div class="line result">  = (&minus;3, &minus;2)   same answer</div>
+</div>
+
+<p>Two layers are one layer, <em>W</em> = <em>W</em><sub>2</sub><em>W</em><sub>1</sub>. With biases it is the same: <em>W</em><sub>2</sub>(<em>W</em><sub>1</sub><em>x</em> + <em>b</em><sub>1</sub>) + <em>b</em><sub>2</sub> = (<em>W</em><sub>2</sub><em>W</em><sub>1</sub>)<em>x</em> + (<em>W</em><sub>2</sub><em>b</em><sub>1</sub> + <em>b</em><sub>2</sub>). A hundred linear layers are still one matrix, so depth buys nothing. Now put a <strong>ReLU</strong> between them, a function that replaces every negative entry with 0:</p>
+
+<div class="step-box">
+<div class="line">W<sub>1</sub> x = (&minus;1, &minus;1)   &rarr;  ReLU  &rarr;  (0, 0)   &rarr;  W<sub>2</sub> (0, 0) = (0, 0)</div>
+<div class="line result">With ReLU the output is (0, 0), not (&minus;3, &minus;2): no single matrix does this.</div>
+</div>
+
+<p>No matrix could produce both this result and the earlier one, because a matrix sends (1, &minus;1) to one fixed place. The ReLU bends space, and that bend is what lets a stack of layers represent things a single matrix cannot. Matrices do the mixing; the non-linearity (activation function) makes depth worth having.</p>
+
+<div class="callout insight">
+  <span class="callout-label">Key Insight</span>
+  A network is alternating matrix multiplications (linear mixing) and simple non-linear functions. The matrices carry the learned parameters; the non-linearities are what stop the whole thing from collapsing into one matrix.
+</div>
+
+<h2>8. Why this matters for building AI systems</h2>
+
+<div class="callout matters">
+  <span class="callout-label">Why This Matters</span>
+  Nearly all the compute in a neural network is matrix multiplication, and nearly all the confusing errors are shape mismatches. Fluent shape-reading saves more debugging time than any other single skill in this lesson.
+</div>
+
+<h3>Parameter counts are shape arithmetic</h3>
+<p>A layer from 768 inputs to 3,072 outputs has a 3,072&times;768 weight matrix plus 3,072 biases: 3,072 &times; 768 + 3,072 = 2,362,368 parameters. You can size a model from its shapes alone, without running it.</p>
+
+<h3>Write the shape in a comment</h3>
+<p>Annotate each line, for example <code># (B, T, d) @ (d, d_ff) -> (B, T, d_ff)</code>. If the inner dimensions do not match when you write the comment, the code will not run either. This habit catches the silent cases from section 3 before they cost a training run.</p>
+
+<h3>What comes next</h3>
+<p>You now know what a matrix does to one vector. M3 asks the follow-up: for a given matrix, which directions does it only stretch (eigenvectors), how can any matrix be split into rotate-stretch-rotate steps (SVD), and why a big matrix with redundant columns can be replaced by two thin ones (low-rank, the idea behind LoRA-style fine-tuning).</p>
+
+<h2>Recap</h2>
+<ul>
+  <li>A matrix is a grid of numbers and a function from vectors to vectors. Its columns are where the basis vectors land.</li>
+  <li><em>A x</em> can be computed by rows (a dot product per output) or by columns (a weighted sum of the columns). Same answer.</li>
+  <li>(m&times;n)(n&times;p) = (m&times;p): the inner dimensions must match and then vanish. <em>AB</em> &ne; <em>BA</em>, and (<em>AB</em>)<sup>T</sup> = <em>B</em><sup>T</sup><em>A</em><sup>T</sup>.</li>
+  <li>A layer is <em>y</em> = <em>W x</em> + <em>b</em>; a batch is <em>Y</em> = <em>X W</em><sup>T</sup> + <em>b</em>; attention scores are <em>Q K</em><sup>T</sup>, an <em>n</em>&times;<em>n</em> table.</li>
+  <li>The identity does nothing. An inverse exists only for square matrices with nonzero determinant, and in practice you solve systems instead of inverting.</li>
+  <li>Stacked linear layers collapse into one matrix; an activation such as ReLU between them is what makes depth useful.</li>
+</ul>
+
+<div class="quiz">
+  <h3>&#9989; Check Yourself</h3>
+
+  <p class="quiz-q">1. A weight matrix W has shape (256&times;512) and a batch X has shape (32&times;512). Which expression gives a valid (32&times;256) result?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">X @ W</div>
+    <div class="quiz-opt">W @ X</div>
+    <div class="quiz-opt">X @ W.T</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">2. Using A = [[3, 1], [0, 2]] and x = (2, &minus;1), what is A x?</p>
+  <div class="quiz-options" data-answer="0">
+    <div class="quiz-opt">(5, &minus;2)</div>
+    <div class="quiz-opt">(6, &minus;2)</div>
+    <div class="quiz-opt">(7, 0)</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">3. For 3 tokens with 64-dimensional query and key vectors, what is the shape of Q K<sup>T</sup>, and what happens to the 64?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">(3&times;64); the 64 stays as a column count</div>
+    <div class="quiz-opt">(3&times;3); the 64 is the inner dimension and vanishes</div>
+    <div class="quiz-opt">(64&times;64); the 3 is the inner dimension and vanishes</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">4. Which matrix has no inverse?</p>
+  <div class="quiz-options" data-answer="2">
+    <div class="quiz-opt">[[2, 1], [1, 1]], determinant 1</div>
+    <div class="quiz-opt">[[1, 0], [0, 1]], the identity</div>
+    <div class="quiz-opt">[[1, 2], [2, 4]], determinant 0</div>
+  </div>
+  <div class="quiz-feedback"></div>
+
+  <p class="quiz-q">5. A network has 10 layers of the form y = Wx + b and no activation functions. How does it compare to a single layer?</p>
+  <div class="quiz-options" data-answer="1">
+    <div class="quiz-opt">It can represent strictly more functions, because each layer adds capacity</div>
+    <div class="quiz-opt">It can represent only what one layer of the form y = Mx + c can, because the matrices multiply into one</div>
+    <div class="quiz-opt">It cannot be trained, because the matrices do not commute</div>
+  </div>
+  <div class="quiz-feedback"></div>
+</div>
+
+<footer>
+  <p><strong>Sources</strong></p>
+  <ul>
+    <li><a href="https://en.wikipedia.org/wiki/Matrix_(mathematics)" target="_blank">Matrix (mathematics) &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Matrix_multiplication" target="_blank">Matrix multiplication &mdash; Wikipedia</a></li>
+    <li><a href="https://en.wikipedia.org/wiki/Invertible_matrix" target="_blank">Invertible matrix &mdash; Wikipedia</a></li>
+    <li><a href="https://arxiv.org/abs/1706.03762" target="_blank">Attention Is All You Need &mdash; Vaswani et al., arXiv:1706.03762</a></li>
+  </ul>
+  <p class="teacher-note">Stuck on anything above, or want more worked examples with your own data? Ask your AI teacher (Claude) &mdash; you can pick up this conversation any time.</p>
+</footer>
+
+<script>
+const hints = [
+  "✗ Not quite — re-check the shape rule: the inner dimensions must match, and W is stored (out × in).",
+  "✗ Not quite — redo the row-by-row dot products: each output entry is one row of A dotted with x.",
+  "✗ Not quite — re-think which dimension is inner (it vanishes) and which are outer (they set the result's shape).",
+  "✗ Not quite — re-think what a zero determinant says about whether the matrix loses information.",
+  "✗ Not quite — re-think what happens when you multiply W₂W₁ without an activation between the layers."
+];
+document.querySelectorAll(".quiz-options").forEach((group, qi) => {
+  const fb = group.nextElementSibling;
+  const opts = group.querySelectorAll(".quiz-opt");
+  let solved = false;
+  opts.forEach((opt, i) => {
+    opt.addEventListener("click", () => {
+      if (solved) return;
+      const ok = i === Number(group.dataset.answer);
+      opts.forEach(o => o.classList.remove("wrong"));
+      if (ok) {
+        solved = true;
+        opt.classList.add("correct");
+        fb.textContent = "✓ Correct! " + opt.textContent.trim();
+        fb.className = "quiz-feedback show correct";
+      } else {
+        opt.classList.add("wrong");
+        fb.textContent = hints[qi];
+        fb.className = "quiz-feedback show wrong";
+      }
+    });
+  });
+});
+
+window.addEventListener("message", (e) => {
+  if (e.data && e.data.type === "engram-quest-theme") {
+    document.body.classList.toggle("light", !e.data.dark);
+  }
+});
+</script>
+
+</body>
+</html>

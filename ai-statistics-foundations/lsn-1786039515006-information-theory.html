@@ -112,7 +112,7 @@
 </head>
 <body>
 
-<span class="lesson-pill">Lesson 7 of 10 &middot; Statistics for AI, GenAI &amp; LLMs</span>
+<span class="lesson-pill">Lesson 7 of 19 &middot; Statistics for AI, GenAI &amp; LLMs</span>
 <h1>Information Theory for AI: Entropy, Cross-Entropy &amp; KL Divergence</h1>
 <p class="subtitle">The three quantities that measure "how surprised" a model is — and the actual loss function running underneath every LLM's training loop.</p>
 
@@ -333,7 +333,7 @@
 
 <script>
 document.querySelectorAll(".quiz-options").forEach(group => {
-  const fb = group.parentElement.querySelector(".quiz-feedback");
+  const fb = group.nextElementSibling;
   const opts = group.querySelectorAll(".quiz-opt");
   let solved = false;
   opts.forEach((opt, i) => {
